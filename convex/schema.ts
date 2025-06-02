@@ -49,8 +49,6 @@ const applicationTables = {
       S5: v.number(),
     }),
     imageUrl: v.optional(v.string()),
-  }).searchIndex("search_aliases", {
-    searchField: "aliases",
   }).searchIndex("search_display_name", {
     searchField: "display_name",
   }),

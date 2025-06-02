@@ -4,6 +4,10 @@ import { api } from "../../convex/_generated/api";
 import { CharacterPool } from "./CharacterPool";
 import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
+import { CostTables } from "./CostTables";
+import { DraftProgress } from "./DraftProgress";
+import { TeamTest } from "./TeamTest";
+import { Contact } from "./Contact";
 import { Id } from "../../convex/_generated/dataModel";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
@@ -98,6 +102,7 @@ export function DraftingInterface() {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"draft" | "costs" | "teamtest" | "contact">("draft");
 
   const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
   const currentPhase = currentDraftOrder[draftState.currentStep];
@@ -258,7 +263,55 @@ export function DraftingInterface() {
 
   return (
     <div className="space-y-6">
-      <DraftControls
+      {/* Tab Navigation */}
+      <div className="bg-gray-800 rounded-lg border border-gray-700">
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab("draft")}
+            className={`px-6 py-3 font-medium rounded-tl-lg transition-colors ${
+              activeTab === "draft"
+                ? "bg-cyan-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Draft
+          </button>
+          <button
+            onClick={() => setActiveTab("teamtest")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "teamtest"
+                ? "bg-cyan-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Team Test
+          </button>
+          <button
+            onClick={() => setActiveTab("costs")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "costs"
+                ? "bg-cyan-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Cost Tables
+          </button>
+          <button
+            onClick={() => setActiveTab("contact")}
+            className={`px-6 py-3 font-medium rounded-tr-lg transition-colors ${
+              activeTab === "contact"
+                ? "bg-cyan-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Contact
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "draft" ? (
+        <>
+          <DraftControls
         draftState={draftState}
         onRuleSetChange={(ruleSet) => setDraftState(prev => ({ ...prev, ruleSet }))}
         onDraftModeChange={(draftMode) => setDraftState(prev => ({ ...prev, draftMode }))}
@@ -267,6 +320,11 @@ export function DraftingInterface() {
         currentPhase={currentPhase}
         isDraftComplete={isDraftComplete}
         canUndo={draftState.history.length > 0}
+      />
+
+      <DraftProgress
+        currentDraftOrder={currentDraftOrder}
+        currentStep={draftState.currentStep}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -299,6 +357,20 @@ export function DraftingInterface() {
         currentPhase={currentPhase}
         isDraftComplete={isDraftComplete}
       />
+        </>
+      ) : activeTab === "teamtest" ? (
+        <TeamTest
+          characters={characters}
+          lightcones={lightcones}
+        />
+      ) : activeTab === "costs" ? (
+        <CostTables
+          characters={characters}
+          lightcones={lightcones}
+        />
+      ) : (
+        <Contact />
+      )}
     </div>
   );
 }

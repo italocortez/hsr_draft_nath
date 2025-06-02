@@ -4,7 +4,18 @@ import { v } from "convex/values";
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("character").collect();
+    const characters = await ctx.db.query("character").collect();
+    // Only return the fields we actually use
+    return characters.map(character => ({
+      _id: character._id,
+      display_name: character.display_name,
+      aliases: character.aliases,
+      element: character.element,
+      path: character.path,
+      rarity: character.rarity,
+      cost: character.cost,
+      imageUrl: character.imageUrl,
+    }));
   },
 });
 
@@ -12,7 +23,17 @@ export const search = query({
   args: { searchTerm: v.string() },
   handler: async (ctx, args) => {
     if (!args.searchTerm.trim()) {
-      return await ctx.db.query("character").collect();
+      const characters = await ctx.db.query("character").collect();
+      return characters.map(character => ({
+        _id: character._id,
+        display_name: character.display_name,
+        aliases: character.aliases,
+        element: character.element,
+        path: character.path,
+        rarity: character.rarity,
+        cost: character.cost,
+        imageUrl: character.imageUrl,
+      }));
     }
     
     const results = await ctx.db
@@ -22,7 +43,16 @@ export const search = query({
       )
       .collect();
     
-    return results;
+    return results.map(character => ({
+      _id: character._id,
+      display_name: character.display_name,
+      aliases: character.aliases,
+      element: character.element,
+      path: character.path,
+      rarity: character.rarity,
+      cost: character.cost,
+      imageUrl: character.imageUrl,
+    }));
   },
 });
 

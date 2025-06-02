@@ -100,7 +100,7 @@ export function LightconeSelector({
           />
           
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 bg-gray-700 border border-gray-600 rounded mt-1 max-h-48 overflow-y-auto z-10">
+            <div className="absolute top-full left-0 right-0 bg-gray-700 border border-gray-600 rounded mt-1 max-h-48 overflow-y-auto z-50">
               {filteredLightcones.slice(0, 20).map((lightcone) => (
                 <button
                   key={lightcone._id}
