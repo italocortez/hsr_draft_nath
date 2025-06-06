@@ -6,6 +6,8 @@ interface DraftControlsProps {
   onDraftModeChange: (mode: DraftMode) => void;
   onUndo: () => void;
   onReset: () => void;
+  onStartDraft: () => void;
+  onPauseDraft: () => void;
   currentPhase?: { team: string; action: string };
   isDraftComplete: boolean;
   canUndo: boolean;
@@ -17,6 +19,8 @@ export function DraftControls({
   onDraftModeChange,
   onUndo,
   onReset,
+  onStartDraft,
+  onPauseDraft,
   currentPhase,
   isDraftComplete,
   canUndo,
@@ -30,7 +34,8 @@ export function DraftControls({
             <select
               value={draftState.ruleSet}
               onChange={(e) => onRuleSetChange(e.target.value as RuleSet)}
-              className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              disabled={draftState.isDraftStarted}
+              className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
             >
               <option value="memoryofchaos">Memory of Chaos</option>
               <option value="apocalypticshadow">Apocalyptic Shadow</option>
@@ -42,8 +47,8 @@ export function DraftControls({
             <select
               value={draftState.draftMode}
               onChange={(e) => onDraftModeChange(e.target.value as DraftMode)}
-              className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              disabled={draftState.currentStep > 0}
+              disabled={draftState.currentStep > 0 || draftState.isDraftStarted}
+              className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
             >
               <option value="4ban">4 Ban Mode</option>
               <option value="6ban">6 Ban Mode</option>
@@ -52,9 +57,31 @@ export function DraftControls({
         </div>
 
         <div className="flex items-center gap-3">
+          {!draftState.isDraftStarted && !isDraftComplete && (
+            <button
+              onClick={onStartDraft}
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium"
+            >
+              Start Draft
+            </button>
+          )}
+          
+          {draftState.isDraftStarted && !isDraftComplete && (
+            <button
+              onClick={onPauseDraft}
+              className={`px-4 py-2 text-white rounded transition-colors ${
+                draftState.isTimerActive 
+                  ? "bg-yellow-600 hover:bg-yellow-700" 
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {draftState.isTimerActive ? "Pause" : "Resume"}
+            </button>
+          )}
+
           <button
             onClick={onUndo}
-            disabled={!canUndo}
+            disabled={!canUndo || !draftState.isDraftStarted}
             className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Undo
@@ -66,20 +93,6 @@ export function DraftControls({
             Reset
           </button>
         </div>
-      </div>
-
-      <div className="mt-4 text-center">
-        {isDraftComplete ? (
-          <div className="text-green-400 font-bold text-lg">Draft Complete!</div>
-        ) : currentPhase ? (
-          <div className="text-white">
-            <span className="font-medium">Current Phase:</span>{" "}
-            <span className={`font-bold ${currentPhase.team === "blue" ? "text-blue-400" : "text-red-400"}`}>
-              {currentPhase.team === "blue" ? "Blue Team" : "Red Team"}
-            </span>{" "}
-            <span className="capitalize">{currentPhase.action}</span>
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ interface TeamAreaProps {
     name: string;
     drafted: DraftedCharacter[];
     banned: Id<"character">[];
+    reserveTime: number;
   };
   characters: any[];
   lightcones: any[];
@@ -49,6 +50,8 @@ export function TeamArea({
       return total + cost;
     }, 0);
   };
+
+
 
   const handleNameSubmit = () => {
     onTeamNameChange(team, tempName);

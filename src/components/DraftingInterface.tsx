@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { CharacterPool } from "./CharacterPool";
@@ -8,6 +8,8 @@ import { CostTables } from "./CostTables";
 import { DraftProgress } from "./DraftProgress";
 import { TeamTest } from "./TeamTest";
 import { Contact } from "./Contact";
+import { DraftTimer } from "./DraftTimer";
+import { DraftingSettings } from "./DraftingSettings";
 import { Id } from "../../convex/_generated/dataModel";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
@@ -22,21 +24,32 @@ export interface DraftedCharacter {
   lightconeRank?: LightconeRank;
 }
 
+export interface DraftSettings {
+  phaseTime: number; // in seconds
+  reserveTime: number; // in seconds
+}
+
 export interface DraftState {
   blueTeam: {
     name: string;
     drafted: DraftedCharacter[];
     banned: Id<"character">[];
+    reserveTime: number; // in seconds
   };
   redTeam: {
     name: string;
     drafted: DraftedCharacter[];
     banned: Id<"character">[];
+    reserveTime: number; // in seconds
   };
   currentStep: number;
   ruleSet: RuleSet;
   draftMode: DraftMode;
   history: DraftState[];
+  phaseTimer: number; // in seconds
+  isTimerActive: boolean;
+  isDraftStarted: boolean;
+  settings: DraftSettings;
 }
 
 const DRAFT_ORDERS = {
@@ -88,17 +101,27 @@ const DRAFT_ORDERS = {
   ],
 };
 
+const DEFAULT_PHASE_TIME = 30; // 30 seconds per phase
+const DEFAULT_RESERVE_TIME = 480; // 8 minutes (480 seconds) reserve time per team
+
 export function DraftingInterface() {
   const characters = useQuery(api.characters.list) || [];
   const lightcones = useQuery(api.lightcones.list) || [];
 
   const [draftState, setDraftState] = useState<DraftState>({
-    blueTeam: { name: "Blue Team", drafted: [], banned: [] },
-    redTeam: { name: "Red Team", drafted: [], banned: [] },
+    blueTeam: { name: "Blue Team", drafted: [], banned: [], reserveTime: DEFAULT_RESERVE_TIME },
+    redTeam: { name: "Red Team", drafted: [], banned: [], reserveTime: DEFAULT_RESERVE_TIME },
     currentStep: 0,
     ruleSet: "memoryofchaos",
     draftMode: "4ban",
     history: [],
+    phaseTimer: DEFAULT_PHASE_TIME,
+    isTimerActive: false,
+    isDraftStarted: false,
+    settings: {
+      phaseTime: DEFAULT_PHASE_TIME,
+      reserveTime: DEFAULT_RESERVE_TIME,
+    },
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,6 +130,70 @@ export function DraftingInterface() {
   const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
   const currentPhase = currentDraftOrder[draftState.currentStep];
   const isDraftComplete = draftState.currentStep >= currentDraftOrder.length;
+
+
+
+
+
+  // Timer effect
+  useEffect(() => {
+    if (!draftState.isTimerActive || isDraftComplete) return;
+
+    const interval = setInterval(() => {
+      setDraftState(prev => {
+        if (prev.phaseTimer > 0) {
+          // Phase timer counting down
+          return {
+            ...prev,
+            phaseTimer: prev.phaseTimer - 1,
+          };
+        } else {
+          // Phase timer expired, use reserve time
+          const currentTeam = currentPhase?.team === "blue" ? "blueTeam" : "redTeam";
+          const newReserveTime = prev[currentTeam].reserveTime - 1;
+
+          if (newReserveTime <= 0) {
+            return {
+              ...prev,
+              [currentTeam]: {
+                ...prev[currentTeam],
+                reserveTime: 0,
+              },
+            };
+          }
+
+          return {
+            ...prev,
+            [currentTeam]: {
+              ...prev[currentTeam],
+              reserveTime: newReserveTime,
+            },
+          };
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [draftState.isTimerActive, isDraftComplete, currentPhase, characters]);
+
+  // Auto-select when reserve time hits 0
+  useEffect(() => {
+    if (!draftState.isDraftStarted || isDraftComplete || !currentPhase) return;
+    
+    const currentTeam = currentPhase.team === "blue" ? draftState.blueTeam : draftState.redTeam;
+    
+    if (currentTeam.reserveTime === 0 && draftState.phaseTimer <= 0) {
+      const selectedCharacters = getAllSelectedCharacters();
+      const availableCharacters = characters.filter(char => 
+        !selectedCharacters.includes(char._id)
+      );
+
+      if (availableCharacters.length > 0) {
+        const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+        handleCharacterSelect(randomCharacter._id, true);
+      }
+    }
+  }, [draftState.blueTeam.reserveTime, draftState.redTeam.reserveTime, draftState.phaseTimer]);
 
   const getAllSelectedCharacters = () => {
     return [
@@ -141,8 +228,9 @@ export function DraftingInterface() {
     ) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const handleCharacterSelect = (characterId: Id<"character">) => {
+  const handleCharacterSelect = (characterId: Id<"character">, isAutoSelect = false) => {
     if (isDraftComplete || !currentPhase) return;
+    if (!draftState.isDraftStarted && !isAutoSelect) return;
 
     // Create a deep copy of the current state for history
     const currentStateForHistory: DraftState = {
@@ -150,16 +238,22 @@ export function DraftingInterface() {
         name: draftState.blueTeam.name,
         drafted: [...draftState.blueTeam.drafted.map(d => ({ ...d }))],
         banned: [...draftState.blueTeam.banned],
+        reserveTime: draftState.blueTeam.reserveTime,
       },
       redTeam: {
         name: draftState.redTeam.name,
         drafted: [...draftState.redTeam.drafted.map(d => ({ ...d }))],
         banned: [...draftState.redTeam.banned],
+        reserveTime: draftState.redTeam.reserveTime,
       },
       currentStep: draftState.currentStep,
       ruleSet: draftState.ruleSet,
       draftMode: draftState.draftMode,
       history: [...draftState.history],
+      phaseTimer: draftState.phaseTimer,
+      isTimerActive: draftState.isTimerActive,
+      isDraftStarted: draftState.isDraftStarted,
+      settings: { ...draftState.settings },
     };
 
     const newState = { ...draftState };
@@ -197,8 +291,11 @@ export function DraftingInterface() {
     }
 
     newState.currentStep++;
+    newState.phaseTimer = draftState.settings.phaseTime; // Reset phase timer using settings
     setDraftState(newState);
   };
+
+
 
   const handleUndo = () => {
     if (draftState.history.length > 0) {
@@ -206,8 +303,16 @@ export function DraftingInterface() {
       
       const newState = {
         ...previousState,
-        blueTeam: preserveLightconeSelections(previousState.blueTeam, draftState.blueTeam),
-        redTeam: preserveLightconeSelections(previousState.redTeam, draftState.redTeam),
+        blueTeam: {
+          ...preserveLightconeSelections(previousState.blueTeam, draftState.blueTeam),
+          reserveTime: previousState.blueTeam.reserveTime,
+        },
+        redTeam: {
+          ...preserveLightconeSelections(previousState.redTeam, draftState.redTeam),
+          reserveTime: previousState.redTeam.reserveTime,
+        },
+        phaseTimer: draftState.settings.phaseTime, // Reset phase timer using settings
+        settings: { ...draftState.settings }, // Preserve current settings
       };
       
       setDraftState(newState);
@@ -216,13 +321,33 @@ export function DraftingInterface() {
 
   const handleReset = () => {
     setDraftState({
-      blueTeam: { name: "Blue Team", drafted: [], banned: [] },
-      redTeam: { name: "Red Team", drafted: [], banned: [] },
+      blueTeam: { name: "Blue Team", drafted: [], banned: [], reserveTime: draftState.settings.reserveTime },
+      redTeam: { name: "Red Team", drafted: [], banned: [], reserveTime: draftState.settings.reserveTime },
       currentStep: 0,
       ruleSet: draftState.ruleSet,
       draftMode: draftState.draftMode,
       history: [],
+      phaseTimer: draftState.settings.phaseTime,
+      isTimerActive: false,
+      isDraftStarted: false,
+      settings: { ...draftState.settings }, // Preserve current settings
     });
+  };
+
+  const handleStartDraft = () => {
+    setDraftState(prev => ({
+      ...prev,
+      isDraftStarted: true,
+      isTimerActive: true,
+      phaseTimer: prev.settings.phaseTime,
+    }));
+  };
+
+  const handlePauseDraft = () => {
+    setDraftState(prev => ({
+      ...prev,
+      isTimerActive: !prev.isTimerActive,
+    }));
   };
 
   const handleTeamNameChange = (team: "blue" | "red", name: string) => {
@@ -251,6 +376,24 @@ export function DraftingInterface() {
         [teamKey]: newTeam,
       };
     });
+  };
+
+  const handleSettingsChange = (newSettings: DraftSettings) => {
+    setDraftState(prev => ({
+      ...prev,
+      settings: newSettings,
+      // Update team reserve times if they haven't been modified from default
+      blueTeam: {
+        ...prev.blueTeam,
+        reserveTime: prev.blueTeam.reserveTime === prev.settings.reserveTime ? newSettings.reserveTime : prev.blueTeam.reserveTime,
+      },
+      redTeam: {
+        ...prev.redTeam,
+        reserveTime: prev.redTeam.reserveTime === prev.settings.reserveTime ? newSettings.reserveTime : prev.redTeam.reserveTime,
+      },
+      // Update phase timer if draft hasn't started
+      phaseTimer: !prev.isDraftStarted ? newSettings.phaseTime : prev.phaseTimer,
+    }));
   };
 
   // Reset search when draft state changes to ensure UI updates
@@ -312,51 +455,68 @@ export function DraftingInterface() {
       {activeTab === "draft" ? (
         <>
           <DraftControls
-        draftState={draftState}
-        onRuleSetChange={(ruleSet) => setDraftState(prev => ({ ...prev, ruleSet }))}
-        onDraftModeChange={(draftMode) => setDraftState(prev => ({ ...prev, draftMode }))}
-        onUndo={handleUndo}
-        onReset={handleReset}
-        currentPhase={currentPhase}
-        isDraftComplete={isDraftComplete}
-        canUndo={draftState.history.length > 0}
-      />
+            draftState={draftState}
+            onRuleSetChange={(ruleSet) => setDraftState(prev => ({ ...prev, ruleSet }))}
+            onDraftModeChange={(draftMode) => setDraftState(prev => ({ ...prev, draftMode }))}
+            onUndo={handleUndo}
+            onReset={handleReset}
+            onStartDraft={handleStartDraft}
+            onPauseDraft={handlePauseDraft}
+            currentPhase={currentPhase}
+            isDraftComplete={isDraftComplete}
+            canUndo={draftState.history.length > 0}
+          />
 
-      <DraftProgress
-        currentDraftOrder={currentDraftOrder}
-        currentStep={draftState.currentStep}
-      />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DraftTimer
+              draftState={draftState}
+              currentPhase={currentPhase}
+              isDraftComplete={isDraftComplete}
+            />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamArea
-          team="blue"
-          teamData={draftState.blueTeam}
-          characters={characters}
-          lightcones={lightcones}
-          ruleSet={draftState.ruleSet}
-          onTeamNameChange={handleTeamNameChange}
-          onCharacterUpdate={handleCharacterUpdate}
-        />
-        <TeamArea
-          team="red"
-          teamData={draftState.redTeam}
-          characters={characters}
-          lightcones={lightcones}
-          ruleSet={draftState.ruleSet}
-          onTeamNameChange={handleTeamNameChange}
-          onCharacterUpdate={handleCharacterUpdate}
-        />
-      </div>
+            <DraftProgress
+              currentDraftOrder={currentDraftOrder}
+              currentStep={draftState.currentStep}
+            />
+          </div>
 
-      <CharacterPool
-        characters={filteredCharacters}
-        selectedCharacters={getAllSelectedCharacters()}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        onCharacterSelect={handleCharacterSelect}
-        currentPhase={currentPhase}
-        isDraftComplete={isDraftComplete}
-      />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TeamArea
+              team="blue"
+              teamData={draftState.blueTeam}
+              characters={characters}
+              lightcones={lightcones}
+              ruleSet={draftState.ruleSet}
+              onTeamNameChange={handleTeamNameChange}
+              onCharacterUpdate={handleCharacterUpdate}
+            />
+            <TeamArea
+              team="red"
+              teamData={draftState.redTeam}
+              characters={characters}
+              lightcones={lightcones}
+              ruleSet={draftState.ruleSet}
+              onTeamNameChange={handleTeamNameChange}
+              onCharacterUpdate={handleCharacterUpdate}
+            />
+          </div>
+
+          <CharacterPool
+            characters={filteredCharacters}
+            selectedCharacters={getAllSelectedCharacters()}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onCharacterSelect={handleCharacterSelect}
+            currentPhase={currentPhase}
+            isDraftComplete={isDraftComplete}
+            isDraftStarted={draftState.isDraftStarted}
+          />
+
+          <DraftingSettings
+            settings={draftState.settings}
+            onSettingsChange={handleSettingsChange}
+            isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
+          />
         </>
       ) : activeTab === "teamtest" ? (
         <TeamTest

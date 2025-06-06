@@ -8,6 +8,7 @@ interface CharacterPoolProps {
   onCharacterSelect: (characterId: Id<"character">) => void;
   currentPhase?: { team: string; action: string };
   isDraftComplete: boolean;
+  isDraftStarted: boolean;
 }
 
 export function CharacterPool({
@@ -18,6 +19,7 @@ export function CharacterPool({
   onCharacterSelect,
   currentPhase,
   isDraftComplete,
+  isDraftStarted,
 }: CharacterPoolProps) {
   const getCharacterImageUrl = (character: any) => {
     if (character.imageUrl) {
@@ -30,7 +32,7 @@ export function CharacterPool({
   };
 
   const isCharacterSelectable = (characterId: Id<"character">) => {
-    return !selectedCharacters.includes(characterId) && !isDraftComplete && currentPhase;
+    return !selectedCharacters.includes(characterId) && !isDraftComplete && currentPhase && isDraftStarted;
   };
 
   return (
@@ -45,12 +47,17 @@ export function CharacterPool({
             onChange={(e) => onSearchChange(e.target.value)}
             className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
-          {currentPhase && !isDraftComplete && (
+          {currentPhase && !isDraftComplete && isDraftStarted && (
             <div className="text-sm text-gray-300">
               <span className={`font-medium ${currentPhase.team === "blue" ? "text-blue-400" : "text-red-400"}`}>
                 {currentPhase.team === "blue" ? "Blue Team" : "Red Team"}
               </span>{" "}
               {currentPhase.action}
+            </div>
+          )}
+          {!isDraftStarted && !isDraftComplete && (
+            <div className="text-sm text-yellow-400 font-medium">
+              Press "Start Draft" to begin
             </div>
           )}
         </div>
