@@ -7,28 +7,51 @@ interface DraftingSettingsProps {
   isDraftInProgress: boolean;
 }
 
+// Local interface for temporary settings that allows string values during input
+interface TempDraftSettings {
+  phaseTime: number | string;
+  reserveTime: number | string;
+}
+
 export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress }: DraftingSettingsProps) {
-  const [tempSettings, setTempSettings] = useState(settings);
+  const [tempSettings, setTempSettings] = useState<TempDraftSettings>(settings);
 
   const handlePhaseTimeChange = (value: string) => {
-    const phaseTime = parseInt(value) || 10;
-    if (phaseTime >= 10) {
+    // Allow empty values during input
+    if (value === '') {
+      setTempSettings(prev => ({ ...prev, phaseTime: '' }));
+      return;
+    }
+    const phaseTime = parseInt(value);
+    if (!isNaN(phaseTime)) {
       setTempSettings(prev => ({ ...prev, phaseTime }));
     }
   };
 
   const handleReserveTimeChange = (value: string) => {
-    const reserveTime = parseInt(value) || 10;
-    if (reserveTime >= 10) {
+    // Allow empty values during input
+    if (value === '') {
+      setTempSettings(prev => ({ ...prev, reserveTime: '' }));
+      return;
+    }
+    const reserveTime = parseInt(value);
+    if (!isNaN(reserveTime)) {
       setTempSettings(prev => ({ ...prev, reserveTime }));
     }
   };
 
   const handleApplySettings = () => {
-    // Ensure minimum values are met
+    // Validate that values are not empty and meet minimum requirements
+    const phaseTime = typeof tempSettings.phaseTime === 'string' ? parseInt(tempSettings.phaseTime) : tempSettings.phaseTime;
+    const reserveTime = typeof tempSettings.reserveTime === 'string' ? parseInt(tempSettings.reserveTime) : tempSettings.reserveTime;
+    
+    if (isNaN(phaseTime) || phaseTime < 8 || isNaN(reserveTime) || reserveTime < 8) {
+      return; // Don't apply if validation fails
+    }
+    
     const validatedSettings = {
-      phaseTime: Math.max(10, tempSettings.phaseTime),
-      reserveTime: Math.max(10, tempSettings.reserveTime),
+      phaseTime: Math.max(8, phaseTime),
+      reserveTime: Math.max(8, reserveTime),
     };
     setTempSettings(validatedSettings);
     onSettingsChange(validatedSettings);
@@ -41,11 +64,40 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
   };
 
   const hasChanges = tempSettings.phaseTime !== settings.phaseTime || tempSettings.reserveTime !== settings.reserveTime;
-  const isValid = tempSettings.phaseTime >= 10 && tempSettings.reserveTime >= 10;
+  
+  // Check if values are valid (not empty and >= 8)
+  const phaseTimeValue = typeof tempSettings.phaseTime === 'string' ? parseInt(tempSettings.phaseTime) : tempSettings.phaseTime;
+  const reserveTimeValue = typeof tempSettings.reserveTime === 'string' ? parseInt(tempSettings.reserveTime) : tempSettings.reserveTime;
+  
+  const isPhaseTimeValid = !isNaN(phaseTimeValue) && phaseTimeValue >= 8;
+  const isReserveTimeValid = !isNaN(reserveTimeValue) && reserveTimeValue >= 8;
+  const isValid = isPhaseTimeValid && isReserveTimeValid;
+  
+  // Check for empty fields
+  const hasEmptyFields = tempSettings.phaseTime === '' || tempSettings.reserveTime === '';
+  
+  // Generate error messages
+  const getErrorMessage = () => {
+    if (hasEmptyFields) {
+      return "Phase time and reserve time cannot be empty";
+    }
+    if (!isPhaseTimeValid && !isReserveTimeValid) {
+      return "Phase time and reserve time must be at least 8 seconds";
+    }
+    if (!isPhaseTimeValid) {
+      return "Phase time must be at least 8 seconds";
+    }
+    if (!isReserveTimeValid) {
+      return "Reserve time must be at least 8 seconds";
+    }
+    return "";
+  };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+  const formatTime = (seconds: number | string) => {
+    const numSeconds = typeof seconds === 'string' ? parseInt(seconds) : seconds;
+    if (isNaN(numSeconds)) return "0:00";
+    const mins = Math.floor(numSeconds / 60);
+    const secs = numSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -60,17 +112,19 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
           <div className="space-y-2">
             <input
               type="number"
-              min="10"
+              min="8"
               value={tempSettings.phaseTime}
               onChange={(e) => handlePhaseTimeChange(e.target.value)}
               disabled={isDraftInProgress}
-              className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="Seconds (min: 10)"
+              className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed ${
+                !isPhaseTimeValid ? 'border-red-500' : 'border-gray-600'
+              }`}
+              placeholder="Seconds (min: 8)"
             />
             <div className="text-sm text-gray-400">
               Time per phase: <span className="text-cyan-400">{formatTime(tempSettings.phaseTime)}</span>
               <br />
-              <span className="text-xs text-gray-500">Minimum: 10 seconds</span>
+              <span className="text-xs text-gray-500">Minimum: 8 seconds</span>
             </div>
           </div>
         </div>
@@ -81,17 +135,19 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
           <div className="space-y-2">
             <input
               type="number"
-              min="10"
+              min="8"
               value={tempSettings.reserveTime}
               onChange={(e) => handleReserveTimeChange(e.target.value)}
               disabled={isDraftInProgress}
-              className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="Seconds (min: 10)"
+              className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed ${
+                !isReserveTimeValid ? 'border-red-500' : 'border-gray-600'
+              }`}
+              placeholder="Seconds (min: 8)"
             />
             <div className="text-sm text-gray-400">
               Reserve time per team: <span className="text-cyan-400">{formatTime(tempSettings.reserveTime)}</span>
               <br />
-              <span className="text-xs text-gray-500">Minimum: 10 seconds</span>
+              <span className="text-xs text-gray-500">Minimum: 8 seconds</span>
             </div>
           </div>
         </div>
@@ -124,7 +180,7 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
         
         {!isValid && !isDraftInProgress && (
           <div className="text-sm text-red-400 font-medium">
-            Phase time and reserve time must be at least 10 seconds
+            {getErrorMessage()}
           </div>
         )}
       </div>

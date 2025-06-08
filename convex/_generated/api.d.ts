@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as characters from "../characters.js";
 import type * as http from "../http.js";
+import type * as icons from "../icons.js";
 import type * as lightcones from "../lightcones.js";
 import type * as router from "../router.js";
 import type * as storage from "../storage.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   characters: typeof characters;
   http: typeof http;
+  icons: typeof icons;
   lightcones: typeof lightcones;
   router: typeof router;
   storage: typeof storage;

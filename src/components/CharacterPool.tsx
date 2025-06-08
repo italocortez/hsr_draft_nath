@@ -1,3 +1,6 @@
+import { useState, useMemo } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 
 interface CharacterPoolProps {
@@ -21,6 +24,72 @@ export function CharacterPool({
   isDraftComplete,
   isDraftStarted,
 }: CharacterPoolProps) {
+  const icons = useQuery(api.icons.list) || [];
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedElements, setSelectedElements] = useState<string[]>([]);
+
+  // Get unique roles from characters
+  const uniqueRoles = useMemo(() => {
+    const roles = [...new Set(characters.map(char => char.role))].filter(Boolean);
+    return roles.sort();
+  }, [characters]);
+
+  // Get unique elements from characters
+  const uniqueElements = useMemo(() => {
+    const elements = [...new Set(characters.map(char => char.element))].filter(Boolean);
+    return elements.sort();
+  }, [characters]);
+
+  // Create role to icon mapping
+  const roleIconMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    uniqueRoles.forEach(role => {
+      const icon = icons.find(icon => icon.name === role);
+      if (icon) {
+        map[role] = icon.imageUrl;
+      }
+    });
+    return map;
+  }, [uniqueRoles, icons]);
+
+  // Create element to icon mapping
+  const elementIconMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    uniqueElements.forEach(element => {
+      const icon = icons.find(icon => icon.name === element);
+      if (icon) {
+        map[element] = icon.imageUrl;
+      }
+    });
+    return map;
+  }, [uniqueElements, icons]);
+
+  // Filter characters based on search term, selected roles, and selected elements
+  const filteredCharacters = useMemo(() => {
+    let filtered = characters;
+
+    // Apply search filter (existing logic)
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(char => {
+        return char.aliases.some((alias: string) => 
+          alias.toLowerCase().includes(searchTerm.toLowerCase())
+        ) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    }
+
+    // Apply role filter
+    if (selectedRoles.length > 0) {
+      filtered = filtered.filter(char => selectedRoles.includes(char.role));
+    }
+
+    // Apply element filter
+    if (selectedElements.length > 0) {
+      filtered = filtered.filter(char => selectedElements.includes(char.element));
+    }
+
+    return filtered;
+  }, [characters, searchTerm, selectedRoles, selectedElements]);
+
   const getCharacterImageUrl = (character: any) => {
     if (character.imageUrl) {
       return character.imageUrl;
@@ -35,11 +104,155 @@ export function CharacterPool({
     return !selectedCharacters.includes(characterId) && !isDraftComplete && currentPhase && isDraftStarted;
   };
 
+  const toggleRoleFilter = (role: string) => {
+    setSelectedRoles(prev => 
+      prev.includes(role) 
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
+
+  const toggleElementFilter = (element: string) => {
+    setSelectedElements(prev => 
+      prev.includes(element) 
+        ? prev.filter(e => e !== element)
+        : [...prev, element]
+    );
+  };
+
+  const clearAllRoleFilters = () => {
+    setSelectedRoles([]);
+  };
+
+  const clearAllElementFilters = () => {
+    setSelectedElements([]);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedRoles([]);
+    setSelectedElements([]);
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-white">Character Pool</h2>
-        <div className="flex items-center gap-4">
+      <div className="grid grid-cols-3 gap-4 items-center mb-4">
+        {/* Column 1: Element Filters */}
+        <div className="flex justify-start">
+          {uniqueElements.length > 0 && (
+            <div className="flex flex-col items-start gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400 font-medium">Filter by Element:</span>
+                {selectedElements.length > 0 && (
+                  <button
+                    onClick={clearAllElementFilters}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 underline"
+                  >
+                    Clear Elements
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {uniqueElements.map(element => {
+                  const isSelected = selectedElements.includes(element);
+                  const iconUrl = elementIconMap[element];
+                  
+                  return (
+                    <button
+                      key={element}
+                      onClick={() => toggleElementFilter(element)}
+                      className={`
+                        flex items-center justify-center w-10 h-10 rounded-full transition-all
+                        ${isSelected 
+                          ? "bg-cyan-600 border-2 border-cyan-400" 
+                          : "bg-gray-700 border-2 border-gray-600 hover:border-gray-500"
+                        }
+                      `}
+                      title={element}
+                    >
+                      {iconUrl && (
+                        <img
+                          src={iconUrl}
+                          alt={element}
+                          className="w-6 h-6 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Column 2: Role Filters */}
+        <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-3">
+            {/* Role Filters */}
+            {uniqueRoles.length > 0 && (
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400 font-medium">Filter by Role:</span>
+                  {selectedRoles.length > 0 && (
+                    <button
+                      onClick={clearAllRoleFilters}
+                      className="text-xs text-cyan-400 hover:text-cyan-300 underline"
+                    >
+                      Clear Roles
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {uniqueRoles.map(role => {
+                    const isSelected = selectedRoles.includes(role);
+                    const iconUrl = roleIconMap[role];
+                    
+                    return (
+                      <button
+                        key={role}
+                        onClick={() => toggleRoleFilter(role)}
+                        className={`
+                          flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all
+                          ${isSelected 
+                            ? "bg-cyan-600 text-white border-2 border-cyan-400" 
+                            : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
+                          }
+                        `}
+                      >
+                        {iconUrl && (
+                          <img
+                            src={iconUrl}
+                            alt={role}
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <span className="capitalize">{role}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Clear All Filters */}
+            {(selectedRoles.length > 0 || selectedElements.length > 0) && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-red-400 hover:text-red-300 underline font-medium"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Column 3: Search and Status */}
+        <div className="flex flex-col items-end gap-2">
           <input
             type="text"
             placeholder="Search characters..."
@@ -64,7 +277,7 @@ export function CharacterPool({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-        {characters.map((character) => {
+        {filteredCharacters.map((character) => {
           const isSelected = selectedCharacters.includes(character._id);
           const isSelectable = isCharacterSelectable(character._id);
 
@@ -114,9 +327,12 @@ export function CharacterPool({
         })}
       </div>
 
-      {characters.length === 0 && (
+      {filteredCharacters.length === 0 && (
         <div className="text-center text-gray-400 py-8">
-          {searchTerm ? "No characters found matching your search." : "Loading characters..."}
+          {searchTerm || selectedRoles.length > 0 || selectedElements.length > 0
+            ? "No characters found matching your filters." 
+            : "Loading characters..."
+          }
         </div>
       )}
     </div>

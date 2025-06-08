@@ -32,6 +32,12 @@ export function TeamArea({
 
   const teamColor = team === "blue" ? "text-blue-400" : "text-red-400";
   const borderColor = team === "blue" ? "border-blue-500" : "border-red-500";
+  
+  // Default team names
+  const defaultTeamName = team === "blue" ? "Blue Team" : "Red Team";
+  
+  // Use default name if current name is empty or just whitespace
+  const displayName = teamData.name.trim() || defaultTeamName;
 
   const calculateTotalCost = () => {
     return teamData.drafted.reduce((total, drafted) => {
@@ -51,11 +57,17 @@ export function TeamArea({
     }, 0);
   };
 
-
-
   const handleNameSubmit = () => {
-    onTeamNameChange(team, tempName);
+    // If tempName is empty or just whitespace, use the default name
+    const finalName = tempName.trim() || defaultTeamName;
+    onTeamNameChange(team, finalName);
     setEditingName(false);
+  };
+
+  const handleStartEditing = () => {
+    // When starting to edit, if the current name is the default, clear it for easier editing
+    setTempName(teamData.name === defaultTeamName ? "" : teamData.name);
+    setEditingName(true);
   };
 
   const getCharacterImageUrl = (characterId: Id<"character">) => {
@@ -81,15 +93,17 @@ export function TeamArea({
               onBlur={handleNameSubmit}
               onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
               className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              placeholder={defaultTeamName}
               autoFocus
             />
           </div>
         ) : (
           <h2
-            className={`text-xl font-bold ${teamColor} cursor-pointer hover:opacity-80`}
-            onClick={() => setEditingName(true)}
+            className={`text-xl font-bold ${teamColor} cursor-pointer hover:opacity-80 min-w-0`}
+            onClick={handleStartEditing}
+            title="Click to edit team name"
           >
-            {teamData.name}
+            {displayName}
           </h2>
         )}
         <div className="text-white font-medium">

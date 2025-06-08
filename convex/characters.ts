@@ -13,6 +13,7 @@ export const list = query({
       element: character.element,
       path: character.path,
       rarity: character.rarity,
+      role: character.role,
       cost: character.cost,
       imageUrl: character.imageUrl,
     }));
@@ -31,6 +32,7 @@ export const search = query({
         element: character.element,
         path: character.path,
         rarity: character.rarity,
+        role: character.role,
         cost: character.cost,
         imageUrl: character.imageUrl,
       }));
@@ -50,6 +52,7 @@ export const search = query({
       element: character.element,
       path: character.path,
       rarity: character.rarity,
+      role: character.role,
       cost: character.cost,
       imageUrl: character.imageUrl,
     }));

@@ -10,6 +10,7 @@ const applicationTables = {
     element: v.string(),
     path: v.string(),
     rarity: v.number(),
+		role: v.string(),
     cost: v.object({
       memoryofchaos: v.object({
         E0: v.number(),
@@ -52,6 +53,12 @@ const applicationTables = {
   }).searchIndex("search_display_name", {
     searchField: "display_name",
   }),
+
+  icons: defineTable({
+    name: v.string(),
+    imageUrl: v.string(),
+    type: v.optional(v.string()),
+  }).index("by_name", ["name"]),
 };
 
 export default defineSchema({
