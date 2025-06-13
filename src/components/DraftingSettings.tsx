@@ -20,7 +20,7 @@ interface TempDraftSettings {
     deathPenalty: number | string;
   };
   apocSettings: {
-    rosterDifferenceAdvantage: number | string;
+    rosterDifferenceAdvantagePerPoint: number | string;
     rosterThreshold: number | string;
     underThresholdAdvantagePerPoint: number | string;
     aboveThresholdPenaltyPerPoint: number | string;
@@ -187,9 +187,9 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
 
     // Convert Apoc settings
     const apocSettings: ApocSettings = {
-      rosterDifferenceAdvantage: typeof tempSettings.apocSettings.rosterDifferenceAdvantage === 'string' 
-        ? parseFloat(tempSettings.apocSettings.rosterDifferenceAdvantage) 
-        : tempSettings.apocSettings.rosterDifferenceAdvantage,
+      rosterDifferenceAdvantagePerPoint: typeof tempSettings.apocSettings.rosterDifferenceAdvantagePerPoint === 'string' 
+        ? parseFloat(tempSettings.apocSettings.rosterDifferenceAdvantagePerPoint) 
+        : tempSettings.apocSettings.rosterDifferenceAdvantagePerPoint,
       rosterThreshold: typeof tempSettings.apocSettings.rosterThreshold === 'string' 
         ? parseFloat(tempSettings.apocSettings.rosterThreshold) 
         : tempSettings.apocSettings.rosterThreshold,
@@ -229,7 +229,7 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
         deathPenalty: 0.25,
       },
       apocSettings: {
-        rosterDifferenceAdvantage: 25.0,
+        rosterDifferenceAdvantagePerPoint: 25.0,
         rosterThreshold: 50.0,
         underThresholdAdvantagePerPoint: 0.0,
         aboveThresholdPenaltyPerPoint: 0.0,
@@ -489,8 +489,8 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
               type="number"
               min="0"
               step="0.1"
-              value={tempSettings.apocSettings.rosterDifferenceAdvantage}
-              onChange={(e) => handleApocSettingChange('rosterDifferenceAdvantage', e.target.value)}
+              value={tempSettings.apocSettings.rosterDifferenceAdvantagePerPoint}
+              onChange={(e) => handleApocSettingChange('rosterDifferenceAdvantagePerPoint', e.target.value)}
               disabled={isDraftInProgress}
               className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
               placeholder="≥ 0"
@@ -666,7 +666,7 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
             <div className="space-y-2 text-gray-400">
               <div>
                 <span className="text-gray-400">Roster Diff Adv/Point:</span>
-                <span className="text-cyan-400 ml-2">{settings.apocSettings.rosterDifferenceAdvantage}</span>
+                <span className="text-cyan-400 ml-2">{settings.apocSettings.rosterDifferenceAdvantagePerPoint}</span>
               </div>
               <div>
                 <span className="text-gray-400">Roster Threshold:</span>

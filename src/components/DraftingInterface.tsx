@@ -35,7 +35,7 @@ export interface MoCSettings {
 }
 
 export interface ApocSettings {
-  rosterDifferenceAdvantage: number;
+  rosterDifferenceAdvantagePerPoint: number;
   rosterThreshold: number;
   underThresholdAdvantagePerPoint: number;
   aboveThresholdPenaltyPerPoint: number; // final value multiplied by -1
@@ -135,7 +135,7 @@ const DEFAULT_MOC_SETTINGS: MoCSettings = {
 };
 
 const DEFAULT_APOC_SETTINGS: ApocSettings = {
-  rosterDifferenceAdvantage: 25.0,
+  rosterDifferenceAdvantagePerPoint: 25.0,
   rosterThreshold: 50.0,
   underThresholdAdvantagePerPoint: 0.0,
   aboveThresholdPenaltyPerPoint: 0.0,
@@ -408,6 +408,8 @@ export function DraftingInterface() {
     }
   };
 
+  const [resetTrigger, setResetTrigger] = useState(0);
+
   const handleReset = () => {
     setDraftState({
       blueTeam: { name: "Blue Team", drafted: [], banned: [], reserveTime: draftState.settings.reserveTime },
@@ -421,6 +423,8 @@ export function DraftingInterface() {
       isDraftStarted: false,
       settings: { ...draftState.settings }, // Preserve current settings
     });
+    // Trigger reset for TeamArea components
+    setResetTrigger(prev => prev + 1);
   };
 
   const handleStartDraft = () => {
@@ -579,6 +583,9 @@ export function DraftingInterface() {
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
               isDraftComplete={isDraftComplete}
+              settings={draftState.settings}
+              opponentTeamData={draftState.redTeam}
+              resetTrigger={resetTrigger}
             />
             <TeamArea
               team="red"
@@ -589,6 +596,9 @@ export function DraftingInterface() {
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
               isDraftComplete={isDraftComplete}
+              settings={draftState.settings}
+              opponentTeamData={draftState.blueTeam}
+              resetTrigger={resetTrigger}
             />
           </div>
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank } from "./DraftingInterface";
+import { useState, useEffect } from "react";
+import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
 import { LightconeSelector } from "./LightconeSelector";
 
@@ -17,25 +17,50 @@ interface TeamAreaProps {
   onTeamNameChange: (team: "blue" | "red", name: string) => void;
   onCharacterUpdate: (team: "blue" | "red", index: number, updates: Partial<DraftedCharacter>) => void;
   isDraftComplete?: boolean;
+  settings?: DraftSettings;
+  opponentTeamData?: {
+    name: string;
+    drafted: DraftedCharacter[];
+    banned: Id<"character">[];
+    reserveTime: number;
+  };
+  resetTrigger?: number;
 }
 
 interface MoCResultData {
-  firstHalfCycles: number;
-  secondHalfCycles: number;
-  deathCharacters: number;
-  additionalCycleModifier: number;
+  firstHalfCycles: number | string;
+  secondHalfCycles: number | string;
+  deathCharacters: number | string;
+  additionalCycleModifier: number | string;
 }
 
 interface ApocResultData {
-  firstHalfScore: number;
-  secondHalfScore: number;
-  deathCharacters: number;
-  additionalScoreModifier: number;
+  firstHalfScore: number | string;
+  secondHalfScore: number | string;
+  deathCharacters: number | string;
+  additionalScoreModifier: number | string;
 }
 
 interface ResultData {
   memoryofchaos: MoCResultData;
   apocalypticshadow: ApocResultData;
+}
+
+function WarningIcon() {
+  return (
+    <svg
+      className="w-4 h-4 text-amber-500"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
 }
 
 export function TeamArea({
@@ -47,10 +72,14 @@ export function TeamArea({
   onTeamNameChange,
   onCharacterUpdate,
   isDraftComplete = false,
+  settings,
+  opponentTeamData,
+  resetTrigger,
 }: TeamAreaProps) {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(teamData.name);
   const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
+  const [finalScore, setFinalScore] = useState<number>(0);
   const [resultData, setResultData] = useState<ResultData>({
     memoryofchaos: {
       firstHalfCycles: 0,
@@ -76,8 +105,49 @@ export function TeamArea({
   // Use default name if current name is empty or just whitespace
   const displayName = teamData.name.trim() || defaultTeamName;
 
+  // Reset result data when resetTrigger changes
+  useEffect(() => {
+    if (resetTrigger !== undefined && resetTrigger > 0) {
+      setResultData({
+        memoryofchaos: {
+          firstHalfCycles: 0,
+          secondHalfCycles: 0,
+          deathCharacters: 0,
+          additionalCycleModifier: 0,
+        },
+        apocalypticshadow: {
+          firstHalfScore: 0,
+          secondHalfScore: 0,
+          deathCharacters: 0,
+          additionalScoreModifier: 0,
+        },
+      });
+      setFinalScore(0);
+      setActiveTab("roster");
+    }
+  }, [resetTrigger]);
+
   const calculateTotalCost = () => {
     return teamData.drafted.reduce((total, drafted) => {
+      const character = characters.find(c => c._id === drafted.characterId);
+      if (!character) return total;
+
+      let cost = character.cost[ruleSet][drafted.rank];
+      
+      if (drafted.lightconeId && drafted.lightconeRank) {
+        const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+        if (lightcone) {
+          cost += lightcone.cost[drafted.lightconeRank];
+        }
+      }
+      
+      return total + cost;
+    }, 0);
+  };
+
+  const calculateOpponentTotalCost = () => {
+    if (!opponentTeamData) return 0;
+    return opponentTeamData.drafted.reduce((total, drafted) => {
       const character = characters.find(c => c._id === drafted.characterId);
       if (!character) return total;
 
@@ -119,33 +189,178 @@ export function TeamArea({
   };
 
   const handleMoCResultDataChange = (field: keyof MoCResultData, value: string) => {
-    const numValue = parseFloat(value);
-    if (value === '' || (!isNaN(numValue) && (
-      (field === 'additionalCycleModifier' || numValue >= 0)
-    ))) {
+    if (value === '') {
+      // Allow empty string
       setResultData(prev => ({
         ...prev,
         memoryofchaos: {
           ...prev.memoryofchaos,
-          [field]: value === '' ? 0 : numValue,
+          [field]: '',
+        },
+      }));
+      return;
+    }
+
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && (field === 'additionalCycleModifier' || numValue >= 0)) {
+      setResultData(prev => ({
+        ...prev,
+        memoryofchaos: {
+          ...prev.memoryofchaos,
+          [field]: numValue,
         },
       }));
     }
   };
 
   const handleApocResultDataChange = (field: keyof ApocResultData, value: string) => {
-    const numValue = parseFloat(value);
-    if (value === '' || (!isNaN(numValue) && (
-      (field === 'additionalScoreModifier' || numValue >= 0)
-    ))) {
+    if (value === '') {
+      // Allow empty string
       setResultData(prev => ({
         ...prev,
         apocalypticshadow: {
           ...prev.apocalypticshadow,
-          [field]: value === '' ? 0 : numValue,
+          [field]: '',
+        },
+      }));
+      return;
+    }
+
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && (field === 'additionalScoreModifier' || numValue >= 0)) {
+      setResultData(prev => ({
+        ...prev,
+        apocalypticshadow: {
+          ...prev.apocalypticshadow,
+          [field]: numValue,
         },
       }));
     }
+  };
+
+  const getNumericValue = (value: number | string): number => {
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return value;
+  };
+
+  const hasEmptyFields = () => {
+    if (ruleSet === "memoryofchaos") {
+      const mocData = resultData.memoryofchaos;
+      return Object.values(mocData).some(val => val === '');
+    } else {
+      const apocData = resultData.apocalypticshadow;
+      return Object.values(apocData).some(val => val === '');
+    }
+  };
+
+  const calculateResult = () => {
+    if (!settings || !opponentTeamData || hasEmptyFields()) return;
+
+    const blueTeamCost = team === "blue" ? calculateTotalCost() : calculateOpponentTotalCost();
+    const redTeamCost = team === "red" ? calculateTotalCost() : calculateOpponentTotalCost();
+    
+    const teamCostDifference = blueTeamCost - redTeamCost;
+    
+    let blueOwnsTeamCostDifference = 0;
+    let redOwnsTeamCostDifference = 0;
+    
+    if (teamCostDifference > 0) {
+      blueOwnsTeamCostDifference = 0;
+      redOwnsTeamCostDifference = 1;
+    } else if (teamCostDifference < 0) {
+      blueOwnsTeamCostDifference = 1;
+      redOwnsTeamCostDifference = 0;
+    }
+    
+    let adjustedTeamCostDifference = 0;
+    if (ruleSet === "memoryofchaos") {
+      adjustedTeamCostDifference = Math.abs(teamCostDifference) * (-settings.mocSettings.rosterDifferenceAdvantagePerPoint);
+    } else {
+      adjustedTeamCostDifference = Math.abs(teamCostDifference) * settings.apocSettings.rosterDifferenceAdvantagePerPoint;
+    }
+    
+    let finalResult = 0;
+    if (ruleSet === "memoryofchaos") {
+      const mocData = resultData.memoryofchaos;
+      finalResult = getNumericValue(mocData.firstHalfCycles) + getNumericValue(mocData.secondHalfCycles) + getNumericValue(mocData.additionalCycleModifier) + (getNumericValue(mocData.deathCharacters) * settings.mocSettings.deathPenalty);
+    } else {
+      const apocData = resultData.apocalypticshadow;
+      finalResult = getNumericValue(apocData.firstHalfScore) + getNumericValue(apocData.secondHalfScore) + getNumericValue(apocData.additionalScoreModifier) + (getNumericValue(apocData.deathCharacters) * (-settings.apocSettings.deathPenalty));
+    }
+    
+    if (team === "blue") {
+      finalResult += adjustedTeamCostDifference * blueOwnsTeamCostDifference;
+    } else {
+      finalResult += adjustedTeamCostDifference * redOwnsTeamCostDifference;
+    }
+    
+    const teamCost = calculateTotalCost();
+    const rosterThreshold = ruleSet === "memoryofchaos" ? settings.mocSettings.rosterThreshold : settings.apocSettings.rosterThreshold;
+    const teamCostThresholdDifference = teamCost - rosterThreshold;
+    
+    let thresholdAdjustment = 0;
+    if (teamCostThresholdDifference > 0) {
+      if (ruleSet === "memoryofchaos") {
+        thresholdAdjustment = teamCostThresholdDifference * settings.mocSettings.aboveThresholdPenaltyPerPoint;
+      } else {
+        thresholdAdjustment = teamCostThresholdDifference * (-settings.apocSettings.aboveThresholdPenaltyPerPoint);
+      }
+    } else if (teamCostThresholdDifference < 0) {
+      if (ruleSet === "memoryofchaos") {
+        thresholdAdjustment = Math.abs(teamCostThresholdDifference) * (-settings.mocSettings.underThresholdAdvantagePerPoint);
+      } else {
+        thresholdAdjustment = Math.abs(teamCostThresholdDifference) * settings.apocSettings.underThresholdAdvantagePerPoint;
+      }
+    }
+    
+    finalResult += thresholdAdjustment;
+    setFinalScore(Math.round(finalResult * 1000) / 1000);
+  };
+
+  const renderInputField = (
+    label: string,
+    value: number | string,
+    onChange: (value: string) => void,
+    placeholder: string,
+    step: string = "0.1",
+    min?: string,
+    allowNegative: boolean = false
+  ) => {
+    const isEmpty = value === '';
+    const isInvalid = isEmpty || (typeof value === 'string' && isNaN(parseFloat(value)));
+    
+    return (
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <label className="block text-white text-sm font-medium">{label}</label>
+          {isEmpty && (
+            <div className="flex items-center gap-1" title="This field cannot be empty">
+              <WarningIcon />
+              <span className="text-xs text-amber-500">Required</span>
+            </div>
+          )}
+        </div>
+        <input
+          type="number"
+          min={min}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+            isEmpty ? 'border-amber-500 bg-amber-50 bg-opacity-5' : 'border-gray-600'
+          }`}
+          placeholder={placeholder}
+        />
+        {!allowNegative && (
+          <p className="text-xs text-gray-400 mt-1">
+            {allowNegative ? "Can be negative, zero, or positive" : "Must be ≥ 0"}
+          </p>
+        )}
+      </div>
+    );
   };
 
   const renderRosterTab = () => (
@@ -273,53 +488,71 @@ export function TeamArea({
         <div className="space-y-4">
           <h3 className="text-white font-medium mb-4">Memory of Chaos Results</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">1st Half Cycles</label>
+            {renderInputField(
+              "1st Half Cycles",
+              mocData.firstHalfCycles,
+              (value) => handleMoCResultDataChange('firstHalfCycles', value),
+              "0.0",
+              "0.1",
+              "0"
+            )}
+            {renderInputField(
+              "2nd Half Cycles",
+              mocData.secondHalfCycles,
+              (value) => handleMoCResultDataChange('secondHalfCycles', value),
+              "0.0",
+              "0.1",
+              "0"
+            )}
+            {renderInputField(
+              "Death Characters",
+              mocData.deathCharacters,
+              (value) => handleMoCResultDataChange('deathCharacters', value),
+              "0",
+              "1",
+              "0"
+            )}
+            {renderInputField(
+              "Additional Cycle Modifier",
+              mocData.additionalCycleModifier,
+              (value) => handleMoCResultDataChange('additionalCycleModifier', value),
+              "0.0",
+              "0.1",
+              undefined,
+              true
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+            <button
+              onClick={calculateResult}
+              disabled={!settings || !opponentTeamData || hasEmptyFields()}
+              className={`px-4 py-2 rounded font-medium transition-colors ${
+                team === "blue" 
+                  ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                  : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+              } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Calculate Result
+            </button>
+            
+            {hasEmptyFields() && (
+              <div className="flex items-center gap-2 text-amber-500 text-sm">
+                <WarningIcon />
+                <span>Fill all fields to calculate</span>
+              </div>
+            )}
+            
+            <div className="flex-1">
+              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
               <input
                 type="number"
-                min="0"
-                step="0.1"
-                value={mocData.firstHalfCycles}
-                onChange={(e) => handleMoCResultDataChange('firstHalfCycles', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
+                step="0.01"
+                value={finalScore}
+                readOnly
+                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                placeholder="0.00"
               />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">2nd Half Cycles</label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={mocData.secondHalfCycles}
-                onChange={(e) => handleMoCResultDataChange('secondHalfCycles', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
-              />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">Death Characters</label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={mocData.deathCharacters}
-                onChange={(e) => handleMoCResultDataChange('deathCharacters', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">Additional Cycle Modifier</label>
-              <input
-                type="number"
-                step="0.1"
-                value={mocData.additionalCycleModifier}
-                onChange={(e) => handleMoCResultDataChange('additionalCycleModifier', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
-              />
-              <p className="text-xs text-gray-400 mt-1">Can be negative, zero, or positive</p>
             </div>
           </div>
         </div>
@@ -330,53 +563,71 @@ export function TeamArea({
         <div className="space-y-4">
           <h3 className="text-white font-medium mb-4">Apocalyptic Shadow Results</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">1st Half Score</label>
+            {renderInputField(
+              "1st Half Score",
+              apocData.firstHalfScore,
+              (value) => handleApocResultDataChange('firstHalfScore', value),
+              "0.0",
+              "0.1",
+              "0"
+            )}
+            {renderInputField(
+              "2nd Half Score",
+              apocData.secondHalfScore,
+              (value) => handleApocResultDataChange('secondHalfScore', value),
+              "0.0",
+              "0.1",
+              "0"
+            )}
+            {renderInputField(
+              "Death Characters",
+              apocData.deathCharacters,
+              (value) => handleApocResultDataChange('deathCharacters', value),
+              "0",
+              "1",
+              "0"
+            )}
+            {renderInputField(
+              "Additional Score Modifier",
+              apocData.additionalScoreModifier,
+              (value) => handleApocResultDataChange('additionalScoreModifier', value),
+              "0.0",
+              "0.1",
+              undefined,
+              true
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+            <button
+              onClick={calculateResult}
+              disabled={!settings || !opponentTeamData || hasEmptyFields()}
+              className={`px-4 py-2 rounded font-medium transition-colors ${
+                team === "blue" 
+                  ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                  : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+              } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Calculate Result
+            </button>
+            
+            {hasEmptyFields() && (
+              <div className="flex items-center gap-2 text-amber-500 text-sm">
+                <WarningIcon />
+                <span>Fill all fields to calculate</span>
+              </div>
+            )}
+            
+            <div className="flex-1">
+              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
               <input
                 type="number"
-                min="0"
-                step="0.1"
-                value={apocData.firstHalfScore}
-                onChange={(e) => handleApocResultDataChange('firstHalfScore', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
+                step="0.01"
+                value={finalScore}
+                readOnly
+                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                placeholder="0.00"
               />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">2nd Half Score</label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={apocData.secondHalfScore}
-                onChange={(e) => handleApocResultDataChange('secondHalfScore', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
-              />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">Death Characters</label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={apocData.deathCharacters}
-                onChange={(e) => handleApocResultDataChange('deathCharacters', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">Additional Score Modifier</label>
-              <input
-                type="number"
-                step="0.1"
-                value={apocData.additionalScoreModifier}
-                onChange={(e) => handleApocResultDataChange('additionalScoreModifier', e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="0.0"
-              />
-              <p className="text-xs text-gray-400 mt-1">Can be negative, zero, or positive</p>
             </div>
           </div>
         </div>
