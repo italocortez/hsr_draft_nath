@@ -26,10 +26,28 @@ export interface DraftedCharacter {
 
 export type BanRestriction = "none" | "onePerRole" | "oneDPS" | "oneSupport" | "oneSustain";
 
+export interface MoCSettings {
+  rosterDifferenceAdvantagePerPoint: number; // final value multiplied by -1
+  rosterThreshold: number;
+  underThresholdAdvantagePerPoint: number; // final value multiplied by -1
+  aboveThresholdPenaltyPerPoint: number;
+  deathPenalty: number;
+}
+
+export interface ApocSettings {
+  rosterDifferenceAdvantage: number;
+  rosterThreshold: number;
+  underThresholdAdvantagePerPoint: number;
+  aboveThresholdPenaltyPerPoint: number; // final value multiplied by -1
+  deathPenalty: number; // final value multiplied by -1
+}
+
 export interface DraftSettings {
   phaseTime: number; // in seconds
   reserveTime: number; // in seconds
   banRestriction: BanRestriction;
+  mocSettings: MoCSettings;
+  apocSettings: ApocSettings;
 }
 
 export interface DraftState {
@@ -108,6 +126,22 @@ const DEFAULT_PHASE_TIME = 30; // 30 seconds per phase
 const DEFAULT_RESERVE_TIME = 480; // 8 minutes (480 seconds) reserve time per team
 const DEFAULT_BAN_RESTRICTION: BanRestriction = "none";
 
+const DEFAULT_MOC_SETTINGS: MoCSettings = {
+  rosterDifferenceAdvantagePerPoint: 0,
+  rosterThreshold: 45.0,
+  underThresholdAdvantagePerPoint: 0.25,
+  aboveThresholdPenaltyPerPoint: 0.1667,
+  deathPenalty: 0.25,
+};
+
+const DEFAULT_APOC_SETTINGS: ApocSettings = {
+  rosterDifferenceAdvantage: 25.0,
+  rosterThreshold: 50.0,
+  underThresholdAdvantagePerPoint: 0.0,
+  aboveThresholdPenaltyPerPoint: 0.0,
+  deathPenalty: 100.0,
+};
+
 const checkBanRestriction = (character: any, bannedCharacters: any[], restriction: BanRestriction) => {
   switch (restriction) {
     case "onePerRole":
@@ -154,6 +188,8 @@ export function DraftingInterface() {
       phaseTime: DEFAULT_PHASE_TIME,
       reserveTime: DEFAULT_RESERVE_TIME,
       banRestriction: DEFAULT_BAN_RESTRICTION,
+      mocSettings: DEFAULT_MOC_SETTINGS,
+      apocSettings: DEFAULT_APOC_SETTINGS,
     },
   });
 
