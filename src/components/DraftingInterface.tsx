@@ -203,7 +203,6 @@ export function DraftingInterface() {
 
 
 
-
   // Timer effect
   useEffect(() => {
     if (!draftState.isTimerActive || isDraftComplete) return;
@@ -579,6 +578,7 @@ export function DraftingInterface() {
               ruleSet={draftState.ruleSet}
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
+              isDraftComplete={isDraftComplete}
             />
             <TeamArea
               team="red"
@@ -588,6 +588,7 @@ export function DraftingInterface() {
               ruleSet={draftState.ruleSet}
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
+              isDraftComplete={isDraftComplete}
             />
           </div>
 
