@@ -363,8 +363,6 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
               <option value="oneSustain">Only 1 Sustain ban</option>
             </select>
             <div className="text-sm text-gray-400">
-              Current: <span className="text-cyan-400">{getBanRestrictionLabel(tempSettings.banRestriction)}</span>
-              <br />
               <span className="text-xs text-gray-500">Applies during ban phases</span>
             </div>
           </div>
