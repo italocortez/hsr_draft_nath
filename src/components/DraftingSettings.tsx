@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DraftSettings } from "./DraftingInterface";
+import { DraftSettings, BanRestriction } from "./DraftingInterface";
 
 interface DraftingSettingsProps {
   settings: DraftSettings;
@@ -11,6 +11,7 @@ interface DraftingSettingsProps {
 interface TempDraftSettings {
   phaseTime: number | string;
   reserveTime: number | string;
+  banRestriction: BanRestriction;
 }
 
 export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress }: DraftingSettingsProps) {
@@ -52,18 +53,19 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
     const validatedSettings = {
       phaseTime: Math.max(8, phaseTime),
       reserveTime: Math.max(8, reserveTime),
+      banRestriction: tempSettings.banRestriction,
     };
     setTempSettings(validatedSettings);
     onSettingsChange(validatedSettings);
   };
 
   const handleResetToDefaults = () => {
-    const defaultSettings = { phaseTime: 30, reserveTime: 480 };
+    const defaultSettings = { phaseTime: 30, reserveTime: 480, banRestriction: "none" as BanRestriction };
     setTempSettings(defaultSettings);
     onSettingsChange(defaultSettings);
   };
 
-  const hasChanges = tempSettings.phaseTime !== settings.phaseTime || tempSettings.reserveTime !== settings.reserveTime;
+  const hasChanges = tempSettings.phaseTime !== settings.phaseTime || tempSettings.reserveTime !== settings.reserveTime || tempSettings.banRestriction !== settings.banRestriction;
   
   // Check if values are valid (not empty and >= 8)
   const phaseTimeValue = typeof tempSettings.phaseTime === 'string' ? parseInt(tempSettings.phaseTime) : tempSettings.phaseTime;
@@ -101,11 +103,22 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getBanRestrictionLabel = (restriction: BanRestriction) => {
+    switch (restriction) {
+      case "none": return "No Restrictions";
+      case "onePerRole": return "Only 1 ban per Role";
+      case "oneDPS": return "Only 1 DPS ban";
+      case "oneSupport": return "Only 1 Support ban";
+      case "oneSustain": return "Only 1 Sustain ban";
+      default: return "No Restrictions";
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
       <h2 className="text-xl font-bold text-white mb-4">Drafting Settings</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Phase Time Setting */}
         <div className="space-y-3">
           <label className="block text-white font-medium">Phase Time</label>
@@ -151,6 +164,30 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
             </div>
           </div>
         </div>
+
+        {/* Ban Restriction Setting */}
+        <div className="space-y-3">
+          <label className="block text-white font-medium">Ban Restrictions per Team</label>
+          <div className="space-y-2">
+            <select
+              value={tempSettings.banRestriction}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, banRestriction: e.target.value as BanRestriction }))}
+              disabled={isDraftInProgress}
+              className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="none">No Restrictions</option>
+              <option value="onePerRole">Only 1 ban per Role</option>
+              <option value="oneDPS">Only 1 DPS ban</option>
+              <option value="oneSupport">Only 1 Support ban</option>
+              <option value="oneSustain">Only 1 Sustain ban</option>
+            </select>
+            <div className="text-sm text-gray-400">
+              Current: <span className="text-cyan-400">{getBanRestrictionLabel(tempSettings.banRestriction)}</span>
+              <br />
+              <span className="text-xs text-gray-500">Applies during ban phases</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
@@ -188,7 +225,7 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
       {/* Current Settings Display */}
       <div className="mt-4 p-4 bg-gray-700 rounded border border-gray-600">
         <h3 className="text-white font-medium mb-2">Current Active Settings</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <span className="text-gray-400">Phase Time:</span>
             <span className="text-cyan-400 ml-2">{formatTime(settings.phaseTime)}</span>
@@ -196,6 +233,10 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
           <div>
             <span className="text-gray-400">Reserve Time:</span>
             <span className="text-cyan-400 ml-2">{formatTime(settings.reserveTime)}</span>
+          </div>
+          <div>
+            <span className="text-gray-400">Ban Restrictions:</span>
+            <span className="text-cyan-400 ml-2">{getBanRestrictionLabel(settings.banRestriction)}</span>
           </div>
         </div>
       </div>

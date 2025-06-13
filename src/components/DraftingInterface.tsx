@@ -24,9 +24,12 @@ export interface DraftedCharacter {
   lightconeRank?: LightconeRank;
 }
 
+export type BanRestriction = "none" | "onePerRole" | "oneDPS" | "oneSupport" | "oneSustain";
+
 export interface DraftSettings {
   phaseTime: number; // in seconds
   reserveTime: number; // in seconds
+  banRestriction: BanRestriction;
 }
 
 export interface DraftState {
@@ -103,6 +106,35 @@ const DRAFT_ORDERS = {
 
 const DEFAULT_PHASE_TIME = 30; // 30 seconds per phase
 const DEFAULT_RESERVE_TIME = 480; // 8 minutes (480 seconds) reserve time per team
+const DEFAULT_BAN_RESTRICTION: BanRestriction = "none";
+
+const checkBanRestriction = (character: any, bannedCharacters: any[], restriction: BanRestriction) => {
+  switch (restriction) {
+    case "onePerRole":
+      return !bannedCharacters.some(banned => banned.role === character.role);
+    
+    case "oneDPS":
+      if (character.role === "dps") {
+        return !bannedCharacters.some(banned => banned.role === "dps");
+      }
+      return true;
+    
+    case "oneSupport":
+      if (character.role === "support") {
+        return !bannedCharacters.some(banned => banned.role === "support");
+      }
+      return true;
+    
+    case "oneSustain":
+      if (character.role === "sustain") {
+        return !bannedCharacters.some(banned => banned.role === "sustain");
+      }
+      return true;
+    
+    default:
+      return true;
+  }
+};
 
 export function DraftingInterface() {
   const characters = useQuery(api.characters.list) || [];
@@ -121,6 +153,7 @@ export function DraftingInterface() {
     settings: {
       phaseTime: DEFAULT_PHASE_TIME,
       reserveTime: DEFAULT_RESERVE_TIME,
+      banRestriction: DEFAULT_BAN_RESTRICTION,
     },
   });
 
@@ -204,6 +237,20 @@ export function DraftingInterface() {
     ];
   };
 
+  const canBanCharacter = (characterId: Id<"character">, team: "blue" | "red") => {
+    if (draftState.settings.banRestriction === "none") {
+      return true;
+    }
+
+    const character = characters.find(c => c._id === characterId);
+    if (!character) return false;
+
+    const teamData = team === "blue" ? draftState.blueTeam : draftState.redTeam;
+    const bannedCharacters = teamData.banned.map(id => characters.find(c => c._id === id)).filter(Boolean);
+
+    return checkBanRestriction(character, bannedCharacters, draftState.settings.banRestriction);
+  };
+
   const preserveLightconeSelections = (prevTeam: any, currentTeam: any) => {
     return {
       ...prevTeam,
@@ -231,6 +278,13 @@ export function DraftingInterface() {
   const handleCharacterSelect = (characterId: Id<"character">, isAutoSelect = false) => {
     if (isDraftComplete || !currentPhase) return;
     if (!draftState.isDraftStarted && !isAutoSelect) return;
+
+    // Check ban restrictions for ban actions
+    if (currentPhase.action === "ban" && !isAutoSelect) {
+      if (!canBanCharacter(characterId, currentPhase.team as "blue" | "red")) {
+        return; // Don't allow the ban if it violates restrictions
+      }
+    }
 
     // Create a deep copy of the current state for history
     const currentStateForHistory: DraftState = {
@@ -510,6 +564,7 @@ export function DraftingInterface() {
             currentPhase={currentPhase}
             isDraftComplete={isDraftComplete}
             isDraftStarted={draftState.isDraftStarted}
+            canBanCharacter={canBanCharacter}
           />
 
           <DraftingSettings

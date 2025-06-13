@@ -12,6 +12,7 @@ interface CharacterPoolProps {
   currentPhase?: { team: string; action: string };
   isDraftComplete: boolean;
   isDraftStarted: boolean;
+  canBanCharacter?: (characterId: Id<"character">, team: "blue" | "red") => boolean;
 }
 
 export function CharacterPool({
@@ -23,6 +24,7 @@ export function CharacterPool({
   currentPhase,
   isDraftComplete,
   isDraftStarted,
+  canBanCharacter,
 }: CharacterPoolProps) {
   const icons = useQuery(api.icons.list) || [];
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -101,7 +103,16 @@ export function CharacterPool({
   };
 
   const isCharacterSelectable = (characterId: Id<"character">) => {
-    return !selectedCharacters.includes(characterId) && !isDraftComplete && currentPhase && isDraftStarted;
+    if (selectedCharacters.includes(characterId) || isDraftComplete || !currentPhase || !isDraftStarted) {
+      return false;
+    }
+
+    // Check ban restrictions for ban actions
+    if (currentPhase.action === "ban" && canBanCharacter) {
+      return canBanCharacter(characterId, currentPhase.team as "blue" | "red");
+    }
+
+    return true;
   };
 
   const toggleRoleFilter = (role: string) => {
