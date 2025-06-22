@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { RuleSet } from "./DraftingInterface";
 
 interface CostTablesProps {
@@ -7,16 +9,61 @@ interface CostTablesProps {
 }
 
 export function CostTables({ characters, lightcones }: CostTablesProps) {
+  const icons = useQuery(api.icons.list) || [];
   const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("apocalypticshadow");
   const [characterSearch, setCharacterSearch] = useState("");
   const [lightconeSearch, setLightconeSearch] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const filteredCharacters = characters.filter(char => {
-    if (!characterSearch.trim()) return true;
-    return char.aliases.some((alias: string) => 
-      alias.toLowerCase().includes(characterSearch.toLowerCase())
-    ) || char.display_name.toLowerCase().includes(characterSearch.toLowerCase());
-  });
+  // Get unique roles from characters
+  const uniqueRoles = useMemo(() => {
+    const roles = [...new Set(characters.map(char => char.role))].filter(Boolean);
+    return roles.sort();
+  }, [characters]);
+
+  // Create role icon mapping
+  const roleIconMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    uniqueRoles.forEach(role => {
+      const icon = icons.find(icon => icon.name === role);
+      if (icon) {
+        map[role] = icon.imageUrl;
+      }
+    });
+    return map;
+  }, [uniqueRoles, icons]);
+
+  const filteredCharacters = useMemo(() => {
+    let filtered = characters;
+
+    // Apply search filter
+    if (characterSearch.trim()) {
+      filtered = filtered.filter(char => {
+        return char.aliases.some((alias: string) => 
+          alias.toLowerCase().includes(characterSearch.toLowerCase())
+        ) || char.display_name.toLowerCase().includes(characterSearch.toLowerCase());
+      });
+    }
+
+    // Apply role filter
+    if (selectedRoles.length > 0) {
+      filtered = filtered.filter(char => selectedRoles.includes(char.role));
+    }
+
+    return filtered;
+  }, [characters, characterSearch, selectedRoles]);
+
+  const toggleRoleFilter = (role: string) => {
+    setSelectedRoles(prev => 
+      prev.includes(role) 
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
+
+  const clearAllRoleFilters = () => {
+    setSelectedRoles([]);
+  };
 
   const filteredLightcones = lightcones.filter(lightcone => {
     if (!lightconeSearch.trim()) return true;
@@ -29,7 +76,8 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     <div className="space-y-6">
       {/* Characters Table */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="space-y-4 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-white">Character Costs</h2>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -51,6 +99,54 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
               className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </div>
+          </div>
+
+          {/* Role Filters */}
+          {uniqueRoles.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400 font-medium">Filter by Role:</span>
+                {selectedRoles.length > 0 && (
+                  <button
+                    onClick={clearAllRoleFilters}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 underline"
+                  >
+                    Clear Roles
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {uniqueRoles.map(role => {
+                  const isSelected = selectedRoles.includes(role);
+                  const iconUrl = roleIconMap[role];
+                  
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => toggleRoleFilter(role)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        isSelected 
+                          ? "bg-cyan-600 text-white border-2 border-cyan-400" 
+                          : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
+                      }`}
+                    >
+                      {iconUrl && (
+                        <img
+                          src={iconUrl}
+                          alt={role}
+                          className="w-4 h-4 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <span className="capitalize">{role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto">
