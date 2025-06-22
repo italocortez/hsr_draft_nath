@@ -37,8 +37,8 @@ export function DraftControls({
               disabled={draftState.isDraftStarted}
               className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
             >
-              <option value="memoryofchaos">Memory of Chaos</option>
               <option value="apocalypticshadow">Apocalyptic Shadow</option>
+              <option value="memoryofchaos">Memory of Chaos</option>
             </select>
           </div>
 

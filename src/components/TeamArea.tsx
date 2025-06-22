@@ -30,14 +30,14 @@ interface TeamAreaProps {
 interface MoCResultData {
   firstHalfCycles: number | string;
   secondHalfCycles: number | string;
-  deathCharacters: number | string;
+  deadCharacters: number | string;
   additionalCycleModifier: number | string;
 }
 
 interface ApocResultData {
   firstHalfScore: number | string;
   secondHalfScore: number | string;
-  deathCharacters: number | string;
+  deadCharacters: number | string;
   additionalScoreModifier: number | string;
 }
 
@@ -63,6 +63,51 @@ function WarningIcon() {
   );
 }
 
+function InfoIcon() {
+  return (
+    <svg
+      className="w-4 h-4 text-gray-400 hover:text-cyan-400 transition-colors"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+interface TooltipProps {
+  text: string;
+  children: React.ReactNode;
+}
+
+function Tooltip({ text, children }: TooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <div className="relative inline-block">
+      <div
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
+        onClick={() => setIsVisible(!isVisible)}
+        className="cursor-help"
+      >
+        {children}
+      </div>
+      {isVisible && (
+        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg border border-gray-600 max-w-sm w-max">
+          <div className="text-left break-words hyphens-auto leading-relaxed whitespace-pre-line">{text}</div>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TeamArea({
   team,
   teamData,
@@ -84,13 +129,13 @@ export function TeamArea({
     memoryofchaos: {
       firstHalfCycles: 0,
       secondHalfCycles: 0,
-      deathCharacters: 0,
+      deadCharacters: 0,
       additionalCycleModifier: 0,
     },
     apocalypticshadow: {
       firstHalfScore: 0,
       secondHalfScore: 0,
-      deathCharacters: 0,
+      deadCharacters: 0,
       additionalScoreModifier: 0,
     },
   });
@@ -112,13 +157,13 @@ export function TeamArea({
         memoryofchaos: {
           firstHalfCycles: 0,
           secondHalfCycles: 0,
-          deathCharacters: 0,
+          deadCharacters: 0,
           additionalCycleModifier: 0,
         },
         apocalypticshadow: {
           firstHalfScore: 0,
           secondHalfScore: 0,
-          deathCharacters: 0,
+          deadCharacters: 0,
           additionalScoreModifier: 0,
         },
       });
@@ -285,10 +330,10 @@ export function TeamArea({
     let finalResult = 0;
     if (ruleSet === "memoryofchaos") {
       const mocData = resultData.memoryofchaos;
-      finalResult = getNumericValue(mocData.firstHalfCycles) + getNumericValue(mocData.secondHalfCycles) + getNumericValue(mocData.additionalCycleModifier) + (getNumericValue(mocData.deathCharacters) * settings.mocSettings.deathPenalty);
+      finalResult = getNumericValue(mocData.firstHalfCycles) + getNumericValue(mocData.secondHalfCycles) + getNumericValue(mocData.additionalCycleModifier) + (getNumericValue(mocData.deadCharacters) * settings.mocSettings.deathPenalty);
     } else {
       const apocData = resultData.apocalypticshadow;
-      finalResult = getNumericValue(apocData.firstHalfScore) + getNumericValue(apocData.secondHalfScore) + getNumericValue(apocData.additionalScoreModifier) + (getNumericValue(apocData.deathCharacters) * (-settings.apocSettings.deathPenalty));
+      finalResult = getNumericValue(apocData.firstHalfScore) + getNumericValue(apocData.secondHalfScore) + getNumericValue(apocData.additionalScoreModifier) + (getNumericValue(apocData.deadCharacters) * (-settings.apocSettings.deathPenalty));
     }
     
     if (team === "blue") {
@@ -318,6 +363,42 @@ export function TeamArea({
     
     finalResult += thresholdAdjustment;
     setFinalScore(Math.round(finalResult * 1000) / 1000);
+  };
+
+  const getFormulaTooltip = () => {
+    if (ruleSet === "memoryofchaos") {
+      return `Memory of Chaos Formula:
+
+Base Score = 1st Half + 2nd Half + Additional Modifier + (Deaths × Death Penalty)
+
+Roster Difference Adjustment:
+• If your team costs less: -|cost difference| × Roster Diff Advantage
+• Applied only to the lower-cost team
+
+Threshold Adjustment:
+• If team cost > threshold: +(cost - threshold) × Above Threshold Penalty
+• If team cost < threshold: -(threshold - cost) × Under Threshold Advantage
+
+Final Score = Base Score + Roster Adjustment + Threshold Adjustment
+
+Lower scores are better in Memory of Chaos.`;
+    } else {
+      return `Apocalyptic Shadow Formula:
+
+Base Score = 1st Half + 2nd Half + Additional Modifier - (Deaths × Death Penalty)
+
+Roster Difference Adjustment:
+• If your team costs less: +|cost difference| × Roster Diff Advantage
+• Applied only to the lower-cost team
+
+Threshold Adjustment:
+• If team cost > threshold: -(cost - threshold) × Above Threshold Penalty
+• If team cost < threshold: +(threshold - cost) × Under Threshold Advantage
+
+Final Score = Base Score + Roster Adjustment + Threshold Adjustment
+
+Higher scores are better in Apocalyptic Shadow.`;
+    }
   };
 
   const renderInputField = (
@@ -486,7 +567,12 @@ export function TeamArea({
       const mocData = resultData.memoryofchaos;
       return (
         <div className="space-y-4">
-          <h3 className="text-white font-medium mb-4">Memory of Chaos Results</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-white font-medium">Memory of Chaos Results</h3>
+            <Tooltip text={getFormulaTooltip()}>
+              <InfoIcon />
+            </Tooltip>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderInputField(
               "1st Half Cycles",
@@ -505,9 +591,9 @@ export function TeamArea({
               "0"
             )}
             {renderInputField(
-              "Death Characters",
-              mocData.deathCharacters,
-              (value) => handleMoCResultDataChange('deathCharacters', value),
+              "Dead Characters",
+              mocData.deadCharacters,
+              (value) => handleMoCResultDataChange('deadCharacters', value),
               "0",
               "1",
               "0"
@@ -561,7 +647,12 @@ export function TeamArea({
       const apocData = resultData.apocalypticshadow;
       return (
         <div className="space-y-4">
-          <h3 className="text-white font-medium mb-4">Apocalyptic Shadow Results</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
+            <Tooltip text={getFormulaTooltip()}>
+              <InfoIcon />
+            </Tooltip>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderInputField(
               "1st Half Score",
@@ -580,9 +671,9 @@ export function TeamArea({
               "0"
             )}
             {renderInputField(
-              "Death Characters",
-              apocData.deathCharacters,
-              (value) => handleApocResultDataChange('deathCharacters', value),
+              "Dead Characters",
+              apocData.deadCharacters,
+              (value) => handleApocResultDataChange('deadCharacters', value),
               "0",
               "1",
               "0"

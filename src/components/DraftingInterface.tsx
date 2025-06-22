@@ -105,10 +105,12 @@ const DRAFT_ORDERS = {
     { team: "blue", action: "pick" },
     { team: "red", action: "ban" },
     { team: "blue", action: "ban" },
+    { team: "red", action: "pick" },
+    { team: "blue", action: "pick" },
+    { team: "blue", action: "pick" },
+    { team: "red", action: "pick" },
     { team: "blue", action: "ban" },
     { team: "red", action: "ban" },
-    { team: "red", action: "pick" },
-    { team: "blue", action: "pick" },
     { team: "blue", action: "pick" },
     { team: "red", action: "pick" },
     { team: "red", action: "pick" },
@@ -117,8 +119,6 @@ const DRAFT_ORDERS = {
     { team: "red", action: "pick" },
     { team: "red", action: "pick" },
     { team: "blue", action: "pick" },
-    { team: "blue", action: "pick" },
-    { team: "red", action: "pick" },
   ],
 };
 
@@ -178,7 +178,7 @@ export function DraftingInterface() {
     blueTeam: { name: "Blue Team", drafted: [], banned: [], reserveTime: DEFAULT_RESERVE_TIME },
     redTeam: { name: "Red Team", drafted: [], banned: [], reserveTime: DEFAULT_RESERVE_TIME },
     currentStep: 0,
-    ruleSet: "memoryofchaos",
+    ruleSet: "apocalypticshadow",
     draftMode: "4ban",
     history: [],
     phaseTimer: DEFAULT_PHASE_TIME,
@@ -292,8 +292,10 @@ export function DraftingInterface() {
       drafted: prevTeam.drafted.map((prevChar: any, index: number) => {
         const currentChar = currentTeam.drafted[index];
         if (currentChar && currentChar.characterId === prevChar.characterId) {
+          // Preserve the current lightcone selections and eidolon rank
           return {
             ...prevChar,
+            rank: currentChar.rank, // Preserve eidolon rank
             lightconeId: currentChar.lightconeId,
             lightconeRank: currentChar.lightconeRank,
           };
@@ -390,8 +392,12 @@ export function DraftingInterface() {
     if (draftState.history.length > 0) {
       const previousState = draftState.history[draftState.history.length - 1];
       
+      // Create new history without the last entry
+      const newHistory = previousState.history;
+      
       const newState = {
         ...previousState,
+        history: newHistory, // Use the history from the previous state
         blueTeam: {
           ...preserveLightconeSelections(previousState.blueTeam, draftState.blueTeam),
           reserveTime: previousState.blueTeam.reserveTime,

@@ -12,7 +12,7 @@ interface TeamTestProps {
 
 export function TeamTest({ characters, lightcones }: TeamTestProps) {
   const icons = useQuery(api.icons.list) || [];
-  const [ruleSet, setRuleSet] = useState<RuleSet>("memoryofchaos");
+  const [ruleSet, setRuleSet] = useState<RuleSet>("apocalypticshadow");
   const [searchTerm, setSearchTerm] = useState("");
   const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -174,8 +174,8 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                 onChange={(e) => setRuleSet(e.target.value as RuleSet)}
                 className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               >
-                <option value="memoryofchaos">Memory of Chaos</option>
                 <option value="apocalypticshadow">Apocalyptic Shadow</option>
+                <option value="memoryofchaos">Memory of Chaos</option>
               </select>
             </div>
           </div>

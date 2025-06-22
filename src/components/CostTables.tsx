@@ -7,7 +7,7 @@ interface CostTablesProps {
 }
 
 export function CostTables({ characters, lightcones }: CostTablesProps) {
-  const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("memoryofchaos");
+  const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("apocalypticshadow");
   const [characterSearch, setCharacterSearch] = useState("");
   const [lightconeSearch, setLightconeSearch] = useState("");
 
@@ -39,8 +39,8 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                 onChange={(e) => setSelectedRuleSet(e.target.value as RuleSet)}
                 className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               >
-                <option value="memoryofchaos">Memory of Chaos</option>
                 <option value="apocalypticshadow">Apocalyptic Shadow</option>
+                <option value="memoryofchaos">Memory of Chaos</option>
               </select>
             </div>
             <input
