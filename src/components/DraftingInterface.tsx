@@ -135,7 +135,7 @@ const DEFAULT_MOC_SETTINGS: MoCSettings = {
 };
 
 const DEFAULT_APOC_SETTINGS: ApocSettings = {
-  rosterDifferenceAdvantagePerPoint: 25.0,
+  rosterDifferenceAdvantagePerPoint: 40.0,
   rosterThreshold: 50.0,
   underThresholdAdvantagePerPoint: 0.0,
   aboveThresholdPenaltyPerPoint: 0.0,

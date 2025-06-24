@@ -8,12 +8,54 @@ interface CostTablesProps {
   lightcones: any[];
 }
 
+type CharacterSortField = "name" | "rarity" | "E0" | "E1" | "E2" | "E3" | "E4" | "E5" | "E6";
+type LightconeSortField = "name" | "rarity" | "S1" | "S2" | "S3" | "S4" | "S5";
+type SortDirection = "asc" | "desc";
+
+interface SortState {
+  field: string;
+  direction: SortDirection;
+}
+
+function SortIcon({ direction, isActive }: { direction?: SortDirection; isActive: boolean }) {
+  return (
+    <div className="inline-flex flex-col ml-1 opacity-60">
+      <svg
+        className={`w-3 h-3 transition-all duration-200 ${
+          isActive && direction === "asc" 
+            ? "text-cyan-400 opacity-100 transform scale-110" 
+            : "text-gray-400"
+        }`}
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+      </svg>
+      <svg
+        className={`w-3 h-3 -mt-1 transition-all duration-200 ${
+          isActive && direction === "desc" 
+            ? "text-cyan-400 opacity-100 transform scale-110" 
+            : "text-gray-400"
+        }`}
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+    </div>
+  );
+}
+
 export function CostTables({ characters, lightcones }: CostTablesProps) {
   const icons = useQuery(api.icons.list) || [];
   const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("apocalypticshadow");
   const [characterSearch, setCharacterSearch] = useState("");
   const [lightconeSearch, setLightconeSearch] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  
+  // Sort states
+  const [characterSort, setCharacterSort] = useState<SortState>({ field: "name", direction: "asc" });
+  const [lightconeSort, setLightconeSort] = useState<SortState>({ field: "name", direction: "asc" });
 
   // Get unique roles from characters
   const uniqueRoles = useMemo(() => {
@@ -33,7 +75,21 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     return map;
   }, [uniqueRoles, icons]);
 
-  const filteredCharacters = useMemo(() => {
+  const handleCharacterSort = (field: CharacterSortField) => {
+    setCharacterSort(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+
+  const handleLightconeSort = (field: LightconeSortField) => {
+    setLightconeSort(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+
+  const sortedAndFilteredCharacters = useMemo(() => {
     let filtered = characters;
 
     // Apply search filter
@@ -50,8 +106,87 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
       filtered = filtered.filter(char => selectedRoles.includes(char.role));
     }
 
-    return filtered;
-  }, [characters, characterSearch, selectedRoles]);
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (characterSort.field) {
+        case "name":
+          aValue = a.display_name.toLowerCase();
+          bValue = b.display_name.toLowerCase();
+          break;
+        case "rarity":
+          aValue = a.rarity;
+          bValue = b.rarity;
+          break;
+        default:
+          // Handle E0-E6 columns
+          aValue = a.cost[selectedRuleSet][characterSort.field];
+          bValue = b.cost[selectedRuleSet][characterSort.field];
+          break;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return characterSort.direction === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (characterSort.direction === "asc") {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+
+    return sorted;
+  }, [characters, characterSearch, selectedRoles, characterSort, selectedRuleSet]);
+
+  const sortedAndFilteredLightcones = useMemo(() => {
+    let filtered = lightcones.filter(lightcone => {
+      if (!lightconeSearch.trim()) return true;
+      return lightcone.aliases.some((alias: string) => 
+        alias.toLowerCase().includes(lightconeSearch.toLowerCase())
+      ) || lightcone.display_name.toLowerCase().includes(lightconeSearch.toLowerCase());
+    });
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (lightconeSort.field) {
+        case "name":
+          aValue = a.display_name.toLowerCase();
+          bValue = b.display_name.toLowerCase();
+          break;
+        case "rarity":
+          aValue = a.rarity;
+          bValue = b.rarity;
+          break;
+        default:
+          // Handle S1-S5 columns
+          aValue = a.cost[lightconeSort.field];
+          bValue = b.cost[lightconeSort.field];
+          break;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return lightconeSort.direction === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (lightconeSort.direction === "asc") {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+
+    return sorted;
+  }, [lightcones, lightconeSearch, lightconeSort]);
 
   const toggleRoleFilter = (role: string) => {
     setSelectedRoles(prev => 
@@ -65,12 +200,34 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     setSelectedRoles([]);
   };
 
-  const filteredLightcones = lightcones.filter(lightcone => {
-    if (!lightconeSearch.trim()) return true;
-    return lightcone.aliases.some((alias: string) => 
-      alias.toLowerCase().includes(lightconeSearch.toLowerCase())
-    ) || lightcone.display_name.toLowerCase().includes(lightconeSearch.toLowerCase());
-  });
+  const renderSortableHeader = (
+    label: string,
+    field: string,
+    currentSort: SortState,
+    onSort: (field: any) => void,
+    className: string = "text-center py-3 px-4 font-medium"
+  ) => {
+    const isActive = currentSort.field === field;
+    
+    return (
+      <th 
+        className={`${className} cursor-pointer hover:bg-gray-700 transition-colors duration-200 select-none ${
+          isActive ? "bg-gray-700" : ""
+        }`}
+        onClick={() => onSort(field)}
+        title={`Sort by ${label}`}
+      >
+        <div className="flex items-center justify-center">
+          <span className={`transition-colors duration-200 ${
+            isActive ? "text-cyan-400" : "text-white"
+          }`}>
+            {label}
+          </span>
+          <SortIcon direction={currentSort.direction} isActive={isActive} />
+        </div>
+      </th>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -153,20 +310,20 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
           <table className="w-full text-white">
             <thead>
               <tr className="border-b border-gray-600">
-                <th className="text-left py-3 px-4 font-medium">Character</th>
-                <th className="text-center py-3 px-4 font-medium">Rarity</th>
-                <th className="text-center py-3 px-4 font-medium">E0</th>
-                <th className="text-center py-3 px-4 font-medium">E1</th>
-                <th className="text-center py-3 px-4 font-medium">E2</th>
-                <th className="text-center py-3 px-4 font-medium">E3</th>
-                <th className="text-center py-3 px-4 font-medium">E4</th>
-                <th className="text-center py-3 px-4 font-medium">E5</th>
-                <th className="text-center py-3 px-4 font-medium">E6</th>
+                {renderSortableHeader("Character", "name", characterSort, handleCharacterSort, "text-left py-3 px-4 font-medium")}
+                {renderSortableHeader("Rarity", "rarity", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E0", "E0", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E1", "E1", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E2", "E2", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E3", "E3", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E4", "E4", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E5", "E5", characterSort, handleCharacterSort)}
+                {renderSortableHeader("E6", "E6", characterSort, handleCharacterSort)}
               </tr>
             </thead>
             <tbody>
-              {filteredCharacters.map((character) => (
-                <tr key={character._id} className="border-b border-gray-700 hover:bg-gray-700">
+              {sortedAndFilteredCharacters.map((character) => (
+                <tr key={character._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
                   <td className="py-3 px-4">{character.display_name}</td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center">
@@ -210,18 +367,18 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
           <table className="w-full text-white">
             <thead>
               <tr className="border-b border-gray-600">
-                <th className="text-left py-3 px-4 font-medium">Lightcone</th>
-                <th className="text-center py-3 px-4 font-medium">Rarity</th>
-                <th className="text-center py-3 px-4 font-medium">S1</th>
-                <th className="text-center py-3 px-4 font-medium">S2</th>
-                <th className="text-center py-3 px-4 font-medium">S3</th>
-                <th className="text-center py-3 px-4 font-medium">S4</th>
-                <th className="text-center py-3 px-4 font-medium">S5</th>
+                {renderSortableHeader("Lightcone", "name", lightconeSort, handleLightconeSort, "text-left py-3 px-4 font-medium")}
+                {renderSortableHeader("Rarity", "rarity", lightconeSort, handleLightconeSort)}
+                {renderSortableHeader("S1", "S1", lightconeSort, handleLightconeSort)}
+                {renderSortableHeader("S2", "S2", lightconeSort, handleLightconeSort)}
+                {renderSortableHeader("S3", "S3", lightconeSort, handleLightconeSort)}
+                {renderSortableHeader("S4", "S4", lightconeSort, handleLightconeSort)}
+                {renderSortableHeader("S5", "S5", lightconeSort, handleLightconeSort)}
               </tr>
             </thead>
             <tbody>
-              {filteredLightcones.map((lightcone) => (
-                <tr key={lightcone._id} className="border-b border-gray-700 hover:bg-gray-700">
+              {sortedAndFilteredLightcones.map((lightcone) => (
+                <tr key={lightcone._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
                   <td className="py-3 px-4">{lightcone.display_name}</td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex justify-center">
