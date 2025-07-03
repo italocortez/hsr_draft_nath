@@ -236,7 +236,7 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
         <div className="space-y-4 mb-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-white">Character Costs</h2>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-white font-medium">Rule Set:</label>
               <select
@@ -352,7 +352,7 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
 
       {/* Lightcones Table */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h2 className="text-xl font-bold text-white">Lightcone Costs</h2>
           <input
             type="text"

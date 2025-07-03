@@ -281,11 +281,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <h2 className="text-xl font-bold text-white mb-4">Character Pool</h2>
         
-        <div className="grid grid-cols-3 gap-4 items-center mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
           {/* Column 1: Element Filters */}
-          <div className="flex justify-start">
+          <div className="flex justify-center sm:justify-start">
             {uniqueElements.length > 0 && (
-              <div className="flex flex-col items-start gap-2">
+              <div className="flex flex-col items-center sm:items-start gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400 font-medium">Filter by Element:</span>
                   {selectedElements.length > 0 && (
@@ -398,7 +398,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
           </div>
 
           {/* Column 3: Search */}
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-center sm:items-end gap-2">
             <input
               type="text"
               placeholder="Search characters..."
