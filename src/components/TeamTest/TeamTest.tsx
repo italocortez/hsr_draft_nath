@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { RuleSet, CharacterRank, LightconeRank, DraftedCharacter } from "./DraftingInterface";
-import { Id } from "../../convex/_generated/dataModel";
-import { LightconeSelector } from "./LightconeSelector";
+import { api } from "../../../convex/_generated/api";
+import { RuleSet, CharacterRank, LightconeRank, DraftedCharacter } from "../DraftingInterface/DraftingInterface";
+import { Id } from "../../../convex/_generated/dataModel";
+import { LightconeSelector } from "../LightconeSelector/LightconeSelector";
+import "./TeamTest.css";
 
 interface TeamTestProps {
   characters: any[];
@@ -162,7 +163,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="TeamTest">
       {/* Controls */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -195,9 +196,10 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
       </div>
 
       {/* Test Team */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="preview-team bg-gray-800 rounded-lg p-6 border border-gray-700">
         <h2 className="text-xl font-bold text-white mb-4">Test Team ({testTeam.length}/8)</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+        <div className="characters-container grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, index) => {
             const drafted = testTeam[index];
             if (!drafted) {
@@ -217,6 +219,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
             const characterCost = character.cost[ruleSet][drafted.rank];
             const lightcone = drafted.lightconeId ? lightcones.find(l => l._id === drafted.lightconeId) : null;
             const lightconeCost = lightcone && drafted.lightconeRank ? lightcone.cost[drafted.lightconeRank] : 0;
+            const isFiveStar = character.rarity === 5;
 
             const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
             const rarityBgGradient = character.rarity === 5 
@@ -226,9 +229,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                 : "bg-gradient-to-b from-gray-700 to-gray-500";
 
             return (
-              <div key={index} className="space-y-2">
-                <div className={`relative aspect-square ${rarityBgGradient} rounded-lg overflow-hidden ${rarityBorderColor} border`}>
-                  <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
+              <div key={index} className="char-wrapper">
+                {/* Character info */}
+                <div className={`character relative aspect-square rounded-lg overflow-hidden ${rarityBorderColor} border`}>
+                  <div className={`absolute inset-0`}></div>
+                  
                   <img
                     src={getCharacterImageUrl(drafted.characterId)}
                     alt={character.display_name}
@@ -238,38 +243,46 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                         character.display_name.slice(0, 2)
                       )}`;
                     }}
+
+                    style={{ background: `var(${ isFiveStar ? `--gradient-5star` : `--gradient-4star` })` }}
                   />
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {characterCost + lightconeCost}
+
+                    {/* Combined cost */}
+                  <div className="total-cost bg-black bg-opacity-75 text-xs rounded" title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}>
+                    {lightcone ? `Σ ${characterCost + lightconeCost}` : characterCost}
                   </div>
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
+
+                    {/* Character name */}
+                  <div className="char-name bg-black bg-opacity-75 text-xs rounded">
                     {character.display_name}
                   </div>
+                    
+                    {/* Clear button */}
                   <button
                     onClick={() => handleRemoveCharacter(index)}
-                    className="absolute top-1 left-1 bg-red-600 hover:bg-red-700 text-white text-xs w-5 h-5 rounded flex items-center justify-center z-20"
+                    className="clear-button bg-red-600 hover:bg-red-700 rounded"
                   >
-                    ×
+                    X
                   </button>
+
+                    {/* Eidolon select */}
+                    <select
+                        value={drafted.rank}
+                        onChange={(e) => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
+                        className="eidolon bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        >
+                        {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
+                            <option key={rank} value={rank}>{rank}</option>
+                        ))}
+                    </select>
                 </div>
                 
-                <select
-                  value={drafted.rank}
-                  onChange={(e) => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
-                  className="w-full bg-gray-700 text-white text-xs border border-gray-600 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                >
-                  {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                    <option key={rank} value={rank}>{rank}</option>
-                  ))}
-                </select>
-
+                {/* Lightcone info */}
                 <LightconeSelector
-                  lightcones={lightcones}
-                  selectedLightconeId={drafted.lightconeId}
-                  selectedRank={drafted.lightconeRank}
-                  onLightconeChange={(lightconeId, rank) => 
-                    handleCharacterUpdate(index, { lightconeId, lightconeRank: rank })
-                  }
+                    lightcones={lightcones}
+                    selectedLightconeId={drafted.lightconeId}
+                    selectedRank={drafted.lightconeRank}
+                    onLightconeChange={(lightconeId, rank) => handleCharacterUpdate(index, { lightconeId, lightconeRank: rank })}
                 />
               </div>
             );
@@ -413,6 +426,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
           {filteredCharacters.map((character) => {
             const isSelected = selectedCharacterIds.includes(character._id);
             const isSelectable = !isSelected && testTeam.length < 8;
+            const isFiveStar = character.rarity === 5;
 
             const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
             const rarityBgGradient = character.rarity === 5 
@@ -436,7 +450,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                   }
                 `}
               >
-                <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
+                <div className={`absolute inset-0`}></div>
                 <img
                   src={character.imageUrl || `https://via.placeholder.com/100x100/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`}
                   alt={character.display_name}
@@ -446,6 +460,8 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                       character.display_name.slice(0, 2)
                     )}`;
                   }}
+
+                  style={{ background: `var(${ isFiveStar ? `--gradient-5star` : `--gradient-4star` })` }}
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 truncate z-20">
                   {character.display_name}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { RuleSet } from "./DraftingInterface";
+import { RuleSet } from "./DraftingInterface/DraftingInterface";
 
 interface CostTablesProps {
   characters: any[];

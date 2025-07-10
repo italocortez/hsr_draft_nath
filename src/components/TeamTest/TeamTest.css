@@ -1,0 +1,95 @@
+.TeamTest {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.TeamTest > .preview-team > .characters-container {
+    /* max-width: calc(4 * 16rem); 16rem for each card */
+}
+
+/* Character card (wrapper) */
+.TeamTest > .preview-team > .characters-container > .char-wrapper {
+    position: relative; /* crucial for LightconeSelector */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Character IMG */
+.TeamTest > .preview-team > .characters-container > .char-wrapper > .character > img {
+    object-position: top;
+}
+
+/* Character's combined cost */
+.TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .total-cost {
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+    z-index: 20;
+    
+    padding: 0.5rem;
+
+    font-size: clamp(1rem, 2.1vw, 1.25rem);
+    font-weight: bold;
+    color: var(--color-cost);
+}
+
+/* Character's name */
+.TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .char-name {
+    position: absolute;
+    left: 0.25rem;
+    bottom: 0.25rem;
+    z-index: 20;
+
+    padding-inline: 0.625rem;
+
+    font-weight: bold;
+    font-size: clamp(0.875rem, 2.1vw, 1.125rem);
+    line-height: 2.25rem;
+
+    /* Single line + hides overflow */
+    max-width: calc(100% - 0.5rem);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Character's eidolon select */
+.TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .eidolon {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    z-index: 20;
+
+    padding: 0.375rem;
+
+    cursor: pointer;
+    font-size: clamp(0.75rem, 2.1vw, 0.875rem);
+    font-weight: bold;
+}
+
+/* Character clear button */
+.TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .clear-button {
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    z-index: 20;
+
+    padding-inline: 0.375rem;
+
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+
+/* Apply on mobile+tablet screens */
+@media screen and (max-width: 1160px) {
+    .TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .char-name {
+        line-height: 2rem;
+    }
+    .TeamTest > .preview-team > .characters-container > .char-wrapper > .character > .eidolon {
+        bottom: unset;
+        top: 2.5rem;
+    }
+}

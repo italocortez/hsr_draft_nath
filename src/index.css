@@ -5,10 +5,28 @@
 :root {
   --color-light: #ffffff;
   --color-dark: #171717;
+  --color-cost: rgb(251, 191, 36);
+
+  --gradient-5star: linear-gradient(rgb(138, 103, 0) 0px, rgb(214, 161, 0) 63px, rgb(214, 161, 0) 130px);
+  --gradient-4star: linear-gradient(rgb(95, 56, 140) 0px, rgb(159, 108, 217) 63px, rgb(159, 108, 217) 130px);
+
+  --border-5star: rgb(251, 191, 36);
+  --border-4star: rgb(168, 85, 247);
+
+  --shadow-5star: 2px 2px 4px 3px rgba(251, 191, 36, 0.16);
+  --shadow-4star: 2px 2px 4px 3px rgba(168, 85, 247, 0.16);
 }
 
 .accent-text {
   @apply text-slate-600;
+}
+
+.Box {
+    box-sizing: border-box;
+
+    background: rgb(31 41 55);
+    border: 1px solid rgb(55 65 81);
+    border-radius: 0.5rem;
 }
 
 body {
@@ -28,8 +46,9 @@ body {
     "Segoe UI Emoji",
     "Segoe UI Symbol",
     "Noto Color Emoji";
-  color: var(--color-dark);
-  background: #121212;
+
+  color: var(--color-light);
+  background: rgb(31, 31, 31);
 }
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
@@ -58,4 +77,13 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
