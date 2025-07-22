@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings } from "./DraftingInterface";
-import { Id } from "../../convex/_generated/dataModel";
-import { LightconeSelector } from "./LightconeSelector";
+import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "../DraftingInterface/DraftingInterface";
+import { Id } from "../../../convex/_generated/dataModel";
+import "./TeamArea.css";
+import NoImpositionLightconeSelector from "../Draft/NoImpositionLightconeSelector/NoImpositionLightconeSelector";
 
 interface TeamAreaProps {
   team: "blue" | "red";
@@ -25,6 +26,7 @@ interface TeamAreaProps {
     reserveTime: number;
   };
   resetTrigger?: number;
+  draftMode: DraftMode;
 }
 
 interface MoCResultData {
@@ -83,11 +85,15 @@ function InfoIcon() {
 interface TooltipProps {
   text: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }
 
-function Tooltip({ text, children }: TooltipProps) {
+function Tooltip({ text, children, disabled }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
+  if (disabled) {
+    return children;
+  }
   return (
     <div className="relative inline-block">
       <div
@@ -120,9 +126,10 @@ export function TeamArea({
   settings,
   opponentTeamData,
   resetTrigger,
+  draftMode
 }: TeamAreaProps) {
   const [editingName, setEditingName] = useState(false);
-  const [tempName, setTempName] = useState(teamData.name);
+  const [tempName, setTempName] = useState<string>(teamData.name);
   const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
   const [finalScore, setFinalScore] = useState<number>(0);
   const [resultData, setResultData] = useState<ResultData>({
@@ -140,12 +147,8 @@ export function TeamArea({
     },
   });
 
-  const teamColor = team === "blue" ? "text-blue-400" : "text-red-400";
-  const borderColor = team === "blue" ? "border-blue-500" : "border-red-500";
-  const tabActiveColor = team === "blue" ? "bg-blue-500" : "bg-red-500";
-  
   // Default team names
-  const defaultTeamName = team === "blue" ? "Blue Team" : "Red Team";
+  const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
   
   // Use default name if current name is empty or just whitespace
   const displayName = teamData.name.trim() || defaultTeamName;
@@ -220,17 +223,6 @@ export function TeamArea({
     // When starting to edit, if the current name is the default, clear it for easier editing
     setTempName(teamData.name === defaultTeamName ? "" : teamData.name);
     setEditingName(true);
-  };
-
-  const getCharacterImageUrl = (characterId: Id<"character">) => {
-    const character = characters.find(c => c._id === characterId);
-    if (character?.imageUrl) {
-      return character.imageUrl;
-    }
-    // Fallback to placeholder if no imageUrl
-    return `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-      character?.display_name?.slice(0, 2) || "??"
-    )}`;
   };
 
   const handleMoCResultDataChange = (field: keyof MoCResultData, value: string) => {
@@ -444,129 +436,172 @@ Higher scores are better in Apocalyptic Shadow.`;
     );
   };
 
-  const renderRosterTab = () => (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-white font-medium mb-2">Drafted Characters ({teamData.drafted.length}/8)</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, index) => {
-            const drafted = teamData.drafted[index];
-            if (!drafted) {
-              return (
-                <div
-                  key={index}
-                  className="aspect-square bg-gray-700 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center"
-                >
-                  <span className="text-gray-500 text-sm">Empty</span>
-                </div>
-              );
-            }
+    const renderRosterTab = () => (
+		<div className="roster">
+			{/* Picked characters */}
+			<div className="picks">
+				<div className="sub-header">
+					<h2 className="title">{`Picks (${teamData.drafted?.length ?? 0}/8)`}</h2>
 
-            const character = characters.find(c => c._id === drafted.characterId);
-            if (!character) return null;
+					<h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
+				</div>
 
-            const characterCost = character.cost[ruleSet][drafted.rank];
-            const lightcone = drafted.lightconeId ? lightcones.find(l => l._id === drafted.lightconeId) : null;
-            const lightconeCost = lightcone && drafted.lightconeRank ? lightcone.cost[drafted.lightconeRank] : 0;
+				<div className="characters-container">
+					{Array.from({ length: 8 }).map((_, index) => {
+						const drafted = teamData.drafted[index];
+						if (!drafted) {
+							return (
+								<div key={index} className="slot empty">
+									<h3>{`Empty`}</h3>
+								</div>
+							);
+						}
 
-            const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
-            const rarityBgGradient = character.rarity === 5 
-              ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-              : character.rarity === 4 
-                ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-                : "bg-gradient-to-b from-gray-700 to-gray-500";
+						const character = characters.find(c => c._id === drafted.characterId);
+						if (!character) return null;
 
-            return (
-              <div key={index} className="space-y-2">
-                <div className={`relative aspect-square ${rarityBgGradient} rounded-lg overflow-hidden ${rarityBorderColor} border`}>
-                  <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
-                  <img
-                    src={getCharacterImageUrl(drafted.characterId)}
-                    alt={character.display_name}
-                    className="w-full h-full object-cover relative z-10"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-                        character.display_name.slice(0, 2)
-                      )}`;
-                    }}
-                  />
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {characterCost + lightconeCost}
-                  </div>
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {character.display_name}
-                  </div>
-                </div>
-                
-                <select
-                  value={drafted.rank}
-                  onChange={(e) => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
-                  className="w-full bg-gray-700 text-white text-xs border border-gray-600 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                >
-                  {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                    <option key={rank} value={rank}>{rank}</option>
-                  ))}
-                </select>
+						const characterCost = character.cost[ruleSet][drafted.rank];
+						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
+						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+						const isFiveStar = character.rarity === 5;
 
-                <LightconeSelector
-                  lightcones={lightcones}
-                  selectedLightconeId={drafted.lightconeId}
-                  selectedRank={drafted.lightconeRank}
-                  onLightconeChange={(lightconeId, rank) => 
-                    onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
+						return (
+							<div
+								key={index}
+								className="slot"
+								style={{
+									borderColor: `var(${isFiveStar ? `--border-5star` : `--border-4star`})`,
+									boxShadow: `var(${isFiveStar ? `--shadow-5star` : `--shadow-4star`})`,
+								}}
+							>
+								{/* Character info */}
+								<div className="character">
 
-      <div>
-        <h3 className="text-white font-medium mb-2">Banned Characters ({teamData.banned.length})</h3>
-        <div className="flex flex-wrap gap-2">
-          {teamData.banned.map((characterId, index) => {
-            const character = characters.find(c => c._id === characterId);
-            if (!character) return null;
+									{/* Character IMG */}
+                                    <img
+                                        src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                        alt={character.display_name}
+                                        title={`${character.display_name}`}
+                                        
+                                        style={{
+                                            background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
+                                        }}
+                                    />
 
-            const rarityBgGradient = character.rarity === 5 
-              ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-              : character.rarity === 4 
-                ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-                : "bg-gradient-to-b from-gray-700 to-gray-500";
+									{/* Combined cost */}
+									<h3
+										className="total-cost"
+										title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}
+									>
+										{lightcone
+											? `Σ ${characterCost + lightconeCost}`
+											: characterCost}
+									</h3>
 
-            return (
-              <div
-                key={index}
-                className={`w-16 h-16 ${rarityBgGradient} rounded border border-red-500 overflow-hidden relative opacity-50`}
-              >
-                <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
-                <img
-                  src={getCharacterImageUrl(characterId)}
-                  alt={character.display_name}
-                  className="w-full h-full object-cover relative z-10"
-                  onError={(e) => {
-                    e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-                      character.display_name.slice(0, 2)
-                    )}`;
-                  }}
-                />
-                <div className="absolute inset-0 bg-red-500 bg-opacity-30 flex items-center justify-center z-20">
-                  <span className="text-red-200 font-bold text-xs">BAN</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
+									{/* Verticals (Eidolon/SuperImposition) */}
+									<div className="verticals">
+										{/* Eidolon */}
+										<select
+											value={drafted.rank}
+											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
+											className="eidolon focus:outline-none"
+											style={{
+												paddingRight: `${lightcone ? `0` : ``}`,
+												marginRight: `${lightcone ? `0` : ``}`,
+											}}
+										>
+											{([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
+												<option key={rank} value={rank} style={{ color: "black" }}>
+													{rank}
+												</option>
+											))}
+										</select>
+
+										{/* Imposition */}
+										{drafted.lightconeId && (
+											<>
+												<select
+													value={drafted.lightconeRank || "S1"}
+													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
+													className="imposition focus:outline-none"
+												>
+													{(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
+														<option key={rank} value={rank} style={{ color: "black" }}>
+															{rank}
+														</option>
+													))}
+												</select>
+											</>
+										)}
+									</div>
+								</div>
+                                
+                                {/* Lightcone */}
+								<NoImpositionLightconeSelector
+									lightcones={lightcones}
+									selectedLightconeId={drafted.lightconeId}
+									selectedRank={drafted.lightconeRank}
+									onLightconeChange={(lightconeId, rank) =>
+										onCharacterUpdate(team, index, {
+											lightconeId,
+											lightconeRank: rank,
+										})
+									}
+								/>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			{/* Banned characters */}
+			<div className="bans">
+				<h2 className="sub-header">
+                    {`Bans (${teamData.banned?.length ?? 0}/${draftMode === "4ban" ? `2` : draftMode === "6ban" ? `3` : `0`})`}
+                </h2>
+
+				<div className="characters-container">
+                    {Array.from({ length: (draftMode === "4ban") ? 2 : (draftMode === "6ban") ? 3 : 0 }).map((_, index) => {
+                        const bannedCharacterId = teamData.banned[index];
+                        
+                        if (!bannedCharacterId) {
+                            return (
+                                <div key={index} className="slot empty">
+                                    <h3>{`Empty`}</h3>
+                                </div>
+                            );
+                        }
+
+                        const character = characters.find((c) => c._id === bannedCharacterId);
+                        if (!character) return null;
+
+                        const isFiveStar = character.rarity === 5;
+
+                        return (
+                            <div key={index} className="slot">
+                                <img
+                                    className="character"
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    alt={`${character.display_name} (Banned)`}
+                                    title={`${character.display_name} (Banned)`}
+                                    
+                                    style={{
+                                        background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
+                                    }}
+                                />
+                            </div>
+                        );
+                    })}
+				</div>
+			</div>
+		</div>
+	);
 
   const renderResultTab = () => {
     if (ruleSet === "memoryofchaos") {
       const mocData = resultData.memoryofchaos;
       return (
-        <div className="space-y-4">
+        <div className="results space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-white font-medium">Memory of Chaos Results</h3>
             <Tooltip text={getFormulaTooltip()}>
@@ -646,7 +681,7 @@ Higher scores are better in Apocalyptic Shadow.`;
     } else {
       const apocData = resultData.apocalypticshadow;
       return (
-        <div className="space-y-4">
+        <div className="results space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
             <Tooltip text={getFormulaTooltip()}>
@@ -727,70 +762,76 @@ Higher scores are better in Apocalyptic Shadow.`;
   };
 
   return (
-    <div className={`bg-gray-800 rounded-lg border-2 ${borderColor}`}>
-      {/* Header with team name and total cost */}
-      <div className="flex items-center justify-between p-6 pb-4">
-        {editingName ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              onBlur={handleNameSubmit}
-              onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-              className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              placeholder={defaultTeamName}
-              autoFocus
-            />
-          </div>
-        ) : (
-          <h2
-            className={`text-xl font-bold ${teamColor} cursor-pointer hover:opacity-80 min-w-0`}
-            onClick={handleStartEditing}
-            title="Click to edit team name"
-          >
-            {displayName}
-          </h2>
-        )}
-        <div className="text-white font-medium">
-          Total Cost: <span className="text-amber-400">{calculateTotalCost()}</span>
+    <div className="TeamArea Box" style={{ border : `2px solid ${((team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)`)}` }}>
+        {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
+        <div className="header">
+            {
+                !editingName ? <>
+                    {/* Team Name */}
+                    <h1 
+                        className="title name" 
+                        onClick={handleStartEditing}
+
+                        style={{ color: `${(team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)`}` }}
+                    >
+                        {displayName}
+                    </h1>
+                </> : <>
+                    {/* Name Editor */}
+                    <input
+                        className="title editor focus:outline-none"
+                        
+                        value={tempName}
+                        onChange={(e) => setTempName(e.target.value as string)}
+                        onBlur={handleNameSubmit}
+                        onKeyDown={(e) => (e.key === "Enter") && handleNameSubmit()}
+                        
+                        placeholder={defaultTeamName}
+                        autoFocus
+                    />
+                </>
+            }
+
+            {/* Navigation */}
+            <div className="navigation">
+                {/* Roster button */}
+                <button
+                    className="tab-button"
+                    onClick={_ => setActiveTab("roster")}
+
+                    style={{ 
+                        backgroundColor: `${ (activeTab === "roster") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
+                        borderBottom: `${ (activeTab === "roster") ? `2px solid white` : `none` }`, // Active tab has border
+
+                        borderTopRightRadius: `0.5rem`,
+                    }}
+                >
+                    {`Roster`}
+                </button>
+
+                {/* Results button */}
+                <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
+                    <button
+                        className="tab-button"
+                        onClick={_ => isDraftComplete && setActiveTab("result")}
+                        disabled={!isDraftComplete}
+
+                        style={{ 
+                            backgroundColor: `${ (activeTab === "result") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
+                            borderBottom: `${ (activeTab === "result") ? `2px solid white` : `none` }`, // Active tab has border
+                            cursor: `${ !isDraftComplete ? `not-allowed` : `pointer` }`,
+                            color: `${ !isDraftComplete ? `rgb(129, 133, 139)` : `white` }`,
+                        }}
+                    >
+                        {`Result`}
+                    </button>
+                </Tooltip>
+            </div>
         </div>
-      </div>
 
-      {/* Tab Navigation */}
-      <div className="flex border-b border-gray-700 px-6">
-        <button
-          onClick={() => setActiveTab("roster")}
-          className={`px-3 py-2 text-sm font-medium transition-colors ${
-            activeTab === "roster"
-              ? `${tabActiveColor} text-white border-b-2 ${borderColor.replace('border-', 'border-b-')}`
-              : "text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Roster
-        </button>
-        <button
-          onClick={() => isDraftComplete && setActiveTab("result")}
-          disabled={!isDraftComplete}
-          className={`px-3 py-2 text-sm font-medium transition-colors ${
-            activeTab === "result" && isDraftComplete
-              ? `${tabActiveColor} text-white border-b-2 ${borderColor.replace('border-', 'border-b-')}`
-              : isDraftComplete
-                ? "text-gray-400 hover:text-gray-300"
-                : "text-gray-600 cursor-not-allowed"
-          }`}
-        >
-          Result
-          {!isDraftComplete && (
-            <span className="ml-1 text-xs">(Draft must be complete)</span>
-          )}
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      <div className="p-6">
-        {activeTab === "roster" ? renderRosterTab() : renderResultTab()}
-      </div>
+        {/* Tab Content */}
+        { (activeTab === "roster") && renderRosterTab() }
+        { (activeTab === "result") && renderResultTab() }
     </div>
   );
 }
