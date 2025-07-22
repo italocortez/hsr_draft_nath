@@ -19,7 +19,7 @@
 
     font-size: clamp(1rem, 2.1vw, 1.25rem);
     font-weight: bold;
-    letter-spacing: -0.75px;
+    letter-spacing: -0.5px;
 
     color: rgb(209, 213, 219);
     background-color: rgb(55, 65, 81);

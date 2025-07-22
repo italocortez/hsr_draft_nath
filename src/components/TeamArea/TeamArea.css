@@ -4,7 +4,7 @@
 .TeamArea > .roster {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
 
     padding: 1rem;
 }
@@ -43,7 +43,7 @@
     align-items: flex-start;
 }
 .TeamArea > .header > .navigation .tab-button {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.875rem;
 
     font-size: 1rem;
     font-weight: bold;
@@ -51,13 +51,13 @@
     transition: background-color 200ms;
 }
 
-/* Picks sub-header */
+/* Sub-headers (Total picks/bans + Cost) */
 .TeamArea > .roster > .picks > .sub-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
 
-    margin-bottom: 1rem;
+    margin-bottom: 0.625rem;
     margin-top: -0.25rem;
 }
 .TeamArea > .roster > .picks > .sub-header > .title {
@@ -65,7 +65,7 @@
     font-weight: bold;
 }
 .TeamArea > .roster > .picks > .sub-header > .total-cost {
-    padding: 0.5rem 0.875rem;
+    padding: 0.625rem 0.875rem;
     border-radius: 0.25rem;
 
     font-size: clamp(1.25rem, 2.1vw, 1.5rem);
@@ -75,8 +75,6 @@
 
     background-color: rgba(0, 0, 0, 0.33);
 }
-
-/* Bans sub-header */
 .TeamArea > .roster > .bans > .sub-header {
     margin-bottom: 0.5rem;
 
@@ -84,32 +82,22 @@
     font-weight: bold;
 }
 
-/* Roster Characters container */
+/* Characters container */
 .TeamArea > .roster > .picks > .characters-container {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
 }
-
-/* Empty Character Slot */
-.TeamArea > .roster > .picks > .characters-container > .empty {
-    height: 12rem; /* Sync! with char-wrapper */
-
+.TeamArea > .roster > .bans > .characters-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: rgb(107, 114, 128);
-    border: 2px dashed rgb(75, 85, 99);
-    border-radius: 0.5rem;
-    background-color: rgb(55, 65, 81);
-    user-select: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
-/* Character (wrapper) */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper {
+/* Character Slot(s) */
+.TeamArea > .roster > .picks > .characters-container > .slot {
     position: relative;
-    height: 12rem; /* Sync! with empty character slot */
+    height: clamp(10rem, 14vw, 12rem);
 
     display: flex;
     flex-direction: column;
@@ -117,24 +105,48 @@
     border: 1px solid; /* color assigned on .tsx side */
     border-radius: 0.5rem;
 }
-/* Character card */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character {
+.TeamArea > .roster > .picks > .characters-container > .slot.empty {
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+
+    color: rgb(107, 114, 128);
+    border: 2px dashed rgb(75, 85, 99);
+    background-color: rgb(55, 65, 81);
+    user-select: none;
+}
+.TeamArea > .roster > .bans > .characters-container > .slot {
+    position: relative;
+    height: 4.8rem;
+    width: 4.8rem;
+    overflow: hidden;
+
+    border: 1px solid rgba(239, 34, 68, 0.66);
+    /* border-radius: 50%; circular icon */
+    box-shadow: 2px 2px 4px 3px rgba(0, 0, 0, 0.16);
+}
+.TeamArea > .roster > .bans > .characters-container > .slot.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+
+    color: rgba(239, 34, 68, 0.7);
+    border: 2px dashed rgb(239, 34, 68, 0.5);
+    background-color: rgb(55, 65, 81);
+    user-select: none;
+
+    box-shadow: none; /* override */
+}
+
+/* Character card (Picks) */
+.TeamArea > .roster > .picks > .characters-container > .slot > .character {
     height: 100%;
     z-index: 10; /* DON'T REMOVE else NoImpositionLightconeSelector results's z-index breaks */
 }
 
-/* Character's Image */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > img {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    
-    object-fit: cover;
-    border-radius: 0.5rem;
-}
-
 /* Character's combined cost */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .total-cost {
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .total-cost {
     position: absolute;
     right: 0.25rem;
     top: 0.25rem;
@@ -151,8 +163,18 @@
     background-color: rgba(0, 0, 0, 0.66);
 }
 
+/* Character's Image */
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > img {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
 /* Character verticals (Eidolon/Imposition) container */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals {
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals {
     position: absolute;
     left: 0.25rem;
     bottom: 2.125rem;
@@ -165,12 +187,12 @@
 
     background-color: rgba(0, 0, 0, 0.66);
 }
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals option {
-    background-color: white !important; /* Stop changing background color */
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals option {
+    background-color: white !important; /* Select's results won't change background anymore (looks weird when non white) */
 }
 
 /* Eidolon */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals > .eidolon {
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals > .eidolon {
     /* Increases clickability area */
     padding: 0.25rem 0.5rem;
     margin: -0.25rem -0.5rem;
@@ -178,6 +200,7 @@
     cursor: pointer;
     font-size: clamp(0.875rem, 2.1vw, 1.125rem);
     font-weight: bold;
+    background: transparent;
 
     /* Hide arrow's select */
     -webkit-appearance: none;
@@ -185,12 +208,12 @@
 
     transition: all 300ms;
 }
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals > .eidolon:hover {
-    background-color: rgba(55, 65, 79, 0.66);
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals > .eidolon:hover {
+    background-color: rgba(105, 115, 129, 0.66);
 }
 
 /* Super Imposition */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals > .imposition {
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals > .imposition {
     /* Increases clickability area */
     padding: 0.25rem 0.5rem 0.25rem 0;
     margin: -0.25rem -0.5rem -0.25rem 0;
@@ -198,6 +221,7 @@
     cursor: pointer;
     font-size: clamp(0.875rem, 2.1vw, 1.125rem);
     font-weight: bold;
+    background: transparent;
 
     /* Hide arrow's select */
     -webkit-appearance: none;
@@ -206,108 +230,31 @@
     transition: all 300ms;
     animation: fade-in 300ms;
 }
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .verticals > .imposition:hover {
-    background-color: rgba(55, 65, 79, 0.66);
+.TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals > .imposition:hover {
+    background-color: rgba(105, 115, 129, 0.66);
 }
 
-/* Character's eidolon select */
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .character > .eidolon {
-    position: absolute;
-    left: 0.25rem;
-    bottom: 0.25rem;
-    z-index: 20;
-
-    padding: 0.25rem 0.5rem;
-
-    cursor: pointer;
-    font-size: clamp(0.875rem, 2.1vw, 1rem);
-    font-weight: bold;
-
-    /* Hide arrow's select */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-
-    transition: all 300ms;
-}
-
-.TeamArea > .roster > .picks > .characters-container > .char-wrapper > .LightconeSelector > .imposition {
-    position: absolute;
-    left: 32px;
-    top: 120px;
-    z-index: 20;
-
-    padding: 0.25rem 0.5rem;
-    padding-left: 0;
-    background: rgba(0, 0, 0, 0.75);
-    border-left: none;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-
-    cursor: pointer;
-    font-size: clamp(0.875rem, 2.1vw, 1rem);
-    font-weight: bold;
-
-    /* Hide select's arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-
-    transition: all 300ms;
-    animation: fade-in 300ms;
-}
-
-
-.TeamArea > .roster > .bans > .characters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-.TeamArea > .roster > .bans > .characters-container > .char-wrapper {
-    position: relative;
-    height: 4.8rem; /* Sync! with empty character slot */
-    width: 4.8rem; /* Sync! with empty character slot */
-    overflow: hidden;
-
-    border: 1px solid rgba(239, 34, 68, 0.66);
-    /* border-radius: 50%; circular icon */
-    box-shadow: 2px 2px 4px 3px rgba(0, 0, 0, 0.16);
-}
-
-.TeamArea > .roster > .bans > .characters-container > .empty {
-    position: relative;
-    width: 4.8rem; /* Sync! with char-wrapper */
-    height: 4.8rem; /* Sync! with char-wrapper */
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 0.875rem;
-    color: rgba(239, 34, 68, 0.7);
-    border: 2px dashed rgb(239, 34, 68, 0.5);
-    background-color: rgb(55, 65, 81);
-    user-select: none;
-}
-
-.TeamArea > .roster > .bans > .characters-container > .char-wrapper > .character {
+/* Character card (Bans) */
+.TeamArea > .roster > .bans > .characters-container > .slot > .character {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center 25%; /* Focus on upper portion where faces usually are */
+
     filter: grayscale(100%) brightness(0.8);
-    
     transition: filter 200ms;
 }
-.TeamArea > .roster > .bans > .characters-container > .char-wrapper::after {
+.TeamArea > .roster > .bans > .characters-container > .slot:not(.empty)::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle, transparent 60%, rgba(239, 34, 68, 0.15) 100%);
+    background: radial-gradient(circle, transparent 60%, rgba(239, 34, 68, 0.2) 100%);
     pointer-events: none;
 }
-.TeamArea > .roster > .bans > .characters-container > .char-wrapper:hover > .character {
+.TeamArea > .roster > .bans > .characters-container > .slot:hover > .character {
     filter: grayscale(100%) brightness(1);
 }
 
@@ -321,6 +268,11 @@
     /* double grid column in smaller screens */
     .TeamArea > .roster > .picks > .characters-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* More focus on character's faces */
+    .TeamArea > .roster > .picks > .characters-container > .slot > .character > img {
+        object-position: 50% 25%;
     }
 }
 

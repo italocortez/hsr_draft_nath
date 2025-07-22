@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "../DraftingInterface/DraftingInterface";
 import { Id } from "../../../convex/_generated/dataModel";
-import { LightconeSelector } from "../LightconeSelector/LightconeSelector";
 import "./TeamArea.css";
 import NoImpositionLightconeSelector from "../Draft/NoImpositionLightconeSelector/NoImpositionLightconeSelector";
 
@@ -148,12 +147,8 @@ export function TeamArea({
     },
   });
 
-  const teamColor = team === "blue" ? "text-blue-400" : "text-red-400";
-  const borderColor = team === "blue" ? "border-blue-500" : "border-red-500";
-  const tabActiveColor = team === "blue" ? "bg-blue-500" : "bg-red-500";
-  
   // Default team names
-  const defaultTeamName = team === "blue" ? "Blue Team" : "Red Team";
+  const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
   
   // Use default name if current name is empty or just whitespace
   const displayName = teamData.name.trim() || defaultTeamName;
@@ -228,17 +223,6 @@ export function TeamArea({
     // When starting to edit, if the current name is the default, clear it for easier editing
     setTempName(teamData.name === defaultTeamName ? "" : teamData.name);
     setEditingName(true);
-  };
-
-  const getCharacterImageUrl = (characterId: Id<"character">) => {
-    const character = characters.find(c => c._id === characterId);
-    if (character?.imageUrl) {
-      return character.imageUrl;
-    }
-    // Fallback to placeholder if no imageUrl
-    return `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-      character?.display_name?.slice(0, 2) || "??"
-    )}`;
   };
 
   const handleMoCResultDataChange = (field: keyof MoCResultData, value: string) => {
@@ -467,31 +451,24 @@ Higher scores are better in Apocalyptic Shadow.`;
 						const drafted = teamData.drafted[index];
 						if (!drafted) {
 							return (
-								<div key={index} className="empty">
-									<span>{`Empty`}</span>
+								<div key={index} className="slot empty">
+									<h3>{`Empty`}</h3>
 								</div>
 							);
 						}
 
-						const character = characters.find(
-							(c) => c._id === drafted.characterId
-						);
+						const character = characters.find(c => c._id === drafted.characterId);
 						if (!character) return null;
 
 						const characterCost = character.cost[ruleSet][drafted.rank];
-						const lightcone = drafted.lightconeId
-							? lightcones.find((l) => l._id === drafted.lightconeId)
-							: null;
-						const lightconeCost =
-							lightcone && drafted.lightconeRank
-								? lightcone.cost[drafted.lightconeRank]
-								: 0;
+						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
+						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 						const isFiveStar = character.rarity === 5;
 
 						return (
 							<div
 								key={index}
-								className="char-wrapper"
+								className="slot"
 								style={{
 									borderColor: `var(${isFiveStar ? `--border-5star` : `--border-4star`})`,
 									boxShadow: `var(${isFiveStar ? `--shadow-5star` : `--shadow-4star`})`,
@@ -502,10 +479,9 @@ Higher scores are better in Apocalyptic Shadow.`;
 
 									{/* Character IMG */}
                                     <img
-                                        src={getCharacterImageUrl(drafted.characterId)}
+                                        src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                         alt={character.display_name}
                                         title={`${character.display_name}`}
-                                        onError={e => e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`}
                                         
                                         style={{
                                             background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
@@ -522,62 +498,20 @@ Higher scores are better in Apocalyptic Shadow.`;
 											: characterCost}
 									</h3>
 
-									{/* Character name */}
-									{/* <div className="char-name absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {character.display_name}
-                  </div> */}
-
-									{/* Eidolon selecet */}
-									{/* <select
-                        value={drafted.rank}
-                        onChange={(e) => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
-                        className="eidolon bg-black bg-opacity-75 border border-gray-600 focus:outline-none"
-                        
-                        style={{ 
-                            Shorten if LC selected
-                            paddingRight: `${lightcone ? `0` : ``}`,
-                            borderRight: `${lightcone ? `none` : ``}`,
-                            borderTopRightRadius: `${lightcone ? `0` : ``}`,
-                            borderBottomRightRadius: `${lightcone ? `0` : ``}`,
-                        }} 
-                    >
-                        {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                            <option key={rank} value={rank}>{rank}</option>
-                        ))}
-                    </select> */}
-
-									{/* Eidolon + Imposition */}
+									{/* Verticals (Eidolon/SuperImposition) */}
 									<div className="verticals">
 										{/* Eidolon */}
 										<select
 											value={drafted.rank}
-											onChange={(e) =>
-												onCharacterUpdate(team, index, {
-													rank: e.target.value as CharacterRank,
-												})
-											}
-											className="eidolon bg-transparent focus:outline-none"
+											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
+											className="eidolon focus:outline-none"
 											style={{
 												paddingRight: `${lightcone ? `0` : ``}`,
 												marginRight: `${lightcone ? `0` : ``}`,
 											}}
 										>
-											{(
-												[
-													"E0",
-													"E1",
-													"E2",
-													"E3",
-													"E4",
-													"E5",
-													"E6",
-												] as CharacterRank[]
-											).map((rank) => (
-												<option
-													key={rank}
-													value={rank}
-													style={{ color: "black" }}
-												>
+											{([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
+												<option key={rank} value={rank} style={{ color: "black" }}>
 													{rank}
 												</option>
 											))}
@@ -588,22 +522,11 @@ Higher scores are better in Apocalyptic Shadow.`;
 											<>
 												<select
 													value={drafted.lightconeRank || "S1"}
-													onChange={(e) =>
-														onCharacterUpdate(team, index, {
-															lightconeId: drafted.lightconeId,
-															lightconeRank: e.target.value as LightconeRank,
-														})
-													}
-													className="imposition bg-transparent focus:outline-none"
+													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
+													className="imposition focus:outline-none"
 												>
-													{(
-														["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]
-													).map((rank) => (
-														<option
-															key={rank}
-															value={rank}
-															style={{ color: "black" }}
-														>
+													{(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
+														<option key={rank} value={rank} style={{ color: "black" }}>
 															{rank}
 														</option>
 													))}
@@ -612,7 +535,8 @@ Higher scores are better in Apocalyptic Shadow.`;
 										)}
 									</div>
 								</div>
-
+                                
+                                {/* Lightcone */}
 								<NoImpositionLightconeSelector
 									lightcones={lightcones}
 									selectedLightconeId={drafted.lightconeId}
@@ -624,16 +548,6 @@ Higher scores are better in Apocalyptic Shadow.`;
 										})
 									}
 								/>
-
-								{/* Lightcone info */}
-								{/* <LightconeSelector
-                  lightcones={lightcones}
-                  selectedLightconeId={drafted.lightconeId}
-                  selectedRank={drafted.lightconeRank}
-                  onLightconeChange={(lightconeId, rank) => 
-                    onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })
-                  }
-                /> */}
 							</div>
 						);
 					})}
@@ -652,8 +566,8 @@ Higher scores are better in Apocalyptic Shadow.`;
                         
                         if (!bannedCharacterId) {
                             return (
-                                <div key={index} className="empty">
-                                    <span>{`Empty`}</span>
+                                <div key={index} className="slot empty">
+                                    <h3>{`Empty`}</h3>
                                 </div>
                             );
                         }
@@ -664,13 +578,12 @@ Higher scores are better in Apocalyptic Shadow.`;
                         const isFiveStar = character.rarity === 5;
 
                         return (
-                            <div key={index} className="char-wrapper">
+                            <div key={index} className="slot">
                                 <img
                                     className="character"
-                                    src={getCharacterImageUrl(bannedCharacterId)}
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                     alt={`${character.display_name} (Banned)`}
                                     title={`${character.display_name} (Banned)`}
-                                    onError={e => e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`}
                                     
                                     style={{
                                         background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
@@ -679,31 +592,6 @@ Higher scores are better in Apocalyptic Shadow.`;
                             </div>
                         );
                     })}
-                    
-					{/* {teamData.banned.map((characterId, index) => {
-						const character = characters.find((c) => c._id === characterId);
-						if (!character) return null;
-
-						const isFiveStar = character.rarity === 5;
-
-						return (
-							<div className="char-wrapper">
-								<img
-									key={index}
-									className="character"
-									src={getCharacterImageUrl(characterId)}
-									alt={`${character.display_name} (Banned)`}
-									title={`${character.display_name} (Banned)`}
-									onError={(e) =>
-										(e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`)
-									}
-									style={{
-										background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
-									}}
-								/>
-							</div>
-						);
-					})} */}
 				</div>
 			</div>
 		</div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { CharacterPool } from "../CharacterPool";
+import { CharacterPool } from "../CharacterPool/CharacterPool";
 import { TeamArea } from "../TeamArea/TeamArea";
 import { DraftControls } from "../DraftControls";
 import { CostTables } from "../CostTables";
@@ -213,7 +213,6 @@ export function DraftingInterface() {
 		},
 	});
 
-	const [searchTerm, setSearchTerm] = useState("");
 	const [activeTab, setActiveTab] = useState<
 		"draft" | "costs" | "teamtest" | "contact"
 	>("draft");
@@ -341,15 +340,6 @@ export function DraftingInterface() {
 			}),
 		};
 	};
-
-	const filteredCharacters = characters.filter((char) => {
-		if (!searchTerm.trim()) return true;
-		return (
-			char.aliases.some((alias) =>
-				alias.toLowerCase().includes(searchTerm.toLowerCase())
-			) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase())
-		);
-	});
 
 	const handleCharacterSelect = (
 		characterId: Id<"character">,
@@ -559,13 +549,7 @@ export function DraftingInterface() {
 		}));
 	};
 
-	// Reset search when draft state changes to ensure UI updates
 	useEffect(() => {
-		// Clear search to refresh character pool display
-		if (searchTerm) {
-			setSearchTerm("");
-		}
-
         // window.scrollTo({ top: 250, behavior: 'smooth' }); maybe?
 	}, [draftState.currentStep]);
 
@@ -680,10 +664,8 @@ export function DraftingInterface() {
 					</div>
 
 					<CharacterPool
-						characters={filteredCharacters}
+						characters={characters}
 						selectedCharacters={getAllSelectedCharacters()}
-						searchTerm={searchTerm}
-						onSearchChange={setSearchTerm}
 						onCharacterSelect={handleCharacterSelect}
 						currentPhase={currentPhase}
 						isDraftComplete={isDraftComplete}

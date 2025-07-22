@@ -3,7 +3,7 @@
     z-index: 20;
 }
 
-/* Container [ Search Bar + LC Cost ] */
+/* Container [ SearchBar + LC Cost ] */
 .NoImpositionLightconeSelector > .inputs {
     display: flex;
     align-items: center;
@@ -64,8 +64,6 @@
 
     transition: all 300ms;
 }
-
-/* Result's Name */
 .NoImpositionLightconeSelector > .result-set > .result > .name {
     flex: 1;
     line-height: 1.25rem;
@@ -77,8 +75,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-
-/* Result's S1 Cost */
 .NoImpositionLightconeSelector > .result-set > .result > .cost {
     flex-shrink: 0;
     padding-inline: 0.25rem;
