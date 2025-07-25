@@ -168,11 +168,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-white font-medium">Rule Set:</label>
+              <label className="text-white text-xl font-medium">Rule Set:</label>
               <select
                 value={ruleSet}
                 onChange={(e) => setRuleSet(e.target.value as RuleSet)}
-                className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                className="bg-gray-700 text-white text-lg border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               >
                 <option value="apocalypticshadow">Apocalyptic Shadow</option>
                 <option value="memoryofchaos">Memory of Chaos</option>
@@ -181,12 +181,12 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-white font-medium">
-              Total Cost: <span className="text-amber-400">{calculateTotalCost()}</span>
+            <div className="text-white text-xl font-medium">
+              Total Cost: <span className="text-amber-400 text-2xl">{calculateTotalCost()}</span>
             </div>
             <button
               onClick={handleReset}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              className="px-4 py-2 text-lg bg-red-600 text-white rounded hover:bg-red-700 transition-colors font-medium"
             >
               Reset
             </button>
@@ -196,7 +196,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
       {/* Test Team */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-xl font-bold text-white mb-4">Test Team ({testTeam.length}/8)</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Test Team ({testTeam.length}/8)</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, index) => {
             const drafted = testTeam[index];
@@ -206,7 +206,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                   key={index}
                   className="aspect-square bg-gray-700 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center"
                 >
-                  <span className="text-gray-500 text-sm">Empty</span>
+                  <span className="text-gray-500 text-lg">Empty</span>
                 </div>
               );
             }
@@ -239,29 +239,48 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                       )}`;
                     }}
                   />
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
+                  <div className="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded z-20 font-medium">
                     {characterCost + lightconeCost}
-                  </div>
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {character.display_name}
                   </div>
                   <button
                     onClick={() => handleRemoveCharacter(index)}
-                    className="absolute top-1 left-1 bg-red-600 hover:bg-red-700 text-white text-xs w-5 h-5 rounded flex items-center justify-center z-20"
+                    className="absolute top-1 left-1 bg-red-600 hover:bg-red-700 text-white text-lg w-6 h-6 rounded flex items-center justify-center z-20 font-bold"
                   >
                     ×
                   </button>
+                  <div className="absolute bottom-1 left-1 z-20 flex">
+                    <select
+                      value={drafted.rank}
+                      onChange={(e) => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
+                      className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-l border-none outline-none appearance-none cursor-pointer font-medium"
+                      style={{
+                        backgroundImage: 'none',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'none'
+                      }}
+                    >
+                      {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
+                        <option key={rank} value={rank}>{rank}</option>
+                      ))}
+                    </select>
+                    {drafted.lightconeId && drafted.lightconeRank && (
+                      <select
+                        value={drafted.lightconeRank}
+                        onChange={(e) => handleCharacterUpdate(index, { lightconeRank: e.target.value as LightconeRank })}
+                        className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-r border-none outline-none appearance-none cursor-pointer font-medium"
+                        style={{
+                          backgroundImage: 'none',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none'
+                        }}
+                      >
+                        {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map(rank => (
+                          <option key={rank} value={rank}>{rank}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                 </div>
-                
-                <select
-                  value={drafted.rank}
-                  onChange={(e) => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
-                  className="w-full bg-gray-700 text-white text-xs border border-gray-600 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                >
-                  {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                    <option key={rank} value={rank}>{rank}</option>
-                  ))}
-                </select>
 
                 <LightconeSelector
                   lightcones={lightcones}
@@ -279,7 +298,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
       {/* Character Pool */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-xl font-bold text-white mb-4">Character Pool</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Character Pool</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
           {/* Column 1: Element Filters */}
@@ -287,11 +306,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
             {uniqueElements.length > 0 && (
               <div className="flex flex-col items-center sm:items-start gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400 font-medium">Filter by Element:</span>
+                  <span className="text-lg text-gray-400 font-medium">Filter by Element:</span>
                   {selectedElements.length > 0 && (
                     <button
                       onClick={clearAllElementFilters}
-                      className="text-xs text-cyan-400 hover:text-cyan-300 underline"
+                      className="text-sm text-cyan-400 hover:text-cyan-300 underline"
                     >
                       Clear Elements
                     </button>
@@ -307,7 +326,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                         key={element}
                         onClick={() => toggleElementFilter(element)}
                         className={`
-                          flex items-center justify-center w-10 h-10 rounded-full transition-all
+                          flex items-center justify-center w-12 h-12 rounded-full transition-all
                           ${isSelected 
                             ? "bg-cyan-600 border-2 border-cyan-400" 
                             : "bg-gray-700 border-2 border-gray-600 hover:border-gray-500"
@@ -319,7 +338,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                           <img
                             src={iconUrl}
                             alt={element}
-                            className="w-6 h-6 object-contain"
+                            className="w-7 h-7 object-contain"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}
@@ -340,11 +359,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
               {uniqueRoles.length > 0 && (
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400 font-medium">Filter by Role:</span>
+                    <span className="text-lg text-gray-400 font-medium">Filter by Role:</span>
                     {selectedRoles.length > 0 && (
                       <button
                         onClick={clearAllRoleFilters}
-                        className="text-xs text-cyan-400 hover:text-cyan-300 underline"
+                        className="text-sm text-cyan-400 hover:text-cyan-300 underline"
                       >
                         Clear Roles
                       </button>
@@ -360,7 +379,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                           key={role}
                           onClick={() => toggleRoleFilter(role)}
                           className={`
-                            flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all
+                            flex items-center gap-2 px-3 py-2 rounded-full text-lg font-medium transition-all
                             ${isSelected 
                               ? "bg-cyan-600 text-white border-2 border-cyan-400" 
                               : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
@@ -371,7 +390,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             <img
                               src={iconUrl}
                               alt={role}
-                              className="w-4 h-4 object-contain"
+                              className="w-5 h-5 object-contain"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
                               }}
@@ -389,7 +408,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
               {(selectedRoles.length > 0 || selectedElements.length > 0) && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-xs text-red-400 hover:text-red-300 underline font-medium"
+                  className="text-sm text-red-400 hover:text-red-300 underline font-medium"
                 >
                   Clear All Filters
                 </button>
@@ -404,7 +423,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
               placeholder="Search characters..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              className="bg-gray-700 text-white text-lg border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </div>
         </div>
@@ -447,12 +466,12 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                     )}`;
                   }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 truncate z-20">
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-sm p-1 truncate z-20 font-medium">
                   {character.display_name}
                 </div>
                 {isSelected && (
                   <div className="absolute inset-0 bg-green-500 bg-opacity-30 flex items-center justify-center z-30">
-                    <span className="text-white font-bold text-xs">SELECTED</span>
+                    <span className="text-white font-bold text-sm">SELECTED</span>
                   </div>
                 )}
               </button>
@@ -461,7 +480,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         </div>
 
         {filteredCharacters.length === 0 && (
-          <div className="text-center text-gray-400 py-8">
+          <div className="text-center text-gray-400 py-8 text-lg">
             {searchTerm || selectedRoles.length > 0 || selectedElements.length > 0
               ? "No characters found matching your filters." 
               : "Loading characters..."

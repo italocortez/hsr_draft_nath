@@ -589,9 +589,11 @@ export function DraftingInterface() {
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
               isDraftComplete={isDraftComplete}
+              isDraftStarted={draftState.isDraftStarted}
               settings={draftState.settings}
               opponentTeamData={draftState.redTeam}
               resetTrigger={resetTrigger}
+              currentTurn={currentPhase?.team as "blue" | "red" | null}
             />
             <TeamArea
               team="red"
@@ -602,9 +604,11 @@ export function DraftingInterface() {
               onTeamNameChange={handleTeamNameChange}
               onCharacterUpdate={handleCharacterUpdate}
               isDraftComplete={isDraftComplete}
+              isDraftStarted={draftState.isDraftStarted}
               settings={draftState.settings}
               opponentTeamData={draftState.blueTeam}
               resetTrigger={resetTrigger}
+              currentTurn={currentPhase?.team as "blue" | "red" | null}
             />
           </div>
 

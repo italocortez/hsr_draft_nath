@@ -17,6 +17,7 @@ interface TeamAreaProps {
   onTeamNameChange: (team: "blue" | "red", name: string) => void;
   onCharacterUpdate: (team: "blue" | "red", index: number, updates: Partial<DraftedCharacter>) => void;
   isDraftComplete?: boolean;
+  isDraftStarted?: boolean;
   settings?: DraftSettings;
   opponentTeamData?: {
     name: string;
@@ -25,6 +26,7 @@ interface TeamAreaProps {
     reserveTime: number;
   };
   resetTrigger?: number;
+  currentTurn?: "blue" | "red" | null;
 }
 
 interface MoCResultData {
@@ -49,7 +51,7 @@ interface ResultData {
 function WarningIcon() {
   return (
     <svg
-      className="w-4 h-4 text-amber-500"
+      className="w-8 h-8 text-amber-500"
       fill="currentColor"
       viewBox="0 0 20 20"
       xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +68,7 @@ function WarningIcon() {
 function InfoIcon() {
   return (
     <svg
-      className="w-4 h-4 text-gray-400 hover:text-cyan-400 transition-colors"
+      className="w-8 h-8 text-gray-400 hover:text-cyan-400 transition-colors"
       fill="currentColor"
       viewBox="0 0 20 20"
       xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +101,7 @@ function Tooltip({ text, children }: TooltipProps) {
         {children}
       </div>
       {isVisible && (
-        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg border border-gray-600 max-w-sm w-max">
+        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-lg rounded-lg shadow-lg border border-gray-600 max-w-sm w-max">
           <div className="text-left break-words hyphens-auto leading-relaxed whitespace-pre-line">{text}</div>
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
@@ -117,9 +119,11 @@ export function TeamArea({
   onTeamNameChange,
   onCharacterUpdate,
   isDraftComplete = false,
+  isDraftStarted = false,
   settings,
   opponentTeamData,
   resetTrigger,
+  currentTurn,
 }: TeamAreaProps) {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(teamData.name);
@@ -149,6 +153,20 @@ export function TeamArea({
   
   // Use default name if current name is empty or just whitespace
   const displayName = teamData.name.trim() || defaultTeamName;
+
+  // Determine if this team is currently active
+  const isActiveTeam = currentTurn === team;
+
+  // Get highlight classes for active team
+  const getHighlightClasses = () => {
+    if (!isActiveTeam || !isDraftStarted || isDraftComplete) return borderColor;
+    
+    if (team === "blue") {
+      return "border-blue-400 bg-blue-500 bg-opacity-5";
+    } else {
+      return "border-red-400 bg-red-500 bg-opacity-5";
+    }
+  };
 
   // Reset result data when resetTrigger changes
   useEffect(() => {
@@ -416,11 +434,11 @@ Higher scores are better in Apocalyptic Shadow.`;
     return (
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <label className="block text-white text-sm font-medium">{label}</label>
+          <label className="block text-white text-lg font-medium">{label}</label>
           {isEmpty && (
             <div className="flex items-center gap-1" title="This field cannot be empty">
               <WarningIcon />
-              <span className="text-xs text-amber-500">Required</span>
+              <span className="text-lg text-amber-500">Required</span>
             </div>
           )}
         </div>
@@ -430,13 +448,13 @@ Higher scores are better in Apocalyptic Shadow.`;
           step={step}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+          className={`w-full bg-gray-700 text-white text-lg border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
             isEmpty ? 'border-amber-500 bg-amber-50 bg-opacity-5' : 'border-gray-600'
           }`}
           placeholder={placeholder}
         />
         {!allowNegative && (
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-lg text-gray-400 mt-1">
             {allowNegative ? "Can be negative, zero, or positive" : "Must be ≥ 0"}
           </p>
         )}
@@ -447,7 +465,12 @@ Higher scores are better in Apocalyptic Shadow.`;
   const renderRosterTab = () => (
     <div className="space-y-4">
       <div>
-        <h3 className="text-white font-medium mb-2">Drafted Characters ({teamData.drafted.length}/8)</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-white text-xl font-medium">Picks ({teamData.drafted.length}/8)</h3>
+          <div className="text-white text-xl font-medium">
+            Total Cost: <span className="text-amber-400 text-2xl">{calculateTotalCost()}</span>
+          </div>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, index) => {
             const drafted = teamData.drafted[index];
@@ -457,7 +480,7 @@ Higher scores are better in Apocalyptic Shadow.`;
                   key={index}
                   className="aspect-square bg-gray-700 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center"
                 >
-                  <span className="text-gray-500 text-sm">Empty</span>
+                  <span className="text-gray-500 text-lg">Empty</span>
                 </div>
               );
             }
@@ -490,23 +513,42 @@ Higher scores are better in Apocalyptic Shadow.`;
                       )}`;
                     }}
                   />
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
+                  <div className="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded z-20 font-medium">
                     {characterCost + lightconeCost}
                   </div>
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded z-20">
-                    {character.display_name}
+                  <div className="absolute bottom-1 left-1 z-20 flex">
+                    <select
+                      value={drafted.rank}
+                      onChange={(e) => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
+                      className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-l border-none outline-none appearance-none cursor-pointer font-medium"
+                      style={{
+                        backgroundImage: 'none',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'none'
+                      }}
+                    >
+                      {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
+                        <option key={rank} value={rank}>{rank}</option>
+                      ))}
+                    </select>
+                    {drafted.lightconeId && drafted.lightconeRank && (
+                      <select
+                        value={drafted.lightconeRank}
+                        onChange={(e) => onCharacterUpdate(team, index, { lightconeRank: e.target.value as LightconeRank })}
+                        className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-r border-none outline-none appearance-none cursor-pointer font-medium"
+                        style={{
+                          backgroundImage: 'none',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none'
+                        }}
+                      >
+                        {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map(rank => (
+                          <option key={rank} value={rank}>{rank}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
-                
-                <select
-                  value={drafted.rank}
-                  onChange={(e) => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
-                  className="w-full bg-gray-700 text-white text-xs border border-gray-600 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                >
-                  {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                    <option key={rank} value={rank}>{rank}</option>
-                  ))}
-                </select>
 
                 <LightconeSelector
                   lightcones={lightcones}
@@ -523,7 +565,7 @@ Higher scores are better in Apocalyptic Shadow.`;
       </div>
 
       <div>
-        <h3 className="text-white font-medium mb-2">Banned Characters ({teamData.banned.length})</h3>
+        <h3 className="text-white text-xl font-medium mb-2">Bans ({teamData.banned.length})</h3>
         <div className="flex flex-wrap gap-2">
           {teamData.banned.map((characterId, index) => {
             const character = characters.find(c => c._id === characterId);
@@ -552,7 +594,7 @@ Higher scores are better in Apocalyptic Shadow.`;
                   }}
                 />
                 <div className="absolute inset-0 bg-red-500 bg-opacity-30 flex items-center justify-center z-20">
-                  <span className="text-red-200 font-bold text-xs">BAN</span>
+                  <span className="text-red-200 font-bold text-lg">BAN</span>
                 </div>
               </div>
             );
@@ -568,7 +610,7 @@ Higher scores are better in Apocalyptic Shadow.`;
       return (
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-medium">Memory of Chaos Results</h3>
+            <h3 className="text-white text-xl font-medium">Memory of Chaos Results</h3>
             <Tooltip text={getFormulaTooltip()}>
               <InfoIcon />
             </Tooltip>
@@ -613,7 +655,7 @@ Higher scores are better in Apocalyptic Shadow.`;
             <button
               onClick={calculateResult}
               disabled={!settings || !opponentTeamData || hasEmptyFields()}
-              className={`px-4 py-2 rounded font-medium transition-colors ${
+              className={`px-4 py-2 text-lg rounded font-medium transition-colors ${
                 team === "blue" 
                   ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
                   : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
@@ -623,20 +665,20 @@ Higher scores are better in Apocalyptic Shadow.`;
             </button>
             
             {hasEmptyFields() && (
-              <div className="flex items-center gap-2 text-amber-500 text-sm">
+              <div className="flex items-center gap-2 text-amber-500 text-lg">
                 <WarningIcon />
                 <span>Fill all fields to calculate</span>
               </div>
             )}
             
             <div className="flex-1">
-              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
+              <label className="block text-white text-lg font-medium mb-2">Final Score</label>
               <input
                 type="number"
                 step="0.01"
                 value={finalScore}
                 readOnly
-                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                className="w-full bg-gray-600 text-white text-xl border border-gray-500 rounded px-3 py-2 cursor-not-allowed font-medium"
                 placeholder="0.00"
               />
             </div>
@@ -648,7 +690,7 @@ Higher scores are better in Apocalyptic Shadow.`;
       return (
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
+            <h3 className="text-white text-xl font-medium">Apocalyptic Shadow Results</h3>
             <Tooltip text={getFormulaTooltip()}>
               <InfoIcon />
             </Tooltip>
@@ -693,7 +735,7 @@ Higher scores are better in Apocalyptic Shadow.`;
             <button
               onClick={calculateResult}
               disabled={!settings || !opponentTeamData || hasEmptyFields()}
-              className={`px-4 py-2 rounded font-medium transition-colors ${
+              className={`px-4 py-2 text-lg rounded font-medium transition-colors ${
                 team === "blue" 
                   ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
                   : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
@@ -703,20 +745,20 @@ Higher scores are better in Apocalyptic Shadow.`;
             </button>
             
             {hasEmptyFields() && (
-              <div className="flex items-center gap-2 text-amber-500 text-sm">
+              <div className="flex items-center gap-2 text-amber-500 text-lg">
                 <WarningIcon />
                 <span>Fill all fields to calculate</span>
               </div>
             )}
             
             <div className="flex-1">
-              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
+              <label className="block text-white text-lg font-medium mb-2">Final Score</label>
               <input
                 type="number"
                 step="0.01"
                 value={finalScore}
                 readOnly
-                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                className="w-full bg-gray-600 text-white text-xl border border-gray-500 rounded px-3 py-2 cursor-not-allowed font-medium"
                 placeholder="0.00"
               />
             </div>
@@ -727,64 +769,75 @@ Higher scores are better in Apocalyptic Shadow.`;
   };
 
   return (
-    <div className={`bg-gray-800 rounded-lg border-2 ${borderColor}`}>
-      {/* Header with team name and total cost */}
+    <div className={`bg-gray-800 rounded-lg border-2 transition-all duration-300 ${getHighlightClasses()}`}>
+      {/* Header with team name and tabs */}
       <div className="flex items-center justify-between p-6 pb-4">
-        {editingName ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              onBlur={handleNameSubmit}
-              onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-              className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              placeholder={defaultTeamName}
-              autoFocus
-            />
-          </div>
-        ) : (
-          <h2
-            className={`text-xl font-bold ${teamColor} cursor-pointer hover:opacity-80 min-w-0`}
-            onClick={handleStartEditing}
-            title="Click to edit team name"
-          >
-            {displayName}
-          </h2>
-        )}
-        <div className="text-white font-medium">
-          Total Cost: <span className="text-amber-400">{calculateTotalCost()}</span>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="flex border-b border-gray-700 px-6">
-        <button
-          onClick={() => setActiveTab("roster")}
-          className={`px-3 py-2 text-sm font-medium transition-colors ${
-            activeTab === "roster"
-              ? `${tabActiveColor} text-white border-b-2 ${borderColor.replace('border-', 'border-b-')}`
-              : "text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Roster
-        </button>
-        <button
-          onClick={() => isDraftComplete && setActiveTab("result")}
-          disabled={!isDraftComplete}
-          className={`px-3 py-2 text-sm font-medium transition-colors ${
-            activeTab === "result" && isDraftComplete
-              ? `${tabActiveColor} text-white border-b-2 ${borderColor.replace('border-', 'border-b-')}`
-              : isDraftComplete
-                ? "text-gray-400 hover:text-gray-300"
-                : "text-gray-600 cursor-not-allowed"
-          }`}
-        >
-          Result
-          {!isDraftComplete && (
-            <span className="ml-1 text-xs">(Draft must be complete)</span>
+        <div className="flex items-center gap-3">
+          {editingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                onBlur={handleNameSubmit}
+                onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
+                className="bg-gray-700 text-white text-xl px-2 py-1 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                placeholder={defaultTeamName}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <h2
+              className={`text-2xl font-bold ${teamColor} cursor-pointer hover:opacity-80 min-w-0`}
+              onClick={handleStartEditing}
+              title="Click to edit team name"
+            >
+              {displayName}
+            </h2>
           )}
-        </button>
+          {isActiveTeam && isDraftStarted && !isDraftComplete && (
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+              team === "blue" 
+                ? "bg-blue-600 text-white" 
+                : "bg-red-600 text-white"
+            }`}>
+              Active
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab("roster")}
+            className={`px-3 py-2 text-lg font-medium rounded transition-colors ${
+              activeTab === "roster"
+                ? `${tabActiveColor} text-white`
+                : "text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            Roster
+          </button>
+          {isDraftComplete ? (
+            <button
+              onClick={() => setActiveTab("result")}
+              className={`px-3 py-2 text-lg font-medium rounded transition-colors ${
+                activeTab === "result"
+                  ? `${tabActiveColor} text-white`
+                  : "text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              Result
+            </button>
+          ) : (
+            <Tooltip text="Draft must be complete">
+              <button
+                disabled
+                className="px-3 py-2 text-lg font-medium rounded text-gray-600 cursor-not-allowed"
+              >
+                Result
+              </button>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* Tab Content */}

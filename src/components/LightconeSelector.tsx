@@ -57,13 +57,25 @@ export function LightconeSelector({
     onLightconeChange(undefined, undefined);
   };
 
+  const getRarityTextColor = (rarity: number) => {
+    switch (rarity) {
+      case 5:
+        return "text-amber-400"; // 5-star gold
+      case 4:
+        return "text-purple-400"; // 4-star purple
+      case 3:
+        return "text-blue-400"; // 3-star blue
+      default:
+        return "text-white"; // fallback
+    }
+  };
+
   return (
     <div className="space-y-1">
       {selectedLightcone ? (
-        <div className="space-y-1">
-          <div className="bg-gray-600 rounded p-2 text-xs">
+        <div className="bg-gray-600 rounded p-2 text-xs">
             <div className="flex justify-between items-start gap-2">
-              <span className="text-white flex-1 break-words leading-tight">{selectedLightcone.display_name}</span>
+              <span className={`${getRarityTextColor(selectedLightcone.rarity)} flex-1 break-words leading-tight`}>{selectedLightcone.display_name}</span>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-amber-400">{selectedLightcone.cost[selectedRank || "S1"]}</span>
                 <button
@@ -75,16 +87,6 @@ export function LightconeSelector({
               </div>
             </div>
           </div>
-          <select
-            value={selectedRank || "S1"}
-            onChange={(e) => onLightconeChange(selectedLightconeId, e.target.value as LightconeRank)}
-            className="w-full bg-gray-700 text-white text-xs border border-gray-600 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-          >
-            {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map(rank => (
-              <option key={rank} value={rank}>{rank}</option>
-            ))}
-          </select>
-        </div>
       ) : (
         <div className="relative" ref={dropdownRef}>
           <input
@@ -105,9 +107,9 @@ export function LightconeSelector({
                 <button
                   key={lightcone._id}
                   onClick={() => handleLightconeSelect(lightcone._id)}
-                  className="w-full text-left px-2 py-1 text-xs text-white hover:bg-gray-600 flex justify-between items-start gap-2"
+                  className="w-full text-left px-2 py-1 text-xs hover:bg-gray-600 flex justify-between items-start gap-2"
                 >
-                  <span className="break-words leading-tight flex-1">{lightcone.display_name}</span>
+                  <span className={`break-words leading-tight flex-1 ${getRarityTextColor(lightcone.rarity)}`}>{lightcone.display_name}</span>
                   <span className="text-amber-400 flex-shrink-0">{lightcone.cost.S1}</span>
                 </button>
               ))}
