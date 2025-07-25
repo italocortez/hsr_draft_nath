@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { RuleSet, CharacterRank, DraftedCharacter } from "../DraftingInterface/DraftingInterface";
-import { Id } from "../../../convex/_generated/dataModel";
-import { LightconeSelector } from "../LightconeSelector/LightconeSelector";
-import "./TeamTest.css";
-import { CharacterPool } from "../CharacterPool/CharacterPool";
+import { RuleSet, CharacterRank, DraftedCharacter } from "./DraftingInterface";
+import { Id } from "../../convex/_generated/dataModel";
+import { CharacterPool } from "./CharacterPool";
+import "../css/TeamTest.css";
+import { LightconeSelector } from "./LightconeSelector";
 
 interface TeamTestProps {
   characters: any[];
@@ -58,16 +58,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
   const handleReset = () => {
     setTestTeam([]);
-  };
-
-  const getCharacterImageUrl = (characterId: Id<"character">) => {
-    const character = characters.find(c => c._id === characterId);
-    if (character?.imageUrl) {
-      return character.imageUrl;
-    }
-    return `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-      character?.display_name?.slice(0, 2) || "??"
-    )}`;
   };
 
   return (
@@ -130,11 +120,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
             const isFiveStar = character.rarity === 5;
 
             const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
-            const rarityBgGradient = character.rarity === 5 
-              ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-              : character.rarity === 4 
-                ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-                : "bg-gradient-to-b from-gray-700 to-gray-500";
 
             return (
               <div key={index} className="char-wrapper">

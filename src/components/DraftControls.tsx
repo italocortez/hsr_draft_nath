@@ -1,4 +1,4 @@
-import { RuleSet, DraftMode } from "./DraftingInterface/DraftingInterface";
+import { RuleSet, DraftMode } from "./DraftingInterface";
 
 interface DraftControlsProps {
   draftState: any;

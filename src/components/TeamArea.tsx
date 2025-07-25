@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "../DraftingInterface/DraftingInterface";
-import { Id } from "../../../convex/_generated/dataModel";
-import "./TeamArea.css";
-import NoImpositionLightconeSelector from "../Draft/NoImpositionLightconeSelector/NoImpositionLightconeSelector";
+import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
+import { Id } from "../../convex/_generated/dataModel";
+import NoImpositionLightconeSelector from "./NoImpositionLightconeSelector";
+import "../css/TeamArea.css";
 
 interface TeamAreaProps {
   team: "blue" | "red";

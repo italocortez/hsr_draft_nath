@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DraftSettings, BanRestriction, MoCSettings, ApocSettings } from "./DraftingInterface/DraftingInterface";
+import { DraftSettings, BanRestriction, MoCSettings, ApocSettings } from "./DraftingInterface";
 
 interface DraftingSettingsProps {
   settings: DraftSettings;

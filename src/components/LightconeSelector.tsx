@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
-import { LightconeRank } from "../DraftingInterface/DraftingInterface";
-import "./LightconeSelector.css";
+import { Id } from "../../convex/_generated/dataModel";
+import { LightconeRank } from "./DraftingInterface";
+import { api } from "../../convex/_generated/api";
+import "../css/LightconeSelector.css";
 
 interface LightconeSelectorProps {
   lightcones: any[];

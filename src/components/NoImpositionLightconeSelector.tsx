@@ -1,9 +1,9 @@
 import { ChangeEvent, ChangeEventHandler, JSX, useEffect, useMemo, useRef, useState } from "react";
-import "./NoImpositionLightconeSelector.css";
-import { Id } from "../../../../convex/_generated/dataModel";
-import { LightconeRank } from "@/Components/DraftingInterface/DraftingInterface";
+import { LightconeRank } from "@/components/DraftingInterface";
 import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
+import "../css/NoImpositionLightconeSelector.css";
 
 interface NoImpositionLightconeSelectorProps {
 	lightcones: any[];

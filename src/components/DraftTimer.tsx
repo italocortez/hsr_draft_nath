@@ -1,4 +1,4 @@
-import { DraftState } from "./DraftingInterface/DraftingInterface";
+import { DraftState } from "./DraftingInterface";
 
 interface DraftTimerProps {
   draftState: DraftState;

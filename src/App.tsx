@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Toaster } from "sonner";
-import { DraftingInterface } from "./Components/DraftingInterface/DraftingInterface";
+import { DraftingInterface } from "./components/DraftingInterface";
 import { useEffect } from "react";
 import "./App.css";
 
