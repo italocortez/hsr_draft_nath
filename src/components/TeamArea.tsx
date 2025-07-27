@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
-import NoImpositionLightconeSelector from "./NoImpositionLightconeSelector";
+import NoImpositionLightconeSelector from "./LightconeSelector";
 import "../css/TeamArea.css";
 
 interface TeamAreaProps {
@@ -27,6 +27,8 @@ interface TeamAreaProps {
   };
   resetTrigger?: number;
   draftMode: DraftMode;
+  isDraftStarted?: boolean;
+  isActiveTurn?: boolean;
 }
 
 interface MoCResultData {
@@ -126,7 +128,9 @@ export function TeamArea({
   settings,
   opponentTeamData,
   resetTrigger,
-  draftMode
+  draftMode,
+  isDraftStarted = false,
+  isActiveTurn,
 }: TeamAreaProps) {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState<string>(teamData.name);
@@ -357,84 +361,86 @@ export function TeamArea({
     setFinalScore(Math.round(finalResult * 1000) / 1000);
   };
 
-  const getFormulaTooltip = () => {
-    if (ruleSet === "memoryofchaos") {
-      return `Memory of Chaos Formula:
+    const getFormulaTooltip = () => {
+        if (ruleSet === "memoryofchaos") {
+        return `Memory of Chaos Formula:
 
-Base Score = 1st Half + 2nd Half + Additional Modifier + (Deaths × Death Penalty)
+    Base Score = 1st Half + 2nd Half + Additional Modifier + (Deaths × Death Penalty)
 
-Roster Difference Adjustment:
-• If your team costs less: -|cost difference| × Roster Diff Advantage
-• Applied only to the lower-cost team
+    Roster Difference Adjustment:
+    • If your team costs less: -|cost difference| × Roster Diff Advantage
+    • Applied only to the lower-cost team
 
-Threshold Adjustment:
-• If team cost > threshold: +(cost - threshold) × Above Threshold Penalty
-• If team cost < threshold: -(threshold - cost) × Under Threshold Advantage
+    Threshold Adjustment:
+    • If team cost > threshold: +(cost - threshold) × Above Threshold Penalty
+    • If team cost < threshold: -(threshold - cost) × Under Threshold Advantage
 
-Final Score = Base Score + Roster Adjustment + Threshold Adjustment
+    Final Score = Base Score + Roster Adjustment + Threshold Adjustment
 
-Lower scores are better in Memory of Chaos.`;
-    } else {
-      return `Apocalyptic Shadow Formula:
+    Lower scores are better in Memory of Chaos.`;
+        } else {
+        return `Apocalyptic Shadow Formula:
 
-Base Score = 1st Half + 2nd Half + Additional Modifier - (Deaths × Death Penalty)
+    Base Score = 1st Half + 2nd Half + Additional Modifier - (Deaths × Death Penalty)
 
-Roster Difference Adjustment:
-• If your team costs less: +|cost difference| × Roster Diff Advantage
-• Applied only to the lower-cost team
+    Roster Difference Adjustment:
+    • If your team costs less: +|cost difference| × Roster Diff Advantage
+    • Applied only to the lower-cost team
 
-Threshold Adjustment:
-• If team cost > threshold: -(cost - threshold) × Above Threshold Penalty
-• If team cost < threshold: +(threshold - cost) × Under Threshold Advantage
+    Threshold Adjustment:
+    • If team cost > threshold: -(cost - threshold) × Above Threshold Penalty
+    • If team cost < threshold: +(threshold - cost) × Under Threshold Advantage
 
-Final Score = Base Score + Roster Adjustment + Threshold Adjustment
+    Final Score = Base Score + Roster Adjustment + Threshold Adjustment
 
-Higher scores are better in Apocalyptic Shadow.`;
-    }
-  };
+    Higher scores are better in Apocalyptic Shadow.`;
+        }
+    };
 
-  const renderInputField = (
-    label: string,
-    value: number | string,
-    onChange: (value: string) => void,
-    placeholder: string,
-    step: string = "0.1",
-    min?: string,
-    allowNegative: boolean = false
-  ) => {
-    const isEmpty = value === '';
-    const isInvalid = isEmpty || (typeof value === 'string' && isNaN(parseFloat(value)));
-    
-    return (
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <label className="block text-white text-sm font-medium">{label}</label>
-          {isEmpty && (
-            <div className="flex items-center gap-1" title="This field cannot be empty">
-              <WarningIcon />
-              <span className="text-xs text-amber-500">Required</span>
+    const renderInputField = (
+        label: string,
+        value: number | string,
+        onChange: (value: string) => void,
+        placeholder: string,
+        step: string = "0.1",
+        min?: string,
+        allowNegative: boolean = false
+    ) => {
+        const isEmpty = value === '';
+        const isInvalid = isEmpty || (typeof value === 'string' && isNaN(parseFloat(value)));
+        
+        return (
+        <div>
+            <div className="flex items-center gap-2 mb-2">
+            <label className="block text-white text-sm font-medium">{label}</label>
+            {isEmpty && (
+                <div className="flex items-center gap-1" title="This field cannot be empty">
+                <WarningIcon />
+                <span className="text-xs text-amber-500">Required</span>
+                </div>
+            )}
             </div>
-          )}
+            <input
+            type="number"
+            min={min}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+                isEmpty ? 'border-amber-500 bg-amber-50 bg-opacity-5' : 'border-gray-600'
+            }`}
+            placeholder={placeholder}
+            />
+            {!allowNegative && (
+            <p className="text-xs text-gray-400 mt-1">
+                {allowNegative ? "Can be negative, zero, or positive" : "Must be ≥ 0"}
+            </p>
+            )}
         </div>
-        <input
-          type="number"
-          min={min}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
-            isEmpty ? 'border-amber-500 bg-amber-50 bg-opacity-5' : 'border-gray-600'
-          }`}
-          placeholder={placeholder}
-        />
-        {!allowNegative && (
-          <p className="text-xs text-gray-400 mt-1">
-            {allowNegative ? "Can be negative, zero, or positive" : "Must be ≥ 0"}
-          </p>
-        )}
-      </div>
-    );
-  };
+        );
+    };
+
+    const highlightRoster = (): boolean => (isActiveTurn && isDraftStarted && !isDraftComplete) || false;
 
     const renderRosterTab = () => (
 		<div className="roster">
@@ -442,6 +448,11 @@ Higher scores are better in Apocalyptic Shadow.`;
 			<div className="picks">
 				<div className="sub-header">
 					<h2 className="title">{`Picks (${teamData.drafted?.length ?? 0}/8)`}</h2>
+
+                    {/* Active Tag */}
+                    {highlightRoster() && (
+                        <h3 className="active-tag" style={{ backgroundColor: (team === "blue") ? `rgb(49, 120, 226)` : `rgb(220, 38, 38)` }}>Active</h3>
+                    )}
 
 					<h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
 				</div>
@@ -597,241 +608,274 @@ Higher scores are better in Apocalyptic Shadow.`;
 		</div>
 	);
 
-  const renderResultTab = () => {
-    if (ruleSet === "memoryofchaos") {
-      const mocData = resultData.memoryofchaos;
-      return (
-        <div className="results space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-medium">Memory of Chaos Results</h3>
-            <Tooltip text={getFormulaTooltip()}>
-              <InfoIcon />
-            </Tooltip>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderInputField(
-              "1st Half Cycles",
-              mocData.firstHalfCycles,
-              (value) => handleMoCResultDataChange('firstHalfCycles', value),
-              "0.0",
-              "0.1",
-              "0"
-            )}
-            {renderInputField(
-              "2nd Half Cycles",
-              mocData.secondHalfCycles,
-              (value) => handleMoCResultDataChange('secondHalfCycles', value),
-              "0.0",
-              "0.1",
-              "0"
-            )}
-            {renderInputField(
-              "Dead Characters",
-              mocData.deadCharacters,
-              (value) => handleMoCResultDataChange('deadCharacters', value),
-              "0",
-              "1",
-              "0"
-            )}
-            {renderInputField(
-              "Additional Cycle Modifier",
-              mocData.additionalCycleModifier,
-              (value) => handleMoCResultDataChange('additionalCycleModifier', value),
-              "0.0",
-              "0.1",
-              undefined,
-              true
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
-            <button
-              onClick={calculateResult}
-              disabled={!settings || !opponentTeamData || hasEmptyFields()}
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                team === "blue" 
-                  ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
-                  : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
-              } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              Calculate Result
-            </button>
-            
-            {hasEmptyFields() && (
-              <div className="flex items-center gap-2 text-amber-500 text-sm">
-                <WarningIcon />
-                <span>Fill all fields to calculate</span>
-              </div>
-            )}
-            
-            <div className="flex-1">
-              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
-              <input
-                type="number"
-                step="0.01"
-                value={finalScore}
-                readOnly
-                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-        </div>
-      );
-    } else {
-      const apocData = resultData.apocalypticshadow;
-      return (
-        <div className="results space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
-            <Tooltip text={getFormulaTooltip()}>
-              <InfoIcon />
-            </Tooltip>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderInputField(
-              "1st Half Score",
-              apocData.firstHalfScore,
-              (value) => handleApocResultDataChange('firstHalfScore', value),
-              "0.0",
-              "0.1",
-              "0"
-            )}
-            {renderInputField(
-              "2nd Half Score",
-              apocData.secondHalfScore,
-              (value) => handleApocResultDataChange('secondHalfScore', value),
-              "0.0",
-              "0.1",
-              "0"
-            )}
-            {renderInputField(
-              "Dead Characters",
-              apocData.deadCharacters,
-              (value) => handleApocResultDataChange('deadCharacters', value),
-              "0",
-              "1",
-              "0"
-            )}
-            {renderInputField(
-              "Additional Score Modifier",
-              apocData.additionalScoreModifier,
-              (value) => handleApocResultDataChange('additionalScoreModifier', value),
-              "0.0",
-              "0.1",
-              undefined,
-              true
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
-            <button
-              onClick={calculateResult}
-              disabled={!settings || !opponentTeamData || hasEmptyFields()}
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                team === "blue" 
-                  ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
-                  : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
-              } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              Calculate Result
-            </button>
-            
-            {hasEmptyFields() && (
-              <div className="flex items-center gap-2 text-amber-500 text-sm">
-                <WarningIcon />
-                <span>Fill all fields to calculate</span>
-              </div>
-            )}
-            
-            <div className="flex-1">
-              <label className="block text-white text-sm font-medium mb-2">Final Score</label>
-              <input
-                type="number"
-                step="0.01"
-                value={finalScore}
-                readOnly
-                className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
-  };
-
-  return (
-    <div className="TeamArea Box" style={{ border : `2px solid ${((team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)`)}` }}>
-        {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
-        <div className="header">
-            {
-                !editingName ? <>
-                    {/* Team Name */}
-                    <h1 
-                        className="title name" 
-                        onClick={handleStartEditing}
-
-                        style={{ color: `${(team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)`}` }}
+    const renderResultTab = () => {
+        if (ruleSet === "memoryofchaos") {
+        const mocData = resultData.memoryofchaos;
+        return (
+            <div className="results space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-white font-medium">Memory of Chaos Results</h3>
+                    <Tooltip text={getFormulaTooltip()}>
+                    <InfoIcon />
+                    </Tooltip>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {renderInputField(
+                    "1st Half Cycles",
+                    mocData.firstHalfCycles,
+                    (value) => handleMoCResultDataChange('firstHalfCycles', value),
+                    "0.0",
+                    "0.1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "2nd Half Cycles",
+                    mocData.secondHalfCycles,
+                    (value) => handleMoCResultDataChange('secondHalfCycles', value),
+                    "0.0",
+                    "0.1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "Dead Characters",
+                    mocData.deadCharacters,
+                    (value) => handleMoCResultDataChange('deadCharacters', value),
+                    "0",
+                    "1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "Additional Cycle Modifier",
+                    mocData.additionalCycleModifier,
+                    (value) => handleMoCResultDataChange('additionalCycleModifier', value),
+                    "0.0",
+                    "0.1",
+                    undefined,
+                    true
+                    )}
+                </div>
+                
+                <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+                    <button
+                        onClick={calculateResult}
+                        disabled={!settings || !opponentTeamData || hasEmptyFields()}
+                        className={`px-4 py-2 rounded font-medium transition-colors ${
+                            team === "blue" 
+                            ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                            : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+                        } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                        style={{ alignSelf: "flex-end" }}
                     >
-                        {displayName}
-                    </h1>
-                </> : <>
-                    {/* Name Editor */}
+                        Calculate Result
+                    </button>
+                    
+                    {hasEmptyFields() && (
+                        <div className="flex items-center gap-2 text-amber-500 text-sm">
+                            <WarningIcon />
+                            <span>Fill all fields to calculate</span>
+                        </div>
+                    )}
+                    
+                    <div className="flex-1">
+                    <label className="block text-white text-sm font-medium mb-2">Final Score</label>
                     <input
-                        className="title editor focus:outline-none"
-                        
-                        value={tempName}
-                        onChange={(e) => setTempName(e.target.value as string)}
-                        onBlur={handleNameSubmit}
-                        onKeyDown={(e) => (e.key === "Enter") && handleNameSubmit()}
-                        
-                        placeholder={defaultTeamName}
-                        autoFocus
+                        type="number"
+                        step="0.01"
+                        value={finalScore}
+                        readOnly
+                        className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                        placeholder="0.00"
                     />
-                </>
-            }
+                    </div>
+                </div>
+            </div>
+        );
+        } else {
+        const apocData = resultData.apocalypticshadow;
+        return (
+            <div className="results space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
+                    <Tooltip text={getFormulaTooltip()}>
+                    <InfoIcon />
+                    </Tooltip>
+                </div>
 
-            {/* Navigation */}
-            <div className="navigation">
-                {/* Roster button */}
-                <button
-                    className="tab-button"
-                    onClick={_ => setActiveTab("roster")}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {renderInputField(
+                    "1st Half Score",
+                    apocData.firstHalfScore,
+                    (value) => handleApocResultDataChange('firstHalfScore', value),
+                    "0.0",
+                    "0.1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "2nd Half Score",
+                    apocData.secondHalfScore,
+                    (value) => handleApocResultDataChange('secondHalfScore', value),
+                    "0.0",
+                    "0.1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "Dead Characters",
+                    apocData.deadCharacters,
+                    (value) => handleApocResultDataChange('deadCharacters', value),
+                    "0",
+                    "1",
+                    "0"
+                    )}
+                    {renderInputField(
+                    "Additional Score Modifier",
+                    apocData.additionalScoreModifier,
+                    (value) => handleApocResultDataChange('additionalScoreModifier', value),
+                    "0.0",
+                    "0.1",
+                    undefined,
+                    true
+                    )}
+                </div>
+                
+                <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+                    <button
+                        onClick={calculateResult}
+                        disabled={!settings || !opponentTeamData || hasEmptyFields()}
+                        className={`px-4 py-2 rounded font-medium transition-colors ${
+                            team === "blue" 
+                            ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                            : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+                        } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                        style={{ alignSelf: "flex-end" }}
+                    >
+                        Calculate Result
+                    </button>
+                    
+                    {hasEmptyFields() && (
+                        <div className="flex items-center gap-2 text-amber-500 text-sm">
+                            <WarningIcon />
+                            <span>Fill all fields to calculate</span>
+                        </div>
+                    )}
+                    
+                    <div className="flex-1">
+                    <label className="block text-white text-sm font-medium mb-2">Final Score</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        value={finalScore}
+                        readOnly
+                        className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                        placeholder="0.00"
+                    />
+                    </div>
+                </div>
+            </div>
+        );
+        }
+    };
 
-                    style={{ 
-                        backgroundColor: `${ (activeTab === "roster") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
-                        borderBottom: `${ (activeTab === "roster") ? `2px solid white` : `none` }`, // Active tab has border
+    const getBorderColor = (): string => {
+        if (team === "blue") return `2px solid rgb(59, 130, 246)`;
+        if (team === "red") return `2px solid rgb(239, 68, 68)`;
+        return ``;
+    }
 
-                        borderTopRightRadius: `0.5rem`,
-                    }}
-                >
-                    {`Roster`}
-                </button>
+    const getBackgroundColor = (): string => {
+        if (!highlightRoster()) return ``;
+        // if (team === "blue") return `rgb(31, 44, 71)`;
+        // if (team === "red") return `rgb(55, 37, 41)`;
+        return (team === "blue") ? `rgba(31, 41, 55, 0.05)` : `rgba(239, 68, 68, 0.05)`;
+    }
 
-                {/* Results button */}
-                <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
+    const getBoxShadow = (): string => {
+        if (!highlightRoster()) return ``;
+        return `1px 1px 6px 5px ${(team === "blue" ? `rgba(59, 130, 246, 0.33)` : `rgba(239, 68, 68, 0.33)`)}`;
+    }
+
+    const getPulsingAnimation = (): string => {
+        if (!highlightRoster()) return ``;
+        return `pulsating-shadow-${team} 800ms cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate`
+    }
+
+    return (
+        <div className="TeamArea Box" 
+            style={{ 
+                border: getBorderColor(), 
+                backgroundColor:  getBackgroundColor(), 
+                // boxShadow: getBoxShadow(),
+                animation: getPulsingAnimation(),
+            }}
+        >
+            {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
+            <div className="header">
+                {
+                    !editingName ? <>
+                        {/* Team Name */}
+                        <h1 
+                            className="title name" 
+                            onClick={handleStartEditing}
+
+                            style={{ color: `${(team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)`}` }}
+                        >
+                            {displayName}
+                        </h1>
+                    </> : <>
+                        {/* Name Editor */}
+                        <input
+                            className="title editor focus:outline-none"
+                            
+                            value={tempName}
+                            onChange={(e) => setTempName(e.target.value as string)}
+                            onBlur={handleNameSubmit}
+                            onKeyDown={(e) => (e.key === "Enter") && handleNameSubmit()}
+                            
+                            placeholder={defaultTeamName}
+                            autoFocus
+                        />
+                    </>
+                }
+
+                {/* Navigation */}
+                <div className="navigation">
+                    {/* Roster button */}
                     <button
                         className="tab-button"
-                        onClick={_ => isDraftComplete && setActiveTab("result")}
-                        disabled={!isDraftComplete}
+                        onClick={_ => setActiveTab("roster")}
 
                         style={{ 
-                            backgroundColor: `${ (activeTab === "result") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
-                            borderBottom: `${ (activeTab === "result") ? `2px solid white` : `none` }`, // Active tab has border
-                            cursor: `${ !isDraftComplete ? `not-allowed` : `pointer` }`,
-                            color: `${ !isDraftComplete ? `rgb(129, 133, 139)` : `white` }`,
+                            backgroundColor: `${ (activeTab === "roster") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
+                            borderBottom: `${ (activeTab === "roster") ? `2px solid white` : `none` }`, // Active tab has border
+
+                            borderTopRightRadius: `0.5rem`,
                         }}
                     >
-                        {`Result`}
+                        {`Roster`}
                     </button>
-                </Tooltip>
-            </div>
-        </div>
 
-        {/* Tab Content */}
-        { (activeTab === "roster") && renderRosterTab() }
-        { (activeTab === "result") && renderResultTab() }
-    </div>
-  );
+                    {/* Results button */}
+                    <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
+                        <button
+                            className="tab-button"
+                            onClick={_ => isDraftComplete && setActiveTab("result")}
+                            disabled={!isDraftComplete}
+
+                            style={{ 
+                                backgroundColor: `${ (activeTab === "result") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
+                                borderBottom: `${ (activeTab === "result") ? `2px solid white` : `none` }`, // Active tab has border
+                                cursor: `${ !isDraftComplete ? `not-allowed` : `pointer` }`,
+                                color: `${ !isDraftComplete ? `rgb(129, 133, 139)` : `white` }`,
+                            }}
+                        >
+                            {`Result`}
+                        </button>
+                    </Tooltip>
+                </div>
+            </div>
+
+            {/* Tab Content */}
+            { (activeTab === "roster") && renderRosterTab() }
+            { (activeTab === "result") && renderResultTab() }
+        </div>
+    );
 }

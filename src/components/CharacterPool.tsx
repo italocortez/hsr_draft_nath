@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
@@ -8,7 +8,7 @@ interface CharacterPoolProps {
   characters: any[];
   selectedCharacters: Id<"character">[];
   onCharacterSelect: (characterId: Id<"character">) => void;
-  currentPhase?: { team: string; action: string };
+  currentPhase?: { team: string; action: string } | null;
   isDraftComplete: boolean;
   isDraftStarted: boolean;
   canBanCharacter?: (characterId: Id<"character">, team: "blue" | "red") => boolean;
@@ -41,7 +41,7 @@ export function CharacterPool({
     return elements.sort();
   }, [characters]);
 
-  // Create role to icon mapping
+  // Create icon mappings
   const roleIconMap = useMemo(() => {
     const map: Record<string, string> = {};
     uniqueRoles.forEach(role => {
@@ -137,12 +137,32 @@ export function CharacterPool({
     const wrapCharacterSelect = (characterID: Id<"character">) => {
         if (!isCharacterSelectable(characterID)) return;
 
-        clearAllFilters(); // Reset Filters and ensure UI updates (refresh Character pool display)
+        // Upon selecting a Character, reset all filters - ensure UI updates
+        clearAllFilters();
+        
         onCharacterSelect(characterID);
+    }
+    
+    const currentTurn = currentPhase?.team as "blue" | "red" | undefined;
+
+    const getBorderColor = (): string => {
+        if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
+        if (currentTurn === "blue") return `2px solid rgb(59, 130, 246)`;
+        if (currentTurn === "red") return `2px solid rgb(239, 68, 68)`;
+        return ``;
+    }
+    
+    const getBackgroundColor = (): string => {
+        if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
+        // if (currentTurn === "blue") return `rgb(31, 44, 71)`;
+        // if (currentTurn === "red") return `rgb(55, 37, 41)`;
+        if (currentTurn === "blue") return `rgba(31, 41, 55, 0.05)`;
+        if (currentTurn === "red") return `rgba(239, 68, 68, 0.05)`;
+        return ``;
     }
 
     return (
-        <div className="CharacterPool Box">
+        <div className="CharacterPool Box" style={{ border: getBorderColor(), backgroundColor: getBackgroundColor() }}>
             <div className="filters">
                 {/* Column 1: Elements */}
                 <div className="elements">

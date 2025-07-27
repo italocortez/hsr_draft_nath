@@ -1,131 +1,155 @@
-import { useState, useEffect, useRef } from "react";
+import { ChangeEvent, ChangeEventHandler, JSX, useEffect, useMemo, useRef, useState } from "react";
+import { LightconeRank } from "@/components/DraftingInterface";
 import { useQuery } from "convex/react";
-import { Id } from "../../convex/_generated/dataModel";
-import { LightconeRank } from "./DraftingInterface";
 import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 import "../css/LightconeSelector.css";
 
-interface LightconeSelectorProps {
-  lightcones: any[];
-  selectedLightconeId?: Id<"lightcones">;
-  selectedRank?: LightconeRank;
-  onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
+interface NoImpositionLightconeSelectorProps {
+	lightcones: any[];
+    selectedLightconeId?: Id<"lightcones">;
+    selectedRank?: LightconeRank;
+    onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
 }
 
-export function LightconeSelector({
-  lightcones,
-  selectedLightconeId,
-  selectedRank,
-  onLightconeChange,
-}: LightconeSelectorProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+function NoImpositionLightconeSelector(props: NoImpositionLightconeSelectorProps): JSX.Element {
+    const { lightcones, selectedLightconeId, selectedRank, onLightconeChange } = props;
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
 
-  const searchResults = useQuery(
-    api.lightcones.search, 
-    searchTerm.trim() ? { searchTerm } : "skip"
-  ) || [];
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const searchResults = useQuery(api.lightcones.search, searchTerm.trim() ? { searchTerm } : "skip") || [];
 
-  // Use search results when there's a search term, otherwise show all lightcones
-  const filteredLightcones = searchTerm.trim() 
-    ? searchResults 
-    : lightcones;
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+                setIsSearching(false);
+            }
+        };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value as string);
+        setIsOpen(true);
+        setIsSearching(true);
+    }
+    const handleFocusInput = () => {
+        if (selectedLightcone && !isSearching) {
+            setIsSearching(true);
+            setSearchTerm("");
+        }
+        setIsOpen(true);
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    const handleSelectLightcone = (lightconeId: Id<"lightcones">) => {
+        onLightconeChange(lightconeId, selectedRank || "S1");
+        setSearchTerm("");
+        setIsOpen(false);
+        setIsSearching(false);
+    };
+    const handleClearLightcone = () => {
+        onLightconeChange(undefined, undefined);
+        setSearchTerm("");
+        setIsOpen(false);
+        setIsSearching(false);
+    }
 
-  const selectedLightcone = selectedLightconeId 
-    ? lightcones.find(l => l._id === selectedLightconeId)
-    : null;
+    const filteredLightcones = searchTerm.trim() ? searchResults : lightcones;
+    const selectedLightcone = selectedLightconeId ? lightcones.find(l => l._id === selectedLightconeId) : null;
+    const inputValue = (isSearching || !selectedLightcone) ? searchTerm : selectedLightcone.display_name;
 
-  const handleLightconeSelect = (lightconeId: Id<"lightcones">) => {
-    onLightconeChange(lightconeId, selectedRank || "S1");
-    setIsOpen(false);
-    setSearchTerm("");
-  };
+    const getRarityColor = (lightconeRarity: number): string => {
+        if (!lightconeRarity) return ``;
 
-  const handleRemoveLightcone = () => {
-    onLightconeChange(undefined, undefined);
-  };
+        switch (lightconeRarity) {
+            case 3:
+                return `var(--lc-3star)`;
+            case 4:
+                return `var(--lc-4star)`;
+            case 5:
+                return `var(--lc-5star)`;
+            default:
+                return ``;
+        }
+    }
 
-  return (
-    <div className="LightconeSelector">
-        {selectedLightcone ? <>
-            {/* Lightcone (selected) */}
-            <div className="lightcone bg-gray-600 rounded">
-                {/* Label */}
-                <span className="lc-name">{selectedLightcone.display_name}</span>
-                
-                <div className="lc-info">
-                    {/* Cost */}
-                    <span className="cost">{selectedLightcone.cost[selectedRank || "S1"]}</span>
-                    
-                    {/* Clear button */}
-                    <button
-                        onClick={handleRemoveLightcone}
-                        className="text-red-400 hover:text-red-300"
-                    >
-                        X
-                    </button>
-                </div>
-            </div>
-
-            {/* Super Imposition */}
-            <select
-                value={selectedRank || "S1"}
-                onChange={(e) => onLightconeChange(selectedLightconeId, e.target.value as LightconeRank)}
-                className="imposition bg-gray-700 border border-gray-600 focus:outline-none"
-                >
-                {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map(rank => (
-                    <option key={rank} value={rank}>{rank}</option>
-                ))}
-            </select>
-        </> : <>
-            <div className="lightcone-search" ref={dropdownRef}>
+    return (
+        <div className="LightconeSelector" ref={dropdownRef}>
+            <div className="inputs" title={selectedLightcone ? `${selectedRank || `S1`} ${selectedLightcone.display_name}` : undefined}>
+                {/* SearchBar */}
                 <input
-                    type="text"
-                    placeholder="Search lightcone..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setIsOpen(true);
-                    }}
-                    onFocus={() => setIsOpen(true)}
-                    className="lc-input bg-gray-700 border border-gray-600 rounded px-2 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                    className="search-bar focus:outline-none"
+
+                    value={inputValue}
+                    onChange={handleChangeInput}
+                    onFocus={handleFocusInput}
+                    placeholder={selectedLightcone ? selectedLightcone.display_name : "Select Lightcone"}
+
+                    style={{ color: (!isOpen && !isSearching) ? getRarityColor(selectedLightcone?.rarity) : `` }}
                 />
-                
-                {isOpen && (
-                    <div className="result-set absolute top-full left-0 right-0 bg-gray-700 border border-gray-600 rounded mt-1 max-h-48 overflow-y-auto z-50">
-                        {filteredLightcones.slice(0, 20).map((lightcone) => (
-                            <button
-                                key={lightcone._id}
-                                onClick={() => handleLightconeSelect(lightcone._id)}
-                                className="result w-full text-left text-xs hover:bg-gray-600"
-                            >
-                                <span className="lc-name break-words leading-tight flex-1">{lightcone.display_name}</span>
-                                <span className="cost text-amber-400 flex-shrink-0">{lightcone.cost.S1}</span>
-                            </button>
-                        ))}
-                        {filteredLightcones.length === 0 && searchTerm && (
-                            <div className="px-2 py-1 text-xs text-gray-400">No lightcones found</div>
-                        )}
-                        {filteredLightcones.length === 0 && !searchTerm && (
-                            <div className="px-2 py-1 text-xs text-gray-400">Start typing to search...</div>
-                        )}
-                    </div>
-                )}
+
+                {/* LC Cost */}
+                {
+                    (selectedLightcone && !isSearching) && <>
+                        <span className="cost">
+                            {selectedLightcone.cost[selectedRank || "S1"].toFixed(1)}
+                        </span>
+                    </>
+                }
             </div>
-        </>}
-    </div>
-  );
+
+            {/* Search Results */}
+            {
+                isOpen && <>
+                    <div className="result-set">
+                        
+                        {/* Clear button */}
+                        {
+                            selectedLightcone && <>
+                                <button
+                                    onClick={handleClearLightcone}
+                                    className="clear hover:bg-gray-600"
+                                >
+                                    <span>{`None`}</span>
+                                </button>
+                            </>
+                        }
+
+                        {/* Results */}
+                        {
+                            (filteredLightcones?.length > 0 && searchTerm.trim().length > 0) ? <>
+                                {
+                                    filteredLightcones?.slice(0, 20).map(lightcone => (
+                                        <button
+                                            key={lightcone._id}
+                                            onClick={() => handleSelectLightcone(lightcone._id)}
+                                            className="result hover:bg-gray-600"
+                                            title={lightcone.display_name}
+                                        >
+                                            <span className="name" style={{ color: getRarityColor(lightcone.rarity) }}>{lightcone.display_name}</span>
+                                            <span className="cost">{(lightcone.cost.S1).toFixed(1)}</span>
+                                        </button>
+                                    ))
+                                }
+                            </> : <>
+                                {/* Info */}
+                                <div className="info">
+                                    {searchTerm ? `No Lightcones found.` : `Start typing to search...`}
+                                </div>
+                            </>
+                        }
+                    </div>
+                </>
+            }
+        </div>
+    );
 }
+
+export default NoImpositionLightconeSelector;
