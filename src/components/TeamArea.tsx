@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
-import NoImpositionLightconeSelector from "./LightconeSelector";
 import "../css/TeamArea.css";
+import LightconeSelector from "./LightconeSelector";
 
 interface TeamAreaProps {
   team: "blue" | "red";
@@ -548,16 +548,11 @@ export function TeamArea({
 								</div>
                                 
                                 {/* Lightcone */}
-								<NoImpositionLightconeSelector
+								<LightconeSelector
 									lightcones={lightcones}
 									selectedLightconeId={drafted.lightconeId}
 									selectedRank={drafted.lightconeRank}
-									onLightconeChange={(lightconeId, rank) =>
-										onCharacterUpdate(team, index, {
-											lightconeId,
-											lightconeRank: rank,
-										})
-									}
+									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })}
 								/>
 							</div>
 						);

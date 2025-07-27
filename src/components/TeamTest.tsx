@@ -3,7 +3,7 @@ import { RuleSet, CharacterRank, DraftedCharacter, LightconeRank } from "./Draft
 import { Id } from "../../convex/_generated/dataModel";
 import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
-import NoImpositionLightconeSelector from "./LightconeSelector";
+import LightconeSelector from "./LightconeSelector";
 
 interface TeamTestProps {
   characters: any[];
@@ -199,7 +199,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             </div>
                             
                             {/* Lightcone */}
-                            <NoImpositionLightconeSelector
+                            <LightconeSelector
                                 lightcones={lightcones}
                                 selectedLightconeId={drafted.lightconeId}
                                 selectedRank={drafted.lightconeRank}

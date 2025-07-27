@@ -12,7 +12,7 @@ interface LightconeSelectorProps {
   onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
 }
 
-export function LightconeSelector({
+export function UNUSED_LightconeSelector({
   lightcones,
   selectedLightconeId,
   selectedRank,

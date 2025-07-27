@@ -5,14 +5,14 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/LightconeSelector.css";
 
-interface NoImpositionLightconeSelectorProps {
+interface LightconeSelectorProps {
 	lightcones: any[];
     selectedLightconeId?: Id<"lightcones">;
     selectedRank?: LightconeRank;
     onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
 }
 
-function NoImpositionLightconeSelector(props: NoImpositionLightconeSelectorProps): JSX.Element {
+function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
     const { lightcones, selectedLightconeId, selectedRank, onLightconeChange } = props;
     const dropdownRef = useRef<HTMLDivElement>(null);
     
@@ -152,4 +152,4 @@ function NoImpositionLightconeSelector(props: NoImpositionLightconeSelectorProps
     );
 }
 
-export default NoImpositionLightconeSelector;
+export default LightconeSelector;
