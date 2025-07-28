@@ -790,7 +790,7 @@ export function TeamArea({
 
     const getPulsingAnimation = (): string => {
         if (!highlightRoster()) return ``;
-        return `pulsating-shadow-${team} 800ms cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate`
+        return `pulsating-shadow-${team} 1400ms cubic-bezier(0.4, 0, 0.6, 1) infinite alternate`;
     }
 
     return (
