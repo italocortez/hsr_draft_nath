@@ -55,6 +55,25 @@ body {
   background: rgb(31, 31, 31);
 }
 
+
+/* 5* Character */
+[data-rarity="5"] {
+    border: 1px solid var(--border-5star);
+    box-shadow: var(--shadow-5star);
+}
+[data-rarity="5"] img {
+    background: var(--gradient-5star);
+}
+
+/* 4* Character */
+[data-rarity="4"] {
+    border: 1px solid var(--border-4star);
+    box-shadow: var(--shadow-4star);
+}
+[data-rarity="4"] img {
+    background: var(--gradient-4star);
+}
+
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
 .auth-input-field {
   @apply w-full px-4 py-3 rounded-container bg-white border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow shadow-sm hover:shadow;

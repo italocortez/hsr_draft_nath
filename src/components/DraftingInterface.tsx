@@ -25,6 +25,12 @@ export interface DraftedCharacter {
 	lightconeRank?: LightconeRank;
 }
 
+// Selected (picked / banned) by any team
+export interface SelectedCharacter { 
+    characterId: Id<"character">;
+    action: "pick" | "ban";
+};
+
 export type BanRestriction =
 	| "none"
 	| "onePerRole"
@@ -272,9 +278,7 @@ export function DraftingInterface() {
 
 		if (currentTeam.reserveTime === 0 && draftState.phaseTimer <= 0) {
 			const selectedCharacters = getAllSelectedCharacters();
-			const availableCharacters = characters.filter(
-				(char) => !selectedCharacters.includes(char._id)
-			);
+			const availableCharacters = characters.filter(char => !selectedCharacters.some(selected => selected.characterId === char._id));
 
 			if (availableCharacters.length > 0) {
 				const randomCharacter =
@@ -290,12 +294,12 @@ export function DraftingInterface() {
 		draftState.phaseTimer,
 	]);
 
-	const getAllSelectedCharacters = () => {
+	const getAllSelectedCharacters = (): SelectedCharacter[] => {
 		return [
-			...draftState.blueTeam.drafted.map((d) => d.characterId),
-			...draftState.redTeam.drafted.map((d) => d.characterId),
-			...draftState.blueTeam.banned,
-			...draftState.redTeam.banned,
+			...draftState.blueTeam.drafted.map(char => ({ characterId: char.characterId, action: "pick" } as SelectedCharacter)),
+			...draftState.redTeam.drafted.map(char => ({ characterId: char.characterId, action: "pick" } as SelectedCharacter)),
+			...draftState.blueTeam.banned.map(characterId => ({ characterId, action: "ban" } as SelectedCharacter)),
+			...draftState.redTeam.banned.map(characterId => ({ characterId, action: "ban" } as SelectedCharacter)),
 		];
 	};
 

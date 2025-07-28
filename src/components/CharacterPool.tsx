@@ -3,10 +3,11 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/CharacterPool.css";
+import { SelectedCharacter } from "./DraftingInterface";
 
 interface CharacterPoolProps {
   characters: any[];
-  selectedCharacters: Id<"character">[];
+  selectedCharacters: SelectedCharacter[];
   onCharacterSelect: (characterId: Id<"character">) => void;
   currentPhase?: { team: string; action: string } | null;
   isDraftComplete: boolean;
@@ -91,18 +92,18 @@ export function CharacterPool({
     return filtered;
   }, [characters, searchTerm, selectedRoles, selectedElements]);
 
-  const isCharacterSelectable = (characterId: Id<"character">) => {
-    if (selectedCharacters.includes(characterId) || isDraftComplete || !currentPhase || !isDraftStarted) {
-      return false;
-    }
+    const isCharacterSelectable = (characterId: Id<"character">) => {
+        if (selectedCharacters.some(selected => selected.characterId === characterId) || isDraftComplete || !currentPhase || !isDraftStarted) {
+            return false;
+        }
 
-    // Check ban restrictions for ban actions
-    if (currentPhase.action === "ban" && canBanCharacter) {
-      return canBanCharacter(characterId, currentPhase.team as "blue" | "red");
-    }
+        // Check ban restrictions for ban actions
+        if (currentPhase.action === "ban" && canBanCharacter) {
+            return canBanCharacter(characterId, currentPhase.team as "blue" | "red");
+        }
 
-    return true;
-  };
+        return true;
+    };
 
     const toggleRoleFilter = (role: string) => {
         setSelectedRoles(prev => 
@@ -298,31 +299,37 @@ export function CharacterPool({
             {/* Character pool */}
             <div className="characters-container">
                 {filteredCharacters.map(character => {
-                    const isSelected = selectedCharacters.includes(character._id);
+                    const isSelected: SelectedCharacter | undefined = selectedCharacters.find(selected => selected.characterId === character._id);
                     const isSelectable = isCharacterSelectable(character._id);
-                    const isFiveStar = character.rarity === 5;
+                    const isPicked: boolean = isSelected?.action === "pick" || false;
+                    const isBanned: boolean = isSelected?.action === "ban" || false;
+
+                    const getCharacterStatus = (): string => {
+                        if (isPicked) return `picked`;
+                        if (isBanned) return `banned`;
+                        if (!isSelectable) return `disabled`;
+                        return ``;
+                    }
 
                     return (
                         <button
                             key={character._id}
-                            className={`character ${(isSelected || !isSelectable) ? `disabled` : ``}`}
+                            className={`character ${getCharacterStatus()}`}
                             onClick={_ => isSelectable && wrapCharacterSelect(character._id)}
                             disabled={!isSelectable}
-
-                            style={{
-                                borderColor: `var(${isFiveStar ? `--border-5star` : `--border-4star`})`,
-                                boxShadow: `var(${isFiveStar ? `--shadow-5star` : `--shadow-4star`})`,
-                            }}
+                            data-rarity={character.rarity}
                         >   
+                            {isSelected && (
+                                <div className="status-overlay">
+                                    <h3>{isPicked ? `Picked` : isBanned ? `Banned` : `Unavailable`}</h3>
+                                </div>
+                            )}
+                            
                             {/* Character IMG */}
                             <img
                                 src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                 alt={character.display_name}
                                 title={`${character.display_name}`}
-                                
-                                style={{
-                                    background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
-                                }}
                             />
                             
                             <h3 className="name">{character.display_name}</h3>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RuleSet, CharacterRank, DraftedCharacter, LightconeRank } from "./DraftingInterface";
+import { RuleSet, CharacterRank, DraftedCharacter, LightconeRank, SelectedCharacter } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
 import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
@@ -13,7 +13,7 @@ interface TeamTestProps {
 export function TeamTest({ characters, lightcones }: TeamTestProps) {
   const [ruleSet, setRuleSet] = useState<RuleSet>("apocalypticshadow");
   const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
-  const selectedCharacterIds = testTeam.map(d => d.characterId);
+  const selectedCharacters: SelectedCharacter[] = testTeam.map(d => ({ characterId: d.characterId, action: "pick" } as SelectedCharacter));
 
   const calculateTotalCost = () => {
     return testTeam.reduce((total, drafted) => {
@@ -34,7 +34,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
   };
 
   const handleCharacterSelect = (characterId: Id<"character">) => {
-    if (selectedCharacterIds.includes(characterId) || testTeam.length >= 8) return;
+    if (selectedCharacters.some(selected => selected.characterId === characterId) || testTeam.length >= 8) return;
 
     const newCharacter: DraftedCharacter = {
       characterId,
@@ -118,16 +118,12 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                     const characterCost = character.cost[ruleSet][drafted.rank];
                     const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
                     const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
-                    const isFiveStar = character.rarity === 5;
 
                     return (
                         <div
                             key={index}
                             className="slot"
-                            style={{
-                                borderColor: `var(${isFiveStar ? `--border-5star` : `--border-4star`})`,
-                                boxShadow: `var(${isFiveStar ? `--shadow-5star` : `--shadow-4star`})`,
-                            }}
+                            data-rarity={character.rarity}
                         >
                             {/* Clear button */}
                             <button
@@ -142,10 +138,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                 src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                 alt={character.display_name}
                                 title={`${character.display_name}`}
-                                
-                                style={{
-                                    background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
-                                }}
                             />
 
                             {/* Character info */}
@@ -214,7 +206,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         {/* Character Pool */}
         <CharacterPool
             characters={characters}
-            selectedCharacters={selectedCharacterIds}
+            selectedCharacters={selectedCharacters}
             isDraftComplete={testTeam.length >= 8}
             isDraftStarted={true}
             onCharacterSelect={handleCharacterSelect}

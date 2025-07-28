@@ -474,16 +474,12 @@ export function TeamArea({
 						const characterCost = character.cost[ruleSet][drafted.rank];
 						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
 						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
-						const isFiveStar = character.rarity === 5;
 
 						return (
 							<div
 								key={index}
 								className="slot"
-								style={{
-									borderColor: `var(${isFiveStar ? `--border-5star` : `--border-4star`})`,
-									boxShadow: `var(${isFiveStar ? `--shadow-5star` : `--shadow-4star`})`,
-								}}
+                                data-rarity={character.rarity}
 							>
 								{/* Character info */}
 								<div className="character">
@@ -493,10 +489,6 @@ export function TeamArea({
                                         src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                         alt={character.display_name}
                                         title={`${character.display_name}`}
-                                        
-                                        style={{
-                                            background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
-                                        }}
                                     />
 
 									{/* Combined cost */}
@@ -581,19 +573,13 @@ export function TeamArea({
                         const character = characters.find((c) => c._id === bannedCharacterId);
                         if (!character) return null;
 
-                        const isFiveStar = character.rarity === 5;
-
                         return (
-                            <div key={index} className="slot">
+                            <div key={index} className="slot" data-rarity={character.rarity}>
                                 <img
                                     className="character"
                                     src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                     alt={`${character.display_name} (Banned)`}
                                     title={`${character.display_name} (Banned)`}
-                                    
-                                    style={{
-                                        background: `var(${isFiveStar ? `--gradient-5star` : `--gradient-4star`})`,
-                                    }}
                                 />
                             </div>
                         );
