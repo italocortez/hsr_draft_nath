@@ -813,6 +813,7 @@ export function TeamArea({
                             
                             placeholder={defaultTeamName}
                             autoFocus
+                            maxLength={30}
                         />
                     </>
                 }

@@ -264,7 +264,7 @@ export function CharacterPool({
                         placeholder="Search characters..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value as string)}
-                        className="bg-gray-700 border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        className="focus:outline-none"
                     />
 
                     {/* Clear All Filters Button */}
