@@ -1,26 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { RuleSet, CharacterRank, LightconeRank, DraftedCharacter } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
+import "../css/CharacterPool.css";
+import { SelectedCharacter } from "./DraftingInterface";
 
 interface CharacterPoolProps {
   characters: any[];
-  selectedCharacters: Id<"character">[];
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
+  selectedCharacters: SelectedCharacter[];
   onCharacterSelect: (characterId: Id<"character">) => void;
   currentPhase?: { team: string; action: string } | null;
   isDraftComplete: boolean;
   isDraftStarted: boolean;
-  canBanCharacter: (characterId: Id<"character">, team: "blue" | "red") => boolean;
+  canBanCharacter?: (characterId: Id<"character">, team: "blue" | "red") => boolean;
 }
 
 export function CharacterPool({
   characters,
   selectedCharacters,
-  searchTerm,
-  onSearchChange,
   onCharacterSelect,
   currentPhase,
   isDraftComplete,
@@ -28,15 +25,18 @@ export function CharacterPool({
   canBanCharacter,
 }: CharacterPoolProps) {
   const icons = useQuery(api.icons.list) || [];
+
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Get unique roles and elements from characters
+  // Get unique roles from characters
   const uniqueRoles = useMemo(() => {
     const roles = [...new Set(characters.map(char => char.role))].filter(Boolean);
     return roles.sort();
   }, [characters]);
 
+  // Get unique elements from characters
   const uniqueElements = useMemo(() => {
     const elements = [...new Set(characters.map(char => char.element))].filter(Boolean);
     return elements.sort();
@@ -54,6 +54,7 @@ export function CharacterPool({
     return map;
   }, [uniqueRoles, icons]);
 
+  // Create element to icon mapping
   const elementIconMap = useMemo(() => {
     const map: Record<string, string> = {};
     uniqueElements.forEach(element => {
@@ -69,6 +70,7 @@ export function CharacterPool({
   const filteredCharacters = useMemo(() => {
     let filtered = characters;
 
+    // Apply search filter (existing logic)
     if (searchTerm.trim()) {
       filtered = filtered.filter(char => {
         return char.aliases.some((alias: string) => 
@@ -77,10 +79,12 @@ export function CharacterPool({
       });
     }
 
+    // Apply role filter
     if (selectedRoles.length > 0) {
       filtered = filtered.filter(char => selectedRoles.includes(char.role));
     }
 
+    // Apply element filter
     if (selectedElements.length > 0) {
       filtered = filtered.filter(char => selectedElements.includes(char.element));
     }
@@ -88,258 +92,263 @@ export function CharacterPool({
     return filtered;
   }, [characters, searchTerm, selectedRoles, selectedElements]);
 
-  const toggleRoleFilter = (role: string) => {
-    setSelectedRoles(prev => 
-      prev.includes(role) 
-        ? prev.filter(r => r !== role)
-        : [...prev, role]
-    );
-  };
+    const isCharacterSelectable = (characterId: Id<"character">) => {
+        if (selectedCharacters.some(selected => selected.characterId === characterId) || isDraftComplete || !currentPhase || !isDraftStarted) {
+            return false;
+        }
 
-  const toggleElementFilter = (element: string) => {
-    setSelectedElements(prev => 
-      prev.includes(element) 
-        ? prev.filter(e => e !== element)
-        : [...prev, element]
-    );
-  };
+        // Check ban restrictions for ban actions
+        if (currentPhase.action === "ban" && canBanCharacter) {
+            return canBanCharacter(characterId, currentPhase.team as "blue" | "red");
+        }
 
-  const clearAllRoleFilters = () => {
-    setSelectedRoles([]);
-  };
+        return true;
+    };
 
-  const clearAllElementFilters = () => {
-    setSelectedElements([]);
-  };
+    const toggleRoleFilter = (role: string) => {
+        setSelectedRoles(prev => 
+            prev.includes(role) 
+            ? prev.filter(r => r !== role)
+            : [...prev, role]
+        );
+    };
 
-  const clearAllFilters = () => {
-    setSelectedRoles([]);
-    setSelectedElements([]);
-  };
+    const toggleElementFilter = (element: string) => {
+        setSelectedElements(prev => 
+            prev.includes(element) 
+            ? prev.filter(e => e !== element)
+            : [...prev, element]
+        );
+    };
 
-  // Determine current turn from currentPhase
-  const currentTurn = currentPhase?.team as "blue" | "red" | undefined;
+    const clearAllRoleFilters = () => {
+        setSelectedRoles([]);
+    };
 
-  // Determine highlight colors based on current turn
-  const getHighlightClasses = () => {
-    if (!currentTurn || isDraftComplete || !isDraftStarted) return "";
-    
-    if (currentTurn === "blue") {
-      return "border-blue-500 bg-blue-500 bg-opacity-5";
-    } else {
-      return "border-red-500 bg-red-500 bg-opacity-5";
+    const clearAllElementFilters = () => {
+        setSelectedElements([]);
+    };
+
+    const clearAllFilters = () => {
+        setSelectedRoles([]);
+        setSelectedElements([]);
+        setSearchTerm("");
+    };
+
+    const wrapCharacterSelect = (characterID: Id<"character">) => {
+        if (!isCharacterSelectable(characterID)) return;
+
+        // Upon selecting a Character, reset all filters - ensure UI updates
+        clearAllFilters();
+        
+        onCharacterSelect(characterID);
     }
-  };
+    
+    const currentTurn = currentPhase?.team as "blue" | "red" | undefined;
 
-  const highlightClasses = getHighlightClasses();
+    const getBorderColor = (): string => {
+        if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
+        if (currentTurn === "blue") return `2px solid rgb(59, 130, 246)`;
+        if (currentTurn === "red") return `2px solid rgb(239, 68, 68)`;
+        return ``;
+    }
+    
+    const getBackgroundColor = (): string => {
+        if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
+        // if (currentTurn === "blue") return `rgb(31, 44, 71)`;
+        // if (currentTurn === "red") return `rgb(55, 37, 41)`;
+        if (currentTurn === "blue") return `rgba(31, 41, 55, 0.05)`;
+        if (currentTurn === "red") return `rgba(239, 68, 68, 0.05)`;
+        return ``;
+    }
 
-  return (
-    <div className={`bg-gray-800 rounded-lg p-6 border-2 transition-all duration-300 ${
-      currentTurn && isDraftStarted && !isDraftComplete ? `${highlightClasses}` : "border-gray-700"
-    }`}>
-      <div className="flex items-center justify-center gap-2 mb-4">
-        {!isDraftStarted || isDraftComplete ? (
-          <h2 className="text-2xl font-bold text-white">Character Pool</h2>
-        ) : (
-          currentTurn && (
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              currentTurn === "blue" 
-                ? "bg-blue-600 text-white" 
-                : "bg-red-600 text-white"
-            }`}>
-              {currentTurn === "blue" ? "Blue Team's Turn" : "Red Team's Turn"} - {currentPhase?.action === "ban" ? "Ban" : "Pick"}
-            </div>
-          )
-        )}
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
-        {/* Column 1: Element Filters */}
-        <div className="flex justify-center sm:justify-start">
-          {uniqueElements.length > 0 && (
-            <div className="flex flex-col items-center sm:items-start gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg text-gray-400 font-medium">Filter by Element:</span>
-                {selectedElements.length > 0 && (
-                  <button
-                    onClick={clearAllElementFilters}
-                    className="text-sm text-cyan-400 hover:text-cyan-300 underline"
-                  >
-                    Clear Elements
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {uniqueElements.map(element => {
-                  const isSelected = selectedElements.includes(element);
-                  const iconUrl = elementIconMap[element];
-                  
-                  return (
-                    <button
-                      key={element}
-                      onClick={() => toggleElementFilter(element)}
-                      className={`
-                        flex items-center justify-center w-12 h-12 rounded-full transition-all
-                        ${isSelected 
-                          ? "bg-cyan-600 border-2 border-cyan-400" 
-                          : "bg-gray-700 border-2 border-gray-600 hover:border-gray-500"
-                        }
-                      `}
-                      title={element}
-                    >
-                      {iconUrl && (
-                        <img
-                          src={iconUrl}
-                          alt={element}
-                          className="w-7 h-7 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+    return (
+        <div className="CharacterPool Box" style={{ border: getBorderColor(), backgroundColor: getBackgroundColor() }}>
+            <div className="filters">
+                {/* Column 1: Elements */}
+                <div className="elements">
+                    {
+                        uniqueElements.length > 0 && <>
+                            <div className="sub-header">
+                                <h3 className="title">Filter by Element:</h3>
 
-        {/* Column 2: Role Filters */}
-        <div className="flex justify-center">
-          <div className="flex flex-col items-center gap-3">
-            {/* Role Filters */}
-            {uniqueRoles.length > 0 && (
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg text-gray-400 font-medium">Filter by Role:</span>
-                  {selectedRoles.length > 0 && (
-                    <button
-                      onClick={clearAllRoleFilters}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 underline"
-                    >
-                      Clear Roles
-                    </button>
-                  )}
+                                {/* Clear Elements Button */}
+                                {selectedElements.length > 0 && (
+                                    <button
+                                        onClick={clearAllElementFilters}
+                                        className="clear-button"
+                                    >
+                                        {`Clear Elements`}
+                                    </button>
+                                )}
+                            </div>
+
+                            {uniqueElements.map(element => {
+                                const isSelected = selectedElements.includes(element);
+                                const iconUrl = elementIconMap[element];
+
+                                return (
+                                    <button
+                                        key={element}
+                                        onClick={_ => toggleElementFilter(element)}
+                                        className={`elem-button ${isSelected ? `selected` : ``} focus:outline-none`}
+                                        title={element}
+                                    >
+                                        {iconUrl && (
+                                            <img
+                                                src={iconUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='10' font-weight='bold' text-anchor='middle' fill='white'>${element.slice(0, 4)}</text></svg>`}
+                                                alt={element}
+                                                className="elem-img"
+                                            />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </>
+                    }
                 </div>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {uniqueRoles.map(role => {
-                    const isSelected = selectedRoles.includes(role);
-                    const iconUrl = roleIconMap[role];
-                    
+
+                {/* Column 2: Roles */}
+                <div className="roles">
+                    {
+                        uniqueRoles.length > 0 && <>
+                            <div className="sub-header">
+                                <h3 className="title">Filter by Role:</h3>
+
+                                {/* Clear Roles Button */}
+                                {
+                                    selectedRoles.length > 0 && <>
+                                        <button
+                                            onClick={clearAllRoleFilters}
+                                            className="clear-button"
+                                        >
+                                            {`Clear Roles`}
+                                        </button>
+                                    </>
+                                }
+                            </div>
+
+                            {uniqueRoles.map(role => {
+                                const isSelected = selectedRoles.includes(role);
+                                const iconUrl = roleIconMap[role];
+
+                                return (
+                                    <button
+                                        key={role}
+                                        onClick={_ => toggleRoleFilter(role)}
+                                        className={`role-button ${isSelected ? `selected` : ``} focus:outline-none`}
+                                        title={role}
+                                    >
+                                        {/* Role's Icon */}
+                                        {iconUrl && (
+                                            <img
+                                                src={iconUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='10' font-weight='bold' text-anchor='middle' fill='white'>${role.slice(0, 3)}</text></svg>`}
+                                                alt={role}
+                                                className="role-img"
+                                            />
+                                        )}
+                                        
+                                        {/* Role's title */}
+                                        <span className="capitalize">{role}</span>
+                                    </button>
+                                );
+                            })}
+                        </>
+                    }
+                </div>
+
+                {/* Column 3: Search & clear all */}
+                <div className="search">
+                    <input
+                        type="text"
+                        placeholder="Search characters..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value as string)}
+                        className="bg-gray-700 border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    />
+
+                    {/* Clear All Filters Button */}
+                    {(selectedRoles.length > 0 || selectedElements.length > 0 || searchTerm.trim().length > 0) && (
+                        <button
+                            className="clear-all-button"
+                            onClick={clearAllFilters}
+                        >
+                            {`Clear All Filters`}
+                        </button>
+                    )}
+                </div>
+
+                {/* Column 4: Shortened Draft status */}
+                <div className="status">
+                    {(!isDraftStarted && !isDraftComplete) && (
+                        <h3 className="begin-draft">Press "Start Draft" to begin</h3>
+                    )}
+
+                    {(currentPhase && isDraftStarted && !isDraftComplete) && (
+                        <h3 className="current-move">
+                            <span style={{ color: (currentPhase.team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)` }}>
+                                {currentPhase.team === "blue" ? "Blue Team" : (currentPhase.team === "red") ? "Red Team" : ""}
+                            </span>
+                            {` `}
+                            {currentPhase.action}
+                        </h3>
+                    )}
+                </div>
+            </div>
+
+            {/* Character pool */}
+            <div className="characters-container">
+                {filteredCharacters.map(character => {
+                    const isSelected: SelectedCharacter | undefined = selectedCharacters.find(selected => selected.characterId === character._id);
+                    const isSelectable = isCharacterSelectable(character._id);
+                    const isPicked: boolean = isSelected?.action === "pick" || false;
+                    const isBanned: boolean = isSelected?.action === "ban" || false;
+
+                    const getCharacterStatus = (): string => {
+                        if (isPicked) return `picked`;
+                        if (isBanned) return `banned`;
+                        if (!isSelectable) return `disabled`;
+                        return ``;
+                    }
+
                     return (
-                      <button
-                        key={role}
-                        onClick={() => toggleRoleFilter(role)}
-                        className={`
-                          flex items-center gap-2 px-3 py-2 rounded-full text-lg font-medium transition-all
-                          ${isSelected 
-                            ? "bg-cyan-600 text-white border-2 border-cyan-400" 
-                            : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
-                          }
-                        `}
-                      >
-                        {iconUrl && (
-                          <img
-                            src={iconUrl}
-                            alt={role}
-                            className="w-5 h-5 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <span className="capitalize">{role}</span>
-                      </button>
+                        <button
+                            key={character._id}
+                            className={`character ${getCharacterStatus()}`}
+                            onClick={_ => isSelectable && wrapCharacterSelect(character._id)}
+                            disabled={!isSelectable}
+                            data-rarity={character.rarity}
+                        >   
+                            {isSelected && (
+                                <div className="status-overlay">
+                                    <h3>{isPicked ? `Picked` : isBanned ? `Banned` : `Unavailable`}</h3>
+                                </div>
+                            )}
+                            
+                            {/* Character IMG */}
+                            <img
+                                src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                alt={character.display_name}
+                                title={`${character.display_name}`}
+                            />
+                            
+                            <h3 className="name">{character.display_name}</h3>
+                        </button>
                     );
-                  })}
-                </div>
-              </div>
-            )}
+                })}
+            </div>
 
-            {/* Clear All Filters */}
-            {(selectedRoles.length > 0 || selectedElements.length > 0) && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-red-400 hover:text-red-300 underline font-medium"
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
+            {/* Information */}
+            {(filteredCharacters.length === 0) && <>
+                <h3 className="info">
+                    {
+                        (searchTerm || selectedRoles.length > 0 || selectedElements.length > 0) ? 
+                            "No characters found matching your filters."
+                        :
+                            "Loading characters..."
+                    }
+                </h3>
+            </>}
         </div>
-
-        {/* Column 3: Search */}
-        <div className="flex flex-col items-center sm:items-end gap-2">
-          <input
-            type="text"
-            placeholder="Search characters..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-gray-700 text-white text-lg border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-        {filteredCharacters.map((character) => {
-          const isSelected = selectedCharacters.includes(character._id);
-          const isSelectable = !isSelected && isDraftStarted && !isDraftComplete;
-
-          const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
-          const rarityBgGradient = character.rarity === 5 
-            ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-            : character.rarity === 4 
-              ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-              : "bg-gradient-to-b from-gray-700 to-gray-500";
-
-          return (
-            <button
-              key={character._id}
-              onClick={() => isSelectable && onCharacterSelect(character._id)}
-              disabled={!isSelectable}
-              className={`
-                relative aspect-square rounded-lg overflow-hidden border-2 transition-all
-                ${isSelected 
-                  ? "border-green-500 opacity-50 cursor-not-allowed" 
-                  : isSelectable
-                    ? `${rarityBorderColor} hover:border-cyan-400 cursor-pointer`
-                    : `${rarityBorderColor} opacity-50 cursor-not-allowed`
-                }
-              `}
-            >
-              <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
-              <img
-                src={character.imageUrl || `https://via.placeholder.com/100x100/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`}
-                alt={character.display_name}
-                className="w-full h-full object-cover relative z-10"
-                onError={(e) => {
-                  e.currentTarget.src = `https://via.placeholder.com/100x100/374151/ffffff?text=${encodeURIComponent(
-                    character.display_name.slice(0, 2)
-                  )}`;
-                }}
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-sm p-1 truncate z-20 font-medium">
-                {character.display_name}
-              </div>
-              {isSelected && (
-                <div className="absolute inset-0 bg-green-500 bg-opacity-30 flex items-center justify-center z-30">
-                  <span className="text-white font-bold text-sm">SELECTED</span>
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {filteredCharacters.length === 0 && (
-        <div className="text-center text-gray-400 py-8 text-lg">
-          {searchTerm || selectedRoles.length > 0 || selectedElements.length > 0
-            ? "No characters found matching your filters." 
-            : "Loading characters..."
-          }
-        </div>
-      )}
-    </div>
-  );
+    );
 }

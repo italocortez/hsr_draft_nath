@@ -1,0 +1,347 @@
+.CharacterPool {
+    padding: 1.5rem;
+    transition: all 300ms;
+}
+
+/* Sorting container */
+.CharacterPool > .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    margin-bottom: 1rem;
+}
+/* Evenly distributed space, collapse when width<13rem, identical heights */
+.CharacterPool > .filters > .elements, 
+.CharacterPool > .filters > .roles, 
+.CharacterPool > .filters > .search {
+   
+    flex: 1 calc(33.3% - 2rem);
+    min-width: 13rem;
+    height: stretch;
+}
+
+/* Elements container */
+.CharacterPool > .filters > .elements {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.5rem;
+}
+
+/* Elements sub-header */
+.CharacterPool > .filters > .elements > .sub-header {
+    flex: 1 100%;
+    padding-inline: 0.5rem;
+
+    display: flex;
+    align-items: baseline; /* title and clear on same line */
+    gap: 1rem;
+}
+.CharacterPool > .filters > .elements > .sub-header > .title {
+    color: rgb(156, 163, 175);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Elements clear button */
+.CharacterPool > .filters > .elements > .sub-header > .clear-button {
+    color: rgb(34, 211, 238);
+    font-size: 0.875rem;
+    font-weight: normal;
+    font-style: italic;
+    text-decoration: underline;
+
+    transition: all 200ms;
+}
+.CharacterPool > .filters > .elements > .sub-header > .clear-button:hover {
+    color: rgb(103, 232, 249);
+}
+
+/* Element button */
+.CharacterPool > .filters > .elements > .elem-button {
+    height: 2.5rem;
+    width: 2.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgb(75, 85, 99);
+    border-radius: 50%;
+    background-color: rgb(55, 65, 81);
+    box-shadow: 1px 1px 4px 3px rgba(0, 0, 0, 0.16);
+
+    transition: all 200ms;
+}
+.CharacterPool > .filters > .elements > .elem-button:hover {
+    background-color: rgb(75, 85, 99);
+    border-color: rgb(107, 114, 128);
+}
+.CharacterPool > .filters > .elements > .elem-button.selected {
+    background-color: rgb(8, 145, 178);
+    border-color: rgb(34, 201, 228);
+    box-shadow: 1px 1px 4px 3px rgba(8, 145, 178, 0.25);
+}
+.CharacterPool > .filters > .elements > .elem-button > .elem-img {
+    height: 1.75rem;
+    width: 1.75rem;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* Roles container */
+.CharacterPool > .filters > .roles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    gap: 0.5rem;
+}
+
+/* Roles sub-header */
+.CharacterPool > .filters > .roles > .sub-header {
+    flex: 1 100%;
+    padding-inline: 0.5rem;
+
+    display: flex;
+    align-items: baseline; /* title and clear on same line */
+    justify-content: center;
+    gap: 1rem;
+}
+.CharacterPool > .filters > .roles > .sub-header > .title {
+    color: rgb(156, 163, 175);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Roles clear button */
+.CharacterPool > .filters > .roles > .sub-header > .clear-button {
+    color: rgb(34, 211, 238);
+    font-size: 0.875rem;
+    font-weight: normal;
+    font-style: italic;
+    text-decoration: underline;
+
+    transition: all 200ms;
+}
+.CharacterPool > .filters > .roles > .sub-header > .clear-button:hover {
+    color: rgb(103, 232, 249);
+}
+
+/* Role button */
+.CharacterPool > .filters > .roles > .role-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    padding: 0.625rem 0.75rem;
+    
+    color: rgb(209, 213, 219);
+    font-size: 1rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+
+    border: 1px solid rgb(75, 85, 99);
+    border-radius: 9999px; /* ???? Apparently not the same as 50% and doesn't look shit */
+    background-color: rgb(55, 65, 81);
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.16);
+
+    transition: all 200ms;
+}
+.CharacterPool > .filters > .roles > .role-button:hover {
+    background-color: rgb(75, 85, 99);
+    border-color: rgb(107, 114, 128);
+}
+.CharacterPool > .filters > .roles > .role-button.selected {
+    color: white;
+    background-color: rgb(8, 145, 178);
+    border-color: rgb(34, 201, 228);
+    box-shadow: 1px 1px 4px 3px rgba(8, 145, 178, 0.25);
+}
+.CharacterPool > .filters > .roles > .role-button > .role-img {
+    height: 1.25rem;
+    width: 1.25rem;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* Search container */
+.CharacterPool > .filters > .search {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+/* Clear all Filters button */
+.CharacterPool > .filters > .search > .clear-all-button {
+    color: rgb(248, 113, 113);
+    font-size: 1rem;
+    font-weight: normal;
+    font-style: italic;
+    text-decoration: underline;
+
+    transition: all 200ms;
+}
+.CharacterPool > .filters > .search > .clear-all-button:hover {
+    color: rgb(252, 165, 165);
+}
+
+/* Search container */
+.CharacterPool > .filters > .status {
+    flex: 1 100%;
+    
+    display: flex;
+    justify-content: center;
+}
+.CharacterPool > .filters > .status > .begin-draft {
+    color: rgb(250, 204, 21);
+    font-size: clamp(1.125rem, 1.8vw, 1.313rem);
+    font-weight: bold;
+}
+.CharacterPool > .filters > .status > .current-move {
+    font-size: clamp(1.5rem, 1.8vw, 1.75rem);
+    font-weight: bold;
+}
+
+/* Characters container */
+.CharacterPool > .characters-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: 0.75rem;
+}
+
+/* Character card */
+.CharacterPool > .characters-container > .character {
+    position: relative;
+    aspect-ratio: 1 / 1.1;
+    overflow: hidden;
+
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+/* Character Disabled */
+.CharacterPool > .characters-container > .character.disabled {
+    pointer-events: none;
+    box-shadow: 2px 2px 4px 3px rgba(0, 0, 0, 0.25) !important;
+    filter: grayscale(75%) brightness(0.8) !important;
+}
+
+/* Character Picked */
+.CharacterPool > .characters-container > .character.picked {
+    pointer-events: none;
+    border-color: rgba(34, 239, 68, 0.66) !important;
+    box-shadow: 2px 2px 4px 3px rgba(34, 239, 68, 0.16) !important;
+}
+.CharacterPool > .characters-container > .character.picked > img, .CharacterPool > .characters-container > .character.picked > .name {
+    filter: grayscale(75%) brightness(0.8) !important;
+}
+.CharacterPool > .characters-container > .character.picked > .status-overlay {
+    color: rgb(34, 209, 68);
+}
+
+/* Character Banned */
+.CharacterPool > .characters-container > .character.banned {
+    pointer-events: none;
+    border-color: rgba(239, 34, 68, 0.66) !important;
+    box-shadow: 2px 2px 4px 3px rgba(239, 34, 68, 0.16) !important;
+}
+.CharacterPool > .characters-container > .character.banned > img, .CharacterPool > .characters-container > .character.banned > .name {
+    filter: grayscale(75%) brightness(0.8) !important;
+}
+.CharacterPool > .characters-container > .character.banned > .status-overlay {
+    color: rgb(209, 34, 68);
+}
+
+/* Character status (picked/banned) */
+.CharacterPool > .characters-container > .character > .status-overlay {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 20;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 1.5rem;
+    font-weight: bold;
+
+    filter: drop-shadow(2px 4px 6px black);
+}
+
+/* Character's Image */
+.CharacterPool > .characters-container > .character > img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    z-index: 10;
+
+    border-radius: 0.5rem;
+    user-select: none;
+
+    transition: filter 300ms;
+    filter: grayscale(0%) brightness(0.95) opacity(0.9);
+}
+.CharacterPool > .characters-container > .character:hover > img {
+    filter: grayscale(0%) brightness(1.1) opacity(1);
+}
+
+/* Character's Name */
+.CharacterPool > .characters-container > .character > .name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    line-height: 1.75rem;
+    user-select: none;
+
+    /* one line + hides overflow */
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+/* small info box (Searching/no results textbox) */
+.CharacterPool > .info {
+    padding-block: 2rem;
+    text-align: center;
+
+    color: rgb(156, 163, 175);
+    font-size: 1.125rem;
+}
+
+/* Apply on mobile screens only */
+@media screen and (max-width: 640px) {
+    /* Element buttons appear in center / more aligned */
+    .CharacterPool > .filters > .elements {
+        justify-content: center;
+    }
+    .CharacterPool > .filters > .roles > .sub-header {
+        justify-content: flex-start;
+    }
+
+    /* allow characters to take up less space */
+    .CharacterPool > .characters-container {
+        grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    }
+}
+@media screen and (max-width: 767px) {
+    /* Element buttons appear in center / more aligned */
+    .CharacterPool > .filters > .search {
+        align-items: center;
+        padding-top: 1rem;
+    }
+}

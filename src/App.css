@@ -1,0 +1,15 @@
+.App {
+    place-items: center;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.App > header {
+    width: 100%;
+}
+
+.App > main {
+    width: min(94%, 90rem);
+}

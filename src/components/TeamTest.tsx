@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { RuleSet, CharacterRank, LightconeRank, DraftedCharacter } from "./DraftingInterface";
+import { useState } from "react";
+import { RuleSet, CharacterRank, DraftedCharacter, LightconeRank, SelectedCharacter } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
-import { LightconeSelector } from "./LightconeSelector";
+import { CharacterPool } from "./CharacterPool";
+import "../css/TeamTest.css";
+import LightconeSelector from "./LightconeSelector";
 
 interface TeamTestProps {
   characters: any[];
@@ -11,71 +11,9 @@ interface TeamTestProps {
 }
 
 export function TeamTest({ characters, lightcones }: TeamTestProps) {
-  const icons = useQuery(api.icons.list) || [];
   const [ruleSet, setRuleSet] = useState<RuleSet>("apocalypticshadow");
-  const [searchTerm, setSearchTerm] = useState("");
   const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [selectedElements, setSelectedElements] = useState<string[]>([]);
-
-  // Get unique roles and elements from characters
-  const uniqueRoles = useMemo(() => {
-    const roles = [...new Set(characters.map(char => char.role))].filter(Boolean);
-    return roles.sort();
-  }, [characters]);
-
-  const uniqueElements = useMemo(() => {
-    const elements = [...new Set(characters.map(char => char.element))].filter(Boolean);
-    return elements.sort();
-  }, [characters]);
-
-  // Create icon mappings
-  const roleIconMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    uniqueRoles.forEach(role => {
-      const icon = icons.find(icon => icon.name === role);
-      if (icon) {
-        map[role] = icon.imageUrl;
-      }
-    });
-    return map;
-  }, [uniqueRoles, icons]);
-
-  const elementIconMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    uniqueElements.forEach(element => {
-      const icon = icons.find(icon => icon.name === element);
-      if (icon) {
-        map[element] = icon.imageUrl;
-      }
-    });
-    return map;
-  }, [uniqueElements, icons]);
-
-  // Filter characters based on search term, selected roles, and selected elements
-  const filteredCharacters = useMemo(() => {
-    let filtered = characters;
-
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(char => {
-        return char.aliases.some((alias: string) => 
-          alias.toLowerCase().includes(searchTerm.toLowerCase())
-        ) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase());
-      });
-    }
-
-    if (selectedRoles.length > 0) {
-      filtered = filtered.filter(char => selectedRoles.includes(char.role));
-    }
-
-    if (selectedElements.length > 0) {
-      filtered = filtered.filter(char => selectedElements.includes(char.element));
-    }
-
-    return filtered;
-  }, [characters, searchTerm, selectedRoles, selectedElements]);
-
-  const selectedCharacterIds = testTeam.map(d => d.characterId);
+  const selectedCharacters: SelectedCharacter[] = testTeam.map(d => ({ characterId: d.characterId, action: "pick" } as SelectedCharacter));
 
   const calculateTotalCost = () => {
     return testTeam.reduce((total, drafted) => {
@@ -96,7 +34,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
   };
 
   const handleCharacterSelect = (characterId: Id<"character">) => {
-    if (selectedCharacterIds.includes(characterId) || testTeam.length >= 8) return;
+    if (selectedCharacters.some(selected => selected.characterId === characterId) || testTeam.length >= 8) return;
 
     const newCharacter: DraftedCharacter = {
       characterId,
@@ -122,372 +60,159 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
     setTestTeam([]);
   };
 
-  const toggleRoleFilter = (role: string) => {
-    setSelectedRoles(prev => 
-      prev.includes(role) 
-        ? prev.filter(r => r !== role)
-        : [...prev, role]
-    );
-  };
-
-  const toggleElementFilter = (element: string) => {
-    setSelectedElements(prev => 
-      prev.includes(element) 
-        ? prev.filter(e => e !== element)
-        : [...prev, element]
-    );
-  };
-
-  const clearAllRoleFilters = () => {
-    setSelectedRoles([]);
-  };
-
-  const clearAllElementFilters = () => {
-    setSelectedElements([]);
-  };
-
-  const clearAllFilters = () => {
-    setSelectedRoles([]);
-    setSelectedElements([]);
-  };
-
-  const getCharacterImageUrl = (characterId: Id<"character">) => {
-    const character = characters.find(c => c._id === characterId);
-    if (character?.imageUrl) {
-      return character.imageUrl;
-    }
-    return `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-      character?.display_name?.slice(0, 2) || "??"
-    )}`;
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Controls */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-white text-xl font-medium">Rule Set:</label>
-              <select
-                value={ruleSet}
-                onChange={(e) => setRuleSet(e.target.value as RuleSet)}
-                className="bg-gray-700 text-white text-lg border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              >
-                <option value="apocalypticshadow">Apocalyptic Shadow</option>
-                <option value="memoryofchaos">Memory of Chaos</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="text-white text-xl font-medium">
-              Total Cost: <span className="text-amber-400 text-2xl">{calculateTotalCost()}</span>
-            </div>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 text-lg bg-red-600 text-white rounded hover:bg-red-700 transition-colors font-medium"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Test Team */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-2xl font-bold text-white mb-4">Test Team ({testTeam.length}/8)</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, index) => {
-            const drafted = testTeam[index];
-            if (!drafted) {
-              return (
-                <div
-                  key={index}
-                  className="aspect-square bg-gray-700 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center"
-                >
-                  <span className="text-gray-500 text-lg">Empty</span>
-                </div>
-              );
-            }
-
-            const character = characters.find(c => c._id === drafted.characterId);
-            if (!character) return null;
-
-            const characterCost = character.cost[ruleSet][drafted.rank];
-            const lightcone = drafted.lightconeId ? lightcones.find(l => l._id === drafted.lightconeId) : null;
-            const lightconeCost = lightcone && drafted.lightconeRank ? lightcone.cost[drafted.lightconeRank] : 0;
-
-            const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
-            const rarityBgGradient = character.rarity === 5 
-              ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-              : character.rarity === 4 
-                ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-                : "bg-gradient-to-b from-gray-700 to-gray-500";
-
-            return (
-              <div key={index} className="space-y-2">
-                <div className={`relative aspect-square ${rarityBgGradient} rounded-lg overflow-hidden ${rarityBorderColor} border`}>
-                  <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
-                  <img
-                    src={getCharacterImageUrl(drafted.characterId)}
-                    alt={character.display_name}
-                    className="w-full h-full object-cover relative z-10"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://via.placeholder.com/120x120/374151/ffffff?text=${encodeURIComponent(
-                        character.display_name.slice(0, 2)
-                      )}`;
-                    }}
-                  />
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded z-20 font-medium">
-                    {characterCost + lightconeCost}
-                  </div>
-                  <button
-                    onClick={() => handleRemoveCharacter(index)}
-                    className="absolute top-1 left-1 bg-red-600 hover:bg-red-700 text-white text-lg w-6 h-6 rounded flex items-center justify-center z-20 font-bold"
-                  >
-                    ×
-                  </button>
-                  <div className="absolute bottom-1 left-1 z-20 flex">
-                    <select
-                      value={drafted.rank}
-                      onChange={(e) => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
-                      className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-l border-none outline-none appearance-none cursor-pointer font-medium"
-                      style={{
-                        backgroundImage: 'none',
-                        WebkitAppearance: 'none',
-                        MozAppearance: 'none'
-                      }}
-                    >
-                      {(["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as CharacterRank[]).map(rank => (
-                        <option key={rank} value={rank}>{rank}</option>
-                      ))}
-                    </select>
-                    {drafted.lightconeId && drafted.lightconeRank && (
-                      <select
-                        value={drafted.lightconeRank}
-                        onChange={(e) => handleCharacterUpdate(index, { lightconeRank: e.target.value as LightconeRank })}
-                        className="bg-black bg-opacity-60 text-white text-lg px-2 py-1 rounded-r border-none outline-none appearance-none cursor-pointer font-medium"
-                        style={{
-                          backgroundImage: 'none',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none'
-                        }}
-                      >
-                        {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map(rank => (
-                          <option key={rank} value={rank}>{rank}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                </div>
-
-                <LightconeSelector
-                  lightcones={lightcones}
-                  selectedLightconeId={drafted.lightconeId}
-                  selectedRank={drafted.lightconeRank}
-                  onLightconeChange={(lightconeId, rank) => 
-                    handleCharacterUpdate(index, { lightconeId, lightconeRank: rank })
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Character Pool */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-2xl font-bold text-white mb-4">Character Pool</h2>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
-          {/* Column 1: Element Filters */}
-          <div className="flex justify-center sm:justify-start">
-            {uniqueElements.length > 0 && (
-              <div className="flex flex-col items-center sm:items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg text-gray-400 font-medium">Filter by Element:</span>
-                  {selectedElements.length > 0 && (
-                    <button
-                      onClick={clearAllElementFilters}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 underline"
-                    >
-                      Clear Elements
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueElements.map(element => {
-                    const isSelected = selectedElements.includes(element);
-                    const iconUrl = elementIconMap[element];
-                    
-                    return (
-                      <button
-                        key={element}
-                        onClick={() => toggleElementFilter(element)}
-                        className={`
-                          flex items-center justify-center w-12 h-12 rounded-full transition-all
-                          ${isSelected 
-                            ? "bg-cyan-600 border-2 border-cyan-400" 
-                            : "bg-gray-700 border-2 border-gray-600 hover:border-gray-500"
-                          }
-                        `}
-                        title={element}
-                      >
-                        {iconUrl && (
-                          <img
-                            src={iconUrl}
-                            alt={element}
-                            className="w-7 h-7 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Column 2: Role Filters */}
-          <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-3">
-              {/* Role Filters */}
-              {uniqueRoles.length > 0 && (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg text-gray-400 font-medium">Filter by Role:</span>
-                    {selectedRoles.length > 0 && (
-                      <button
-                        onClick={clearAllRoleFilters}
-                        className="text-sm text-cyan-400 hover:text-cyan-300 underline"
-                      >
-                        Clear Roles
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {uniqueRoles.map(role => {
-                      const isSelected = selectedRoles.includes(role);
-                      const iconUrl = roleIconMap[role];
-                      
-                      return (
-                        <button
-                          key={role}
-                          onClick={() => toggleRoleFilter(role)}
-                          className={`
-                            flex items-center gap-2 px-3 py-2 rounded-full text-lg font-medium transition-all
-                            ${isSelected 
-                              ? "bg-cyan-600 text-white border-2 border-cyan-400" 
-                              : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
-                            }
-                          `}
+    <div className="TeamTest">
+        {/* Controls */}
+        <div className="Box p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <label className="text-white font-medium">Rule Set:</label>
+                        <select
+                            value={ruleSet}
+                            onChange={(e) => setRuleSet(e.target.value as RuleSet)}
+                            className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                         >
-                          {iconUrl && (
-                            <img
-                              src={iconUrl}
-                              alt={role}
-                              className="w-5 h-5 object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          )}
-                          <span className="capitalize">{role}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                            <option value="apocalypticshadow">Apocalyptic Shadow</option>
+                            <option value="memoryofchaos">Memory of Chaos</option>
+                        </select>
+                    </div>
                 </div>
-              )}
 
-              {/* Clear All Filters */}
-              {(selectedRoles.length > 0 || selectedElements.length > 0) && (
-                <button
-                  onClick={clearAllFilters}
-                  className="text-sm text-red-400 hover:text-red-300 underline font-medium"
-                >
-                  Clear All Filters
-                </button>
-              )}
+                <div className="flex items-center gap-3">
+                    <div className="text-white font-medium">
+                        Total Cost: <span className="text-amber-400">{calculateTotalCost()}</span>
+                    </div>
+                    <button
+                        onClick={handleReset}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
-          </div>
-
-          {/* Column 3: Search */}
-          <div className="flex flex-col items-center sm:items-end gap-2">
-            <input
-              type="text"
-              placeholder="Search characters..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-gray-700 text-white text-lg border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            />
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-          {filteredCharacters.map((character) => {
-            const isSelected = selectedCharacterIds.includes(character._id);
-            const isSelectable = !isSelected && testTeam.length < 8;
+        {/* Test Team */}
+        <div className="roster Box">
+            <div className="sub-header">
+                <h2 className="title">{`Picks (${testTeam?.length ?? 0}/8)`}</h2>
 
-            const rarityBorderColor = character.rarity === 5 ? "border-amber-400" : character.rarity === 4 ? "border-purple-500" : "border-gray-600";
-            const rarityBgGradient = character.rarity === 5 
-              ? "bg-gradient-to-b from-[#ad6002] to-[#faa237]" 
-              : character.rarity === 4 
-                ? "bg-gradient-to-b from-purple-800 to-purple-500" 
-                : "bg-gradient-to-b from-gray-700 to-gray-500";
+                <h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
+            </div>
+            
+            <div className="characters-container">
+                {Array.from({ length: 8 }).map((_, index) => {
+                    const drafted = testTeam[index];
+                    if (!drafted) {
+                        return (
+                            <div key={index} className="slot empty">
+                                <h3>{`Empty`}</h3>
+                            </div>
+                        );
+                    }
 
-            return (
-              <button
-                key={character._id}
-                onClick={() => isSelectable && handleCharacterSelect(character._id)}
-                disabled={!isSelectable}
-                className={`
-                  relative aspect-square rounded-lg overflow-hidden border-2 transition-all
-                  ${isSelected 
-                    ? "border-green-500 opacity-50 cursor-not-allowed" 
-                    : isSelectable
-                      ? `${rarityBorderColor} hover:border-cyan-400 cursor-pointer`
-                      : `${rarityBorderColor} opacity-50 cursor-not-allowed`
-                  }
-                `}
-              >
-                <div className={`absolute inset-0 ${rarityBgGradient}`}></div>
-                <img
-                  src={character.imageUrl || `https://via.placeholder.com/100x100/374151/ffffff?text=${encodeURIComponent(character.display_name.slice(0, 2))}`}
-                  alt={character.display_name}
-                  className="w-full h-full object-cover relative z-10"
-                  onError={(e) => {
-                    e.currentTarget.src = `https://via.placeholder.com/100x100/374151/ffffff?text=${encodeURIComponent(
-                      character.display_name.slice(0, 2)
-                    )}`;
-                  }}
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-sm p-1 truncate z-20 font-medium">
-                  {character.display_name}
-                </div>
-                {isSelected && (
-                  <div className="absolute inset-0 bg-green-500 bg-opacity-30 flex items-center justify-center z-30">
-                    <span className="text-white font-bold text-sm">SELECTED</span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                    const character = characters.find(c => c._id === drafted.characterId);
+                    if (!character) return null;
+
+                    const characterCost = character.cost[ruleSet][drafted.rank];
+                    const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
+                    const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+
+                    return (
+                        <div
+                            key={index}
+                            className="slot"
+                            data-rarity={character.rarity}
+                        >
+                            {/* Clear button */}
+                            <button
+                                onClick={_ => handleRemoveCharacter(index)}
+                                className="clear-button"
+                            >
+                                X
+                            </button>
+
+                            {/* Character IMG */}
+                            <img
+                                src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                alt={character.display_name}
+                                title={`${character.display_name}`}
+                            />
+
+                            {/* Character info */}
+                            <div className="character">
+                                {/* Combined cost */}
+                                <h3
+                                    className="total-cost"
+                                    title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}
+                                >
+                                    {lightcone
+                                        ? `Σ ${characterCost + lightconeCost}`
+                                        : characterCost}
+                                </h3>
+
+                                {/* Verticals (Eidolon/SuperImposition) */}
+                                <div className="verticals">
+                                    {/* Eidolon */}
+                                    <select
+                                        value={drafted.rank}
+                                        onChange={e => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
+                                        className="eidolon focus:outline-none"
+                                        style={{
+                                            paddingRight: `${lightcone ? `0` : ``}`,
+                                            marginRight: `${lightcone ? `0` : ``}`,
+                                        }}
+                                    >
+                                        {([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
+                                            <option key={rank} value={rank}>
+                                                {rank}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {/* Imposition */}
+                                    {drafted.lightconeId && (
+                                        <>
+                                            <select
+                                                value={drafted.lightconeRank || "S1"}
+                                                onChange={e => handleCharacterUpdate(index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
+                                                className="imposition focus:outline-none"
+                                            >
+                                                {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
+                                                    <option key={rank} value={rank}>
+                                                        {rank}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Lightcone */}
+                            <LightconeSelector
+                                lightcones={lightcones}
+                                selectedLightconeId={drafted.lightconeId}
+                                selectedRank={drafted.lightconeRank}
+                                onLightconeChange={(lightconeId, rank) => handleCharacterUpdate(index, { lightconeId, lightconeRank: rank })}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
         </div>
 
-        {filteredCharacters.length === 0 && (
-          <div className="text-center text-gray-400 py-8 text-lg">
-            {searchTerm || selectedRoles.length > 0 || selectedElements.length > 0
-              ? "No characters found matching your filters." 
-              : "Loading characters..."
-            }
-          </div>
-        )}
-      </div>
+        {/* Character Pool */}
+        <CharacterPool
+            characters={characters}
+            selectedCharacters={selectedCharacters}
+            isDraftComplete={testTeam.length >= 8}
+            isDraftStarted={true}
+            onCharacterSelect={handleCharacterSelect}
+            currentPhase={{ team: "test", action: "" }}
+            canBanCharacter={undefined}
+        />
     </div>
   );
 }
