@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
-import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
-import "../css/TeamArea.css";
-import LightconeSelector from "./LightconeSelector";
 import "../css/TeamArea.css";
 import LightconeSelector from "./LightconeSelector";
 
@@ -29,9 +26,6 @@ interface TeamAreaProps {
     reserveTime: number;
   };
   resetTrigger?: number;
-  draftMode: DraftMode;
-  isDraftStarted?: boolean;
-  isActiveTurn?: boolean;
   draftMode: DraftMode;
   isDraftStarted?: boolean;
   isActiveTurn?: boolean;
@@ -94,16 +88,11 @@ interface TooltipProps {
   text: string;
   children: React.ReactNode;
   disabled?: boolean;
-  disabled?: boolean;
 }
 
 function Tooltip({ text, children, disabled }: TooltipProps) {
-function Tooltip({ text, children, disabled }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  if (disabled) {
-    return children;
-  }
   if (disabled) {
     return children;
   }
@@ -142,12 +131,8 @@ export function TeamArea({
   draftMode,
   isDraftStarted = false,
   isActiveTurn,
-  draftMode,
-  isDraftStarted = false,
-  isActiveTurn,
 }: TeamAreaProps) {
   const [editingName, setEditingName] = useState(false);
-  const [tempName, setTempName] = useState<string>(teamData.name);
   const [tempName, setTempName] = useState<string>(teamData.name);
   const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
   const [finalScore, setFinalScore] = useState<number>(0);
@@ -166,9 +151,7 @@ export function TeamArea({
     },
   });
 
-
   // Default team names
-  const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
   const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
   
   // Use default name if current name is empty or just whitespace
@@ -381,16 +364,9 @@ export function TeamArea({
     const getFormulaTooltip = () => {
         if (ruleSet === "memoryofchaos") {
         return `Memory of Chaos Formula:
-    const getFormulaTooltip = () => {
-        if (ruleSet === "memoryofchaos") {
-        return `Memory of Chaos Formula:
 
     Base Score = 1st Half + 2nd Half + Additional Modifier + (Deaths × Death Penalty)
-    Base Score = 1st Half + 2nd Half + Additional Modifier + (Deaths × Death Penalty)
 
-    Roster Difference Adjustment:
-    • If your team costs less: -|cost difference| × Roster Diff Advantage
-    • Applied only to the lower-cost team
     Roster Difference Adjustment:
     • If your team costs less: -|cost difference| × Roster Diff Advantage
     • Applied only to the lower-cost team
@@ -398,26 +374,15 @@ export function TeamArea({
     Threshold Adjustment:
     • If team cost > threshold: +(cost - threshold) × Above Threshold Penalty
     • If team cost < threshold: -(threshold - cost) × Under Threshold Advantage
-    Threshold Adjustment:
-    • If team cost > threshold: +(cost - threshold) × Above Threshold Penalty
-    • If team cost < threshold: -(threshold - cost) × Under Threshold Advantage
 
-    Final Score = Base Score + Roster Adjustment + Threshold Adjustment
     Final Score = Base Score + Roster Adjustment + Threshold Adjustment
 
     Lower scores are better in Memory of Chaos.`;
         } else {
         return `Apocalyptic Shadow Formula:
-    Lower scores are better in Memory of Chaos.`;
-        } else {
-        return `Apocalyptic Shadow Formula:
 
     Base Score = 1st Half + 2nd Half + Additional Modifier - (Deaths × Death Penalty)
-    Base Score = 1st Half + 2nd Half + Additional Modifier - (Deaths × Death Penalty)
 
-    Roster Difference Adjustment:
-    • If your team costs less: +|cost difference| × Roster Diff Advantage
-    • Applied only to the lower-cost team
     Roster Difference Adjustment:
     • If your team costs less: +|cost difference| × Roster Diff Advantage
     • Applied only to the lower-cost team
@@ -425,64 +390,13 @@ export function TeamArea({
     Threshold Adjustment:
     • If team cost > threshold: -(cost - threshold) × Above Threshold Penalty
     • If team cost < threshold: +(threshold - cost) × Under Threshold Advantage
-    Threshold Adjustment:
-    • If team cost > threshold: -(cost - threshold) × Above Threshold Penalty
-    • If team cost < threshold: +(threshold - cost) × Under Threshold Advantage
 
-    Final Score = Base Score + Roster Adjustment + Threshold Adjustment
     Final Score = Base Score + Roster Adjustment + Threshold Adjustment
 
     Higher scores are better in Apocalyptic Shadow.`;
         }
     };
-    Higher scores are better in Apocalyptic Shadow.`;
-        }
-    };
 
-    const renderInputField = (
-        label: string,
-        value: number | string,
-        onChange: (value: string) => void,
-        placeholder: string,
-        step: string = "0.1",
-        min?: string,
-        allowNegative: boolean = false
-    ) => {
-        const isEmpty = value === '';
-        const isInvalid = isEmpty || (typeof value === 'string' && isNaN(parseFloat(value)));
-        
-        return (
-        <div>
-            <div className="flex items-center gap-2 mb-2">
-            <label className="block text-white text-sm font-medium">{label}</label>
-            {isEmpty && (
-                <div className="flex items-center gap-1" title="This field cannot be empty">
-                <WarningIcon />
-                <span className="text-xs text-amber-500">Required</span>
-                </div>
-            )}
-            </div>
-            <input
-            type="number"
-            min={min}
-            step={step}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={`w-full bg-gray-700 text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
-                isEmpty ? 'border-amber-500 bg-amber-50 bg-opacity-5' : 'border-gray-600'
-            }`}
-            placeholder={placeholder}
-            />
-            {!allowNegative && (
-            <p className="text-xs text-gray-400 mt-1">
-                {allowNegative ? "Can be negative, zero, or positive" : "Must be ≥ 0"}
-            </p>
-            )}
-        </div>
-        );
-    };
-
-    const highlightRoster = (): boolean => (isActiveTurn && isDraftStarted && !isDraftComplete) || false;
     const renderInputField = (
         label: string,
         value: number | string,
@@ -553,88 +467,14 @@ export function TeamArea({
 								</div>
 							);
 						}
-    const renderRosterTab = () => (
-		<div className="roster">
-			{/* Picked characters */}
-			<div className="picks">
-				<div className="sub-header">
-					<h2 className="title">{`Picks (${teamData.drafted?.length ?? 0}/8)`}</h2>
 
-                    {/* Active Tag */}
-                    {highlightRoster() && (
-                        <h3 className="active-tag" style={{ backgroundColor: (team === "blue") ? `rgb(49, 120, 226)` : `rgb(220, 38, 38)` }}>Active</h3>
-                    )}
-
-					<h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
-				</div>
-
-				<div className="characters-container">
-					{Array.from({ length: 8 }).map((_, index) => {
-						const drafted = teamData.drafted[index];
-						if (!drafted) {
-							return (
-								<div key={index} className="slot empty">
-									<h3>{`Empty`}</h3>
-								</div>
-							);
-						}
-
-						const character = characters.find(c => c._id === drafted.characterId);
-						if (!character) return null;
 						const character = characters.find(c => c._id === drafted.characterId);
 						if (!character) return null;
 
 						const characterCost = character.cost[ruleSet][drafted.rank];
 						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
 						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
-						const characterCost = character.cost[ruleSet][drafted.rank];
-						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
-						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 
-						return (
-							<div
-								key={index}
-								className="slot"
-                                data-rarity={character.rarity}
-							>
-								{/* Character info */}
-								<div className="character">
-
-									{/* Character IMG */}
-                                    <img
-                                        src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
-                                        alt={character.display_name}
-                                        title={`${character.display_name}`}
-                                    />
-
-									{/* Combined cost */}
-									<h3
-										className="total-cost"
-										title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}
-									>
-										{lightcone
-											? `Σ ${characterCost + lightconeCost}`
-											: characterCost}
-									</h3>
-
-									{/* Verticals (Eidolon/SuperImposition) */}
-									<div className="verticals">
-										{/* Eidolon */}
-										<select
-											value={drafted.rank}
-											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
-											className="eidolon focus:outline-none"
-											style={{
-												paddingRight: `${lightcone ? `0` : ``}`,
-												marginRight: `${lightcone ? `0` : ``}`,
-											}}
-										>
-											{([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
-												<option key={rank} value={rank} style={{ color: "black" }}>
-													{rank}
-												</option>
-											))}
-										</select>
 						return (
 							<div
 								key={index}
@@ -711,37 +551,6 @@ export function TeamArea({
 					})}
 				</div>
 			</div>
-										{/* Imposition */}
-										{drafted.lightconeId && (
-											<>
-												<select
-													value={drafted.lightconeRank || "S1"}
-													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
-													className="imposition focus:outline-none"
-												>
-													{(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
-														<option key={rank} value={rank} style={{ color: "black" }}>
-															{rank}
-														</option>
-													))}
-												</select>
-											</>
-										)}
-									</div>
-								</div>
-                                
-                                {/* Lightcone */}
-								<LightconeSelector
-									lightcones={lightcones}
-									selectedLightconeId={drafted.lightconeId}
-									selectedRank={drafted.lightconeRank}
-									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })}
-								/>
-							</div>
-						);
-					})}
-				</div>
-			</div>
 
 			{/* Banned characters */}
 			<div className="bans">
@@ -763,42 +572,7 @@ export function TeamArea({
 
                         const character = characters.find((c) => c._id === bannedCharacterId);
                         if (!character) return null;
-			{/* Banned characters */}
-			<div className="bans">
-				<h2 className="sub-header">
-                    {`Bans (${teamData.banned?.length ?? 0}/${draftMode === "4ban" ? `2` : draftMode === "6ban" ? `3` : `0`})`}
-                </h2>
 
-				<div className="characters-container">
-                    {Array.from({ length: (draftMode === "4ban") ? 2 : (draftMode === "6ban") ? 3 : 0 }).map((_, index) => {
-                        const bannedCharacterId = teamData.banned[index];
-                        
-                        if (!bannedCharacterId) {
-                            return (
-                                <div key={index} className="slot empty">
-                                    <h3>{`Empty`}</h3>
-                                </div>
-                            );
-                        }
-
-                        const character = characters.find((c) => c._id === bannedCharacterId);
-                        if (!character) return null;
-
-                        return (
-                            <div key={index} className="slot" data-rarity={character.rarity}>
-                                <img
-                                    className="character"
-                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
-                                    alt={`${character.display_name} (Banned)`}
-                                    title={`${character.display_name} (Banned)`}
-                                />
-                            </div>
-                        );
-                    })}
-				</div>
-			</div>
-		</div>
-	);
                         return (
                             <div key={index} className="slot" data-rarity={character.rarity}>
                                 <img
@@ -1081,11 +855,6 @@ export function TeamArea({
                 </div>
             </div>
 
-            {/* Tab Content */}
-            { (activeTab === "roster") && renderRosterTab() }
-            { (activeTab === "result") && renderResultTab() }
-        </div>
-    );
             {/* Tab Content */}
             { (activeTab === "roster") && renderRosterTab() }
             { (activeTab === "result") && renderResultTab() }
