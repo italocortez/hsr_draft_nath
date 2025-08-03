@@ -624,7 +624,7 @@ export function DraftingInterface() {
 						canUndo={draftState.history.length > 0}
 					/>
 
-					<div className="main">
+					<div className="main" id="draft">
 						<DraftTimer
 							draftState={draftState}
 							currentPhase={currentPhase}
