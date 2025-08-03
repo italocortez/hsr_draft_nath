@@ -1,4 +1,5 @@
 import { RuleSet, DraftMode } from "./DraftingInterface";
+import ScreenshotButton from "./ScreenshotButton";
 
 interface DraftControlsProps {
   draftState: any;
@@ -56,7 +57,9 @@ export function DraftControls({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-3">
+            <ScreenshotButton action="clipboard" targetElementId="draft" />
+            <ScreenshotButton action="download" targetElementId="draft" />
           {!draftState.isDraftStarted && !isDraftComplete && (
             <button
               onClick={onStartDraft}

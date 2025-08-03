@@ -139,3 +139,12 @@ body {
             0px 0px 48px 16px rgba(239, 68, 68, 0.2);
     }
 }
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
