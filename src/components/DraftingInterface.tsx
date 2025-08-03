@@ -607,35 +607,42 @@ export function DraftingInterface() {
 
             {
                 (activeTab === "draft") && <>
-                    <DraftControls
-						draftState={draftState}
-						onRuleSetChange={(ruleSet) =>
-							setDraftState((prev) => ({ ...prev, ruleSet }))
-						}
-						onDraftModeChange={(draftMode) =>
-							setDraftState((prev) => ({ ...prev, draftMode }))
-						}
-						onUndo={handleUndo}
-						onReset={handleReset}
-						onStartDraft={handleStartDraft}
-						onPauseDraft={handlePauseDraft}
-						currentPhase={currentPhase}
-						isDraftComplete={isDraftComplete}
-						canUndo={draftState.history.length > 0}
-					/>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                        <div className="flex justify-center lg:justify-start">
+                            <div className="w-full h-full">
+                                <DraftProgress
+                                    currentDraftOrder={currentDraftOrder}
+                                    currentStep={draftState.currentStep}
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-center">
+                            <div className="w-full h-full flex items-center justify-center">
+                                <DraftTimer
+                                    draftState={draftState}
+                                    currentPhase={currentPhase}
+                                    isDraftComplete={isDraftComplete}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-center lg:justify-end">
+                            <div className="w-full h-full">
+                                <DraftControls
+                                    draftState={draftState}
+                                    onUndo={handleUndo}
+                                    onReset={handleReset}
+                                    onStartDraft={handleStartDraft}
+                                    onPauseDraft={handlePauseDraft}
+                                    currentPhase={currentPhase}
+                                    isDraftComplete={isDraftComplete}
+                                    canUndo={draftState.history.length > 0}
+                                />
+                            </div>
+                        </div>
+                    </div>
 
-					<div className="main">
-						<DraftTimer
-							draftState={draftState}
-							currentPhase={currentPhase}
-							isDraftComplete={isDraftComplete}
-						/>
-
-						<DraftProgress
-							currentDraftOrder={currentDraftOrder}
-							currentStep={draftState.currentStep}
-						/>
-
+					<div className="main" id="draft">
                         <TeamArea
 							team="blue"
 							teamData={draftState.blueTeam}
@@ -685,6 +692,13 @@ export function DraftingInterface() {
 						settings={draftState.settings}
 						onSettingsChange={handleSettingsChange}
 						isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
+						draftState={draftState}
+						onRuleSetChange={(ruleSet) =>
+							setDraftState((prev) => ({ ...prev, ruleSet }))
+						}
+						onDraftModeChange={(draftMode) =>
+							setDraftState((prev) => ({ ...prev, draftMode }))
+						}
 					/>
                 </>
             }

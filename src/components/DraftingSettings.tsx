@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { DraftSettings, BanRestriction, MoCSettings, ApocSettings } from "./DraftingInterface";
+import { DraftSettings, BanRestriction, MoCSettings, ApocSettings, RuleSet, DraftMode } from "./DraftingInterface";
 
 interface DraftingSettingsProps {
   settings: DraftSettings;
   onSettingsChange: (settings: DraftSettings) => void;
   isDraftInProgress: boolean;
+  draftState: any;
+  onRuleSetChange: (ruleSet: RuleSet) => void;
+  onDraftModeChange: (mode: DraftMode) => void;
 }
 
 // Local interface for temporary settings that allows string values during input
@@ -73,7 +76,7 @@ function InfoIcon() {
   );
 }
 
-export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress }: DraftingSettingsProps) {
+export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress, draftState, onRuleSetChange, onDraftModeChange }: DraftingSettingsProps) {
   const [tempSettings, setTempSettings] = useState<TempDraftSettings>(settings);
 
   const handlePhaseTimeChange = (value: string) => {
@@ -297,6 +300,41 @@ export function DraftingSettings({ settings, onSettingsChange, isDraftInProgress
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
       <h2 className="text-xl font-bold text-white mb-4">Drafting Settings</h2>
+      
+      {/* Rule Set and Draft Mode */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="space-y-3">
+          <label className="block text-white font-medium">Rule Set</label>
+          <select
+            value={draftState.ruleSet}
+            onChange={(e) => onRuleSetChange(e.target.value as RuleSet)}
+            disabled={draftState.isDraftStarted}
+            className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="apocalypticshadow">Apocalyptic Shadow</option>
+            <option value="memoryofchaos">Memory of Chaos</option>
+          </select>
+          <div className="text-sm text-gray-400">
+            <span className="text-xs text-gray-500">Cannot be changed during draft</span>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-white font-medium">Draft Mode</label>
+          <select
+            value={draftState.draftMode}
+            onChange={(e) => onDraftModeChange(e.target.value as DraftMode)}
+            disabled={draftState.currentStep > 0 || draftState.isDraftStarted}
+            className="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="4ban">4 Ban Mode</option>
+            <option value="6ban">6 Ban Mode</option>
+          </select>
+          <div className="text-sm text-gray-400">
+            <span className="text-xs text-gray-500">Cannot be changed after draft starts</span>
+          </div>
+        </div>
+      </div>
       
       {/* Main Settings */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

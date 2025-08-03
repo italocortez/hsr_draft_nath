@@ -1,0 +1,59 @@
+.ScreenshotButton {
+    width: 2.5rem;
+    height: 2.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background-color: rgb(59,130,246);
+    border-radius: 0.25rem;
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.16);
+
+    transition: all 200ms ease !important; /* Gets overwritten for some reason. */
+}
+
+.ScreenshotButton:hover:not(:disabled), .ScreenshotButton:active:not(:disabled) {
+    background-color: rgb(47, 109, 235);
+}
+.ScreenshotButton:disabled {
+    box-shadow: none;
+    filter: brightness(0.66) grayscale(10%);
+}
+
+/* Overlay styles - hides layout changes during process on Mobile screens */
+.ScreenshotOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(0.375rem);
+}
+.ScreenshotOverlay > .content {
+    padding: 2.25rem;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+
+    border: 1px solid rgba(107, 114, 128, 0.33);
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.66);
+}
+.ScreenshotOverlay > .content > .title {
+    font-size: 1.375rem;
+    font-weight: bold;
+}
+.ScreenshotOverlay > .content > .sub-title {
+    font-size: 1.125rem;
+    color: rgb(209, 213, 219);
+}

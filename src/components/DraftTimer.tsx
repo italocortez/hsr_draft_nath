@@ -27,32 +27,28 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
 
   if (isDraftComplete) {
     return (
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-        {/* Title Row */}
-        <div className="text-center mb-3">
-          <h3 className="text-white font-medium">Draft Timer</h3>
-        </div>
-        
-        {/* Content Grid */}
-        <div className="grid grid-cols-3 gap-4 items-center">
-          {/* Blue Reserve */}
-          <div className="text-center">
-            <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
-            <div className="text-blue-400 text-lg font-bold">
-              {formatTime(draftState.blueTeam.reserveTime)}
+      <div className="DraftTimer Box p-6 h-full">
+        <div className="flex flex-col h-full justify-center">
+          <div className="grid grid-cols-3 gap-4 items-center w-full">
+            {/* Blue Reserve */}
+            <div className="text-center">
+              <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
+              <div className="text-blue-400 text-lg font-bold">
+                {formatTime(draftState.blueTeam.reserveTime)}
+              </div>
             </div>
-          </div>
-          
-          {/* Center Status */}
-          <div className="text-center">
-            <div className="text-xl font-bold text-green-400">Complete!</div>
-          </div>
-          
-          {/* Red Reserve */}
-          <div className="text-center">
-            <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
-            <div className="text-red-400 text-lg font-bold">
-              {formatTime(draftState.redTeam.reserveTime)}
+            
+            {/* Center Status */}
+            <div className="text-center flex items-center justify-center">
+              <div className="text-xl font-bold text-green-400">Complete!</div>
+            </div>
+            
+            {/* Red Reserve */}
+            <div className="text-center">
+              <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
+              <div className="text-red-400 text-lg font-bold">
+                {formatTime(draftState.redTeam.reserveTime)}
+              </div>
             </div>
           </div>
         </div>
@@ -62,32 +58,28 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
 
   if (!draftState.isDraftStarted) {
     return (
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-        {/* Title Row */}
-        <div className="text-center mb-3">
-          <h3 className="text-white font-medium">Draft Timer</h3>
-        </div>
-        
-        {/* Content Grid */}
-        <div className="grid grid-cols-3 gap-4 items-center">
-          {/* Blue Reserve */}
-          <div className="text-center">
-            <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
-            <div className="text-blue-400 text-lg font-bold">
-              {formatTime(draftState.blueTeam.reserveTime)}
+      <div className="DraftTimer Box p-6 h-full">
+        <div className="flex flex-col h-full justify-center">
+          <div className="grid grid-cols-3 gap-4 items-center w-full">
+            {/* Blue Reserve */}
+            <div className="text-center">
+              <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
+              <div className="text-blue-400 text-lg font-bold">
+                {formatTime(draftState.blueTeam.reserveTime)}
+              </div>
             </div>
-          </div>
-          
-          {/* Center Status */}
-          <div className="text-center">
-            <div className="text-lg font-bold text-white">Ready to Begin</div>
-          </div>
-          
-          {/* Red Reserve */}
-          <div className="text-center">
-            <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
-            <div className="text-red-400 text-lg font-bold">
-              {formatTime(draftState.redTeam.reserveTime)}
+            
+            {/* Center Status */}
+            <div className="text-center flex items-center justify-center">
+              <div className="text-lg font-bold text-white">Ready to Begin</div>
+            </div>
+            
+            {/* Red Reserve */}
+            <div className="text-center">
+              <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
+              <div className="text-red-400 text-lg font-bold">
+                {formatTime(draftState.redTeam.reserveTime)}
+              </div>
             </div>
           </div>
         </div>
@@ -96,27 +88,22 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-      {/* Title Row */}
-      <div className="text-center mb-3">
-        <h3 className="text-white font-medium">Draft Timer</h3>
-      </div>
-      
-      {/* Content Grid */}
-      <div className="grid grid-cols-3 gap-4 items-center">
-        {/* Blue Reserve */}
-        <div className="text-center">
-          <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
-          <div className={`text-lg font-bold ${getReserveTimeColor(draftState.blueTeam.reserveTime)}`}>
-            {formatTime(draftState.blueTeam.reserveTime)}
+    <div className="DraftTimer Box p-6 h-full">
+      <div className="flex flex-col h-full justify-center">
+        <div className="grid grid-cols-3 gap-4 items-center w-full">
+          {/* Blue Reserve */}
+          <div className="text-center">
+            <div className="text-xs text-blue-400 font-medium mb-1">Blue Reserve</div>
+            <div className={`text-lg font-bold ${getReserveTimeColor(draftState.blueTeam.reserveTime)}`}>
+              {formatTime(draftState.blueTeam.reserveTime)}
+            </div>
+            {currentPhase?.team === "blue" && draftState.phaseTimer <= 0 && (
+              <div className="text-xs text-blue-300 mt-1">Active</div>
+            )}
           </div>
-          {currentPhase?.team === "blue" && draftState.phaseTimer <= 0 && (
-            <div className="text-xs text-blue-300 mt-1">Active</div>
-          )}
-        </div>
-        
-        {/* Center Phase Timer */}
-        <div className="text-center">
+          
+          {/* Center Phase Timer */}
+          <div className="text-center flex flex-col items-center justify-center">
           <div className="text-sm text-gray-400 mb-1">
             {currentPhase ? (
               <>
@@ -140,29 +127,30 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
             <div className="text-xs text-yellow-400 mt-1">PAUSED</div>
           )}
           
-          {/* Progress Bar */}
-          <div className="mt-2">
-            <div className="w-full bg-gray-700 rounded-full h-1.5">
-              <div 
-                className={`h-1.5 rounded-full transition-all duration-1000 ${
-                  draftState.phaseTimer > 10 ? "bg-green-500" :
-                  draftState.phaseTimer > 5 ? "bg-yellow-500" : "bg-red-500"
-                }`}
-                style={{ width: `${((draftState.settings.phaseTime - draftState.phaseTimer) / draftState.settings.phaseTime) * 100}%` }}
-              ></div>
+            {/* Progress Bar */}
+            <div className="mt-2 w-full max-w-32">
+              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                <div 
+                  className={`h-1.5 rounded-full transition-all duration-1000 ${
+                    draftState.phaseTimer > 10 ? "bg-green-500" :
+                    draftState.phaseTimer > 5 ? "bg-yellow-500" : "bg-red-500"
+                  }`}
+                  style={{ width: `${((draftState.settings.phaseTime - draftState.phaseTimer) / draftState.settings.phaseTime) * 100}%` }}
+                ></div>
+              </div>
             </div>
-          </div>
         </div>
         
-        {/* Red Reserve */}
-        <div className="text-center">
-          <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
-          <div className={`text-lg font-bold ${getReserveTimeColor(draftState.redTeam.reserveTime)}`}>
-            {formatTime(draftState.redTeam.reserveTime)}
+          {/* Red Reserve */}
+          <div className="text-center">
+            <div className="text-xs text-red-400 font-medium mb-1">Red Reserve</div>
+            <div className={`text-lg font-bold ${getReserveTimeColor(draftState.redTeam.reserveTime)}`}>
+              {formatTime(draftState.redTeam.reserveTime)}
+            </div>
+            {currentPhase?.team === "red" && draftState.phaseTimer <= 0 && (
+              <div className="text-xs text-red-300 mt-1">Active</div>
+            )}
           </div>
-          {currentPhase?.team === "red" && draftState.phaseTimer <= 0 && (
-            <div className="text-xs text-red-300 mt-1">Active</div>
-          )}
         </div>
       </div>
     </div>
