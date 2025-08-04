@@ -74,12 +74,11 @@
     top: 0.5rem;
     z-index: 20;
 
-    padding: 1px;
     color: rgb(220, 38, 38);
-    background-color: white;
     border-radius: 50%;
+    box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.16);
 
-    transition: all 200ms;
+    transition: all 200ms ease;
 }
 .TeamTest > .roster > .characters-container > .slot > .clear-button:hover {
     color: rgb(185, 28, 28);

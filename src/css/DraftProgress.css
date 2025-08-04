@@ -1,3 +1,11 @@
+.DraftProgress {
+    height: 100%;
+    width: 100%;
+
+    min-height: 7.625rem;
+    padding: 1rem;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

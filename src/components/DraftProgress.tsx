@@ -39,7 +39,7 @@ export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressP
   const visibleBoxes = currentDraftOrder.slice(visibleRange.start, visibleRange.end);
 
   return (
-    <div className="DraftProgress Box p-6 h-full">
+    <div className="DraftProgress Box">
       <div className="flex flex-col h-full justify-center">
         <div className="draft-progress-container flex justify-center items-center overflow-hidden">
           <div className="flex items-center gap-2 transition-all duration-500 ease-in-out">
@@ -110,14 +110,14 @@ export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressP
         </div>
         
         {/* Progress indicator */}
-        <div className="mt-3 text-center text-sm text-gray-400">
+        <h3 className="mt-3 text-center text-sm text-gray-400">
           Step {currentStep + 1} of {currentDraftOrder.length}
           {(showStartEllipsis || showEndEllipsis) && (
             <span className="ml-2 text-xs">
               (Showing {visibleRange.start + 1}-{visibleRange.end})
             </span>
           )}
-        </div>
+        </h3>
       </div>
     </div>
   );
