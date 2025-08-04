@@ -189,6 +189,7 @@ const checkBanRestriction = (
 export function DraftingInterface() {
 	const characters = useQuery(api.characters.list) || [];
 	const lightcones = useQuery(api.lightcones.list) || [];
+    const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
 
 	const [draftState, setDraftState] = useState<DraftState>({
 		blueTeam: {
@@ -692,7 +693,7 @@ export function DraftingInterface() {
                 </>
             }
             {
-                (activeTab === "teamtest") && <TeamTest characters={characters} lightcones={lightcones} />
+                (activeTab === "teamtest") && <TeamTest characters={characters} lightcones={lightcones} teamState={{ testTeam, setTestTeam }} />
             }
             {
                 (activeTab === "costs") && <CostTables characters={characters} lightcones={lightcones} />
