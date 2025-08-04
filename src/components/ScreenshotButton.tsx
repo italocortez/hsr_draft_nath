@@ -15,8 +15,8 @@ interface OriginalStyles {
 }
 
 const backgroundColor: string = `transparent`;
-const minWidth: number = 1280;
-const minHeight: number = 720;
+const minWidth: number = 1440;
+const minHeight: number = 612;
 const qualityScale: number = 1.5;
 
 const generateFilename = (): string => `Draft-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
@@ -269,7 +269,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
                 console.log('Share failed or not supported, falling back to download:', err);
                 
                 // Fallback: Auto-download for mobile using helper function
-                downloadBlob(blob, filename);
+                // downloadBlob(blob, filename); Disabling this for now as backing out of clipboard Screenshot would instead trigger download (unintended behavior)
                 console.log('Screenshot downloaded (mobile fallback)');
             }
         } else {

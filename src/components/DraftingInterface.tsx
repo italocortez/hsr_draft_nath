@@ -607,39 +607,28 @@ export function DraftingInterface() {
 
             {
                 (activeTab === "draft") && <>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-                        <div className="flex justify-center lg:justify-start">
-                            <div className="w-full h-full">
-                                <DraftProgress
-                                    currentDraftOrder={currentDraftOrder}
-                                    currentStep={draftState.currentStep}
-                                />
-                            </div>
-                        </div>
+                    <div className="toolbar">
+                        <DraftProgress
+                            currentDraftOrder={currentDraftOrder}
+                            currentStep={draftState.currentStep}
+                        />
                         
-                        <div className="flex justify-center">
-                            <div className="w-full h-full flex items-center justify-center">
-                                <DraftTimer
-                                    draftState={draftState}
-                                    currentPhase={currentPhase}
-                                    isDraftComplete={isDraftComplete}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-center lg:justify-end">
-                            <div className="w-full h-full">
-                                <DraftControls
-                                    draftState={draftState}
-                                    onUndo={handleUndo}
-                                    onReset={handleReset}
-                                    onStartDraft={handleStartDraft}
-                                    onPauseDraft={handlePauseDraft}
-                                    currentPhase={currentPhase}
-                                    isDraftComplete={isDraftComplete}
-                                    canUndo={draftState.history.length > 0}
-                                />
-                            </div>
-                        </div>
+                        <DraftTimer
+                            draftState={draftState}
+                            currentPhase={currentPhase}
+                            isDraftComplete={isDraftComplete}
+                        />
+
+                        <DraftControls
+                            draftState={draftState}
+                            onUndo={handleUndo}
+                            onReset={handleReset}
+                            onStartDraft={handleStartDraft}
+                            onPauseDraft={handlePauseDraft}
+                            currentPhase={currentPhase}
+                            isDraftComplete={isDraftComplete}
+                            canUndo={draftState.history.length > 0}
+                        />
                     </div>
 
 					<div className="main" id="draft">

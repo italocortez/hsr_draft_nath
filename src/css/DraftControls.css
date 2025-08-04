@@ -1,0 +1,106 @@
+.DraftControls {
+    height: 100%;
+    width: 100%;
+
+    min-height: 7.625rem;
+    padding: 1rem;
+
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Generic Button styles */
+.DraftControls .button {
+    padding-block: 0.5rem;
+    padding-inline: 1rem;
+
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.16);
+
+    transition: all 200ms ease;
+}
+.DraftControls .button:disabled {
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: brightness(0.66) grayscale(10%);
+}
+
+/* Left half Layout */
+.DraftControls > .left {
+    flex: 1 calc(60% - 1rem);
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.DraftControls > .left > .button.start, .DraftControls > .left > .button.pause, .DraftControls > .left > .button.resume {
+    flex: 1 100%;
+}
+.DraftControls > .left > .button.undo, .DraftControls > .left > .button.reset {
+    flex: 1 calc(50% - 0.5rem);
+}
+
+/* Right half Layout */
+.DraftControls > .right {
+    flex: 1 calc(40% - 1rem);
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.DraftControls > .right > .ScreenshotButton {
+    /* Screenshot buttons take up the entire row */
+    flex: 1 calc(50% - 0.5rem);
+}
+.DraftControls > .right > .button.settings {
+    flex: 1 100%;
+}
+
+
+/* Start Draft */
+.DraftControls .button.start {
+    background-color: rgb(22, 163, 74);
+}
+.DraftControls .button.start:hover:not(:disabled), .DraftControls .button.start:active:not(:disabled) {
+    background-color: rgb(21, 128, 61);
+}
+
+/* Pause Draft */
+.DraftControls .button.pause {
+    background-color: rgb(202, 138, 4);
+}
+.DraftControls .button.pause:hover:not(:disabled), .DraftControls .button.pause:active:not(:disabled) {
+    background-color: rgb(161, 98, 7);
+}
+
+/* Resume Draft */
+.DraftControls .button.resume {
+    background-color: rgb(22, 163, 74);
+}
+.DraftControls .button.resume:hover:not(:disabled), .DraftControls .button.resume:active:not(:disabled) {
+    background-color: rgb(21, 128, 61);
+}
+
+/* Undo */
+.DraftControls .button.undo {
+    background-color: rgb(217, 119, 6);
+}
+.DraftControls .button.undo:hover:not(:disabled), .DraftControls .button.undo:active:not(:disabled) {
+    background-color: rgb(180, 83, 9);
+}
+
+/* Reset */
+.DraftControls .button.reset {
+    background-color: rgb(220, 38, 38);
+}
+.DraftControls .button.reset:hover:not(:disabled), .DraftControls .button.reset:active:not(:disabled) {
+    background-color: rgb(185, 28, 28);
+}

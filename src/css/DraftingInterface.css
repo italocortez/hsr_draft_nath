@@ -30,6 +30,12 @@
     background-color: rgb(75, 85, 99);
 }
 
+.DraftingInterface > .toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .DraftingInterface > .main {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -37,8 +43,11 @@
 }
 
 /* Apply on mobile+tablet screens */
-@media screen and (max-width: 1040px) {
+@media screen and (max-width: 1070px) {
     /* Single grid column in smaller screens */
+    .DraftingInterface > .toolbar {
+       grid-template-columns: repeat(1, minmax(0, 1fr)); 
+    }
     .DraftingInterface > .main {
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }
