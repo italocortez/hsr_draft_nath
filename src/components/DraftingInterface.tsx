@@ -224,6 +224,8 @@ export function DraftingInterface() {
 		"draft" | "costs" | "teamtest" | "contact"
 	>("draft");
 
+	const toolbarRef = useRef<HTMLDivElement>(null);
+
 	const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
 	const currentPhase = currentDraftOrder[draftState.currentStep];
 	const isDraftComplete = draftState.currentStep >= currentDraftOrder.length;
@@ -558,6 +560,25 @@ export function DraftingInterface() {
         // window.scrollTo({ top: 250, behavior: 'smooth' }); maybe?
 	}, [draftState.currentStep]);
 
+	// Handle sticky toolbar background
+	useEffect(() => {
+		const handleScroll = () => {
+			if (toolbarRef.current) {
+				const rect = toolbarRef.current.getBoundingClientRect();
+				const isSticky = rect.top <= 0;
+				
+				if (isSticky) {
+					toolbarRef.current.classList.add('sticky');
+				} else {
+					toolbarRef.current.classList.remove('sticky');
+				}
+			}
+		};
+
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
+	}, []);
+
 	return (
 		<div className="DraftingInterface">
 			{/* Tab Navigation */}
@@ -608,7 +629,7 @@ export function DraftingInterface() {
 
             {
                 (activeTab === "draft") && <>
-                    <div className="toolbar">
+                    <div className="toolbar" ref={toolbarRef}>
                         <DraftProgress
                             currentDraftOrder={currentDraftOrder}
                             currentStep={draftState.currentStep}
