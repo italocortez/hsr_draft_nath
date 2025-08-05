@@ -656,7 +656,7 @@ export function DraftingInterface() {
                         />
                     </div>
 
-					<div className="main" id="draft">
+					<div className="rosters" id="draft">
                         <TeamArea
 							team="blue"
 							teamData={draftState.blueTeam}

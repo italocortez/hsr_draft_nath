@@ -4,6 +4,7 @@
 
     min-height: 7.625rem;
     padding: 1rem;
+    transition: all 300ms ease-in-out; /* Smooth transition when toolbar sticks */
 }
 
 @keyframes fade-in {

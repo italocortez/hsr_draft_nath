@@ -252,7 +252,7 @@
     box-shadow: 2px 2px 4px 3px rgba(34, 239, 68, 0.16) !important;
 }
 .CharacterPool > .characters-container > .character.picked > img, .CharacterPool > .characters-container > .character.picked > .name {
-    filter: grayscale(75%) brightness(0.8) !important;
+    filter: grayscale(100%) brightness(0.8) !important;
 }
 .CharacterPool > .characters-container > .character.picked > .status-overlay {
     color: rgb(34, 209, 68);
@@ -265,7 +265,7 @@
     box-shadow: 2px 2px 4px 3px rgba(239, 34, 68, 0.16) !important;
 }
 .CharacterPool > .characters-container > .character.banned > img, .CharacterPool > .characters-container > .character.banned > .name {
-    filter: grayscale(75%) brightness(0.8) !important;
+    filter: grayscale(100%) brightness(0.8) !important;
 }
 .CharacterPool > .characters-container > .character.banned > .status-overlay {
     color: rgb(209, 34, 68);

@@ -1,6 +1,7 @@
 import ScreenshotButton from "./ScreenshotButton";
 import "../css/DraftControls.css";
 import { DraftState } from "./DraftingInterface";
+import { useState } from "react";
 
 interface DraftControlsProps {
     draftState: DraftState;
@@ -25,8 +26,58 @@ export function DraftControls({
     canUndo,
     onOpenSettings,
 }: DraftControlsProps) {
-
-    const GearIcon: React.FC = () => (
+    const PauseIcon: React.FC = () => (
+        <svg 
+            width="1.5rem" 
+            height="1.5rem"
+            viewBox="0 0 24 24" 
+            fill="currentColor"
+        >
+            <rect x="6" y="4" width="4" height="16" rx="1"/>
+            <rect x="14" y="4" width="4" height="16" rx="1"/>
+        </svg>
+    );
+    const ResumeIcon: React.FC = () => (
+        <svg 
+            width="1.5rem" 
+            height="1.5rem"
+            viewBox="0 0 24 24" 
+            fill="currentColor"
+        >
+            <path d="M8 5v14l11-7L8 5z"/>
+        </svg>
+    );
+    const UndoIcon: React.FC = () => (
+        <svg
+            width="1.125rem"
+            height="1.375rem"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+        </svg>
+    );
+    const ResetIcon: React.FC = () => (
+        <svg
+            width="1.125rem"
+            height="1.375rem"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+        >
+            <path d="M3 12a9 9 0 019-9 9.75 9.75 0 016.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/>
+            <path d="M3 21v-5h5"/>
+        </svg>
+    );
+    const SettingsIcon: React.FC = () => (
         <svg
             width="1.375rem"
             height="1.375rem"
@@ -54,24 +105,36 @@ export function DraftControls({
     return (
         <div className="DraftControls Box">
             <div className="left">
-                {/* Start Draft */}
-                {(!draftState.isDraftStarted && !isDraftComplete) && (
+                {!draftState.isDraftStarted ? (
+                    // Start Draft
                     <button
                         className="button start"
                         onClick={onStartDraft}
                     >
                         {`Start Draft`}
                     </button>
-                )}
-
-                {/* Pause/Resume Draft */}
-                {draftState.isDraftStarted && !isDraftComplete && (
-                    <button
-                        onClick={onPauseDraft}
-                        className={`button ${draftState.isTimerActive ? `pause` : `resume`}`}
-                    >
-                        {draftState.isTimerActive ? "Pause" : "Resume"}
-                    </button>
+                ) : (
+                    draftState.isTimerActive ? (
+                        // Pause Draft
+                        <button
+                            onClick={onPauseDraft}
+                            className="button pause"
+                            disabled={isDraftComplete}
+                        >
+                            <PauseIcon />
+                            {`Pause`}
+                        </button>
+                    ) : (
+                        // Resume Draft
+                        <button
+                            onClick={onPauseDraft}
+                            className="button resume"
+                            disabled={isDraftComplete}
+                        >
+                            <ResumeIcon />
+                            {`Resume`}
+                        </button>
+                    )
                 )}
 
                 {/* Undo step */}
@@ -80,7 +143,8 @@ export function DraftControls({
                     disabled={!canUndo || !draftState.isDraftStarted}
                     className="button undo"
                 >
-                    Undo
+                    <UndoIcon />
+                    {`Undo`}
                 </button>
 
                 {/* Reset Draft */}
@@ -89,7 +153,8 @@ export function DraftControls({
                     className="button reset"
                     disabled={!draftState.isDraftStarted}
                 >
-                    Reset
+                    <ResetIcon />
+                    {`Reset`}
                 </button>
             </div>
             
@@ -106,9 +171,8 @@ export function DraftControls({
                 <button
                     className="button settings"
                     onClick={onOpenSettings}
-                    style={{ color: "rgb(31, 31, 31)", backgroundColor: "rgba(255, 255, 255, 0.9)", display: "flex", gap: "0.375rem", alignItems: "center", justifyContent: "center" }}
                 >
-                    <GearIcon />
+                    <SettingsIcon />
                     {`Settings`}
                 </button>
             </div>
