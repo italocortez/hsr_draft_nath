@@ -1,0 +1,63 @@
+.CurrentActiveSettings {
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.CurrentActiveSettings .title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: rgb(209, 213, 219);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.CurrentActiveSettings .settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.CurrentActiveSettings .setting-group {
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.CurrentActiveSettings .group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(156, 163, 175);
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+  padding-bottom: 0.5rem;
+}
+
+.CurrentActiveSettings .setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.CurrentActiveSettings .setting-item:last-child {
+  border-bottom: none;
+}
+
+.CurrentActiveSettings .label {
+  font-size: 0.875rem;
+  color: rgb(209, 213, 219);
+  font-weight: 500;
+}
+
+.CurrentActiveSettings .value {
+  font-size: 0.875rem;
+  color: rgb(156, 163, 175);
+  font-weight: 400;
+}
+
+@media screen and (max-width: 768px) {
+  .CurrentActiveSettings .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
