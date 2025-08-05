@@ -10,6 +10,7 @@ import { TeamTest } from "./TeamTest";
 import { Contact } from "./Contact";
 import { DraftTimer } from "./DraftTimer";
 import { DraftingSettings } from "./DraftingSettings";
+import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
 
@@ -190,6 +191,7 @@ export function DraftingInterface() {
 	const characters = useQuery(api.characters.list) || [];
 	const lightcones = useQuery(api.lightcones.list) || [];
     const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
+	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
 	const [draftState, setDraftState] = useState<DraftState>({
 		blueTeam: {
@@ -650,6 +652,7 @@ export function DraftingInterface() {
                             currentPhase={currentPhase}
                             isDraftComplete={isDraftComplete}
                             canUndo={draftState.history.length > 0}
+                            onOpenSettings={() => setIsSettingsModalOpen(true)}
                         />
                     </div>
 
@@ -699,17 +702,10 @@ export function DraftingInterface() {
 						canBanCharacter={canBanCharacter}
 					/>
 
-					<DraftingSettings
+					<CurrentActiveSettings
 						settings={draftState.settings}
-						onSettingsChange={handleSettingsChange}
-						isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
-						draftState={draftState}
-						onRuleSetChange={(ruleSet) =>
-							setDraftState((prev) => ({ ...prev, ruleSet }))
-						}
-						onDraftModeChange={(draftMode) =>
-							setDraftState((prev) => ({ ...prev, draftMode }))
-						}
+						ruleSet={draftState.ruleSet}
+						draftMode={draftState.draftMode}
 					/>
                 </>
             }
@@ -722,6 +718,22 @@ export function DraftingInterface() {
             {
                 (activeTab === "contact") && <Contact />
             }
+
+			{/* Settings Modal */}
+			<DraftingSettings
+				settings={draftState.settings}
+				onSettingsChange={handleSettingsChange}
+				isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
+				draftState={draftState}
+				onRuleSetChange={(ruleSet) =>
+					setDraftState((prev) => ({ ...prev, ruleSet }))
+				}
+				onDraftModeChange={(draftMode) =>
+					setDraftState((prev) => ({ ...prev, draftMode }))
+				}
+				isOpen={isSettingsModalOpen}
+				onClose={() => setIsSettingsModalOpen(false)}
+			/>
 		</div>
 	);
 }

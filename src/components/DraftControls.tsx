@@ -11,6 +11,7 @@ interface DraftControlsProps {
     currentPhase?: { team: string; action: string };
     isDraftComplete: boolean;
     canUndo: boolean;
+    onOpenSettings: () => void;
 }
 
 export function DraftControls({
@@ -22,6 +23,7 @@ export function DraftControls({
     currentPhase,
     isDraftComplete,
     canUndo,
+    onOpenSettings,
 }: DraftControlsProps) {
 
     const GearIcon: React.FC = () => (
@@ -100,9 +102,10 @@ export function DraftControls({
                 {/* Download Draft */}
                 <ScreenshotButton action="download" targetElementId="draft" />
 
-                {/* Draft Settings TBD */}
+                {/* Draft Settings */}
                 <button
                     className="button settings"
+                    onClick={onOpenSettings}
                     style={{ color: "rgb(31, 31, 31)", backgroundColor: "rgba(255, 255, 255, 0.9)", display: "flex", gap: "0.375rem", alignItems: "center", justifyContent: "center" }}
                 >
                     <GearIcon />
