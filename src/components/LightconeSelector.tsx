@@ -91,6 +91,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                     onChange={handleChangeInput}
                     onFocus={handleFocusInput}
                     placeholder={selectedLightcone ? selectedLightcone.display_name : "Select Lightcone"}
+                    name="lightcone"
 
                     style={{ color: (!isOpen && !isSearching) ? getRarityColor(selectedLightcone?.rarity) : `` }}
                 />

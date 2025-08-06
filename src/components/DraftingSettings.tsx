@@ -139,6 +139,7 @@ export function DraftingSettings({
 									value={localRuleSet}
 									onChange={(e) => setLocalRuleSet(e.target.value as RuleSet)}
 									disabled={isDraftInProgress}
+                                    name="rule-set"
 								>
 									<option value="memoryofchaos">Memory of Chaos</option>
 									<option value="apocalypticshadow">Apocalyptic Shadow</option>
@@ -152,6 +153,7 @@ export function DraftingSettings({
 									value={localDraftMode}
 									onChange={(e) => setLocalDraftMode(e.target.value as DraftMode)}
 									disabled={isDraftInProgress}
+                                    name="draft-mode"
 								>
 									<option value="4ban">4 Ban</option>
 									<option value="6ban">6 Ban</option>
@@ -170,6 +172,7 @@ export function DraftingSettings({
 										})
 									}
 									disabled={isDraftInProgress}
+                                    name="ban-restriction-per-team"
 								>
 									<option value="none">None</option>
 									<option value="onePerRole">One Per Role</option>
@@ -203,6 +206,7 @@ export function DraftingSettings({
 									min="8"
 									max="300"
 									disabled={isDraftInProgress}
+                                    name="phase-time"
 								/>
 								<p className="setting-note">Minimum value: 8 seconds</p>
 							</div>
@@ -225,6 +229,7 @@ export function DraftingSettings({
 									pattern="[0-9]{1,2}:[0-9]{2}"
 									placeholder="MM:SS"
 									disabled={isDraftInProgress}
+                                    name="reserve-time"
 								/>
 								<p className="setting-note">Minimum value: 8 seconds (0:08)</p>
 							</div>
@@ -254,6 +259,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-roster-difference-advantage-per-point"
 								/>
 							</div>
 
@@ -276,6 +282,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-roster-threshold"
 								/>
 							</div>
 
@@ -298,6 +305,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="apoc-under-threshold-advantage-per-point"
 								/>
 							</div>
 
@@ -320,6 +328,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="apoc-above-threshold-penalty-per-point"
 								/>
 								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
@@ -343,6 +352,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-death-penalty"
 								/>
 								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
@@ -372,6 +382,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-roster-difference-advantage-per-point"
 								/>
 								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
@@ -395,6 +406,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="moc-roster-threshold"
 								/>
 							</div>
 
@@ -417,6 +429,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-under-threshold-advantage-per-point"
 								/>
 								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
@@ -440,6 +453,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-above-threshold-penalty-per-point"
 								/>
 							</div>
 
@@ -462,6 +476,7 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-death-penalty"
 								/>
 							</div>
 						</div>

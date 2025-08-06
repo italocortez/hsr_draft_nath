@@ -1,13 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useState, useEffect, useRef } from "react";
 import { CharacterPool } from "./CharacterPool";
 import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
-import { CostTables } from "./CostTables";
 import { DraftProgress } from "./DraftProgress";
-import { TeamTest } from "./TeamTest";
-import { Contact } from "./Contact";
 import { DraftTimer } from "./DraftTimer";
 import { DraftingSettings } from "./DraftingSettings";
 import { CurrentActiveSettings } from "./CurrentActiveSettings";
@@ -187,10 +182,13 @@ const checkBanRestriction = (
 	}
 };
 
-export function DraftingInterface() {
-	const characters = useQuery(api.characters.list) || [];
-	const lightcones = useQuery(api.lightcones.list) || [];
-    const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
+interface DraftingInterfaceProps {
+    characters: any[];
+    lightcones: any[];
+    hidden?: boolean
+}
+
+export function DraftingInterface({ characters, lightcones, hidden }: DraftingInterfaceProps) {
 	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
 	const [draftState, setDraftState] = useState<DraftState>({
@@ -221,10 +219,6 @@ export function DraftingInterface() {
 			apocSettings: DEFAULT_APOC_SETTINGS,
 		},
 	});
-
-	const [activeTab, setActiveTab] = useState<
-		"draft" | "costs" | "teamtest" | "contact"
-	>("draft");
 
 	const toolbarRef = useRef<HTMLDivElement>(null);
 
@@ -558,10 +552,6 @@ export function DraftingInterface() {
 		}));
 	};
 
-	useEffect(() => {
-        // window.scrollTo({ top: 250, behavior: 'smooth' }); maybe?
-	}, [draftState.currentStep]);
-
 	// Handle sticky toolbar background
 	useEffect(() => {
 		const handleScroll = () => {
@@ -582,142 +572,85 @@ export function DraftingInterface() {
 	}, []);
 
 	return (
-		<div className="DraftingInterface">
-			{/* Tab Navigation */}
-			<div className="tabs Box">
-				<button
-					onClick={() => setActiveTab("draft")}
-					className={`rounded-tl-lg`}
-					style={
-						activeTab === "draft"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Draft`}
-				</button>
-				<button
-					onClick={() => setActiveTab("teamtest")}
-					style={
-						activeTab === "teamtest"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Team Test`}
-				</button>
-				<button
-					onClick={() => setActiveTab("costs")}
-					style={
-						activeTab === "costs"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Costs Tables`}
-				</button>
-				<button
-					onClick={() => setActiveTab("contact")}
-					className={`rounded-tr-lg`}
-					style={
-						activeTab === "contact"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Contact`}
-				</button>
-			</div>
+		<div className="DraftingInterface" style={{ display: (hidden ? `none` : ``) }}>
+            {/* Toolbar */}
+            <div className="toolbar" ref={toolbarRef}>
+                <DraftProgress
+                    currentDraftOrder={currentDraftOrder}
+                    currentStep={draftState.currentStep}
+                />
+                
+                <DraftTimer
+                    draftState={draftState}
+                    currentPhase={currentPhase}
+                    isDraftComplete={isDraftComplete}
+                />
 
-            {
-                (activeTab === "draft") && <>
-                    <div className="toolbar" ref={toolbarRef}>
-                        <DraftProgress
-                            currentDraftOrder={currentDraftOrder}
-                            currentStep={draftState.currentStep}
-                        />
-                        
-                        <DraftTimer
-                            draftState={draftState}
-                            currentPhase={currentPhase}
-                            isDraftComplete={isDraftComplete}
-                        />
+                <DraftControls
+                    draftState={draftState}
+                    onUndo={handleUndo}
+                    onReset={handleReset}
+                    onStartDraft={handleStartDraft}
+                    onPauseDraft={handlePauseDraft}
+                    currentPhase={currentPhase}
+                    isDraftComplete={isDraftComplete}
+                    canUndo={draftState.history.length > 0}
+                    onOpenSettings={() => setIsSettingsModalOpen(true)}
+                />
+            </div>
 
-                        <DraftControls
-                            draftState={draftState}
-                            onUndo={handleUndo}
-                            onReset={handleReset}
-                            onStartDraft={handleStartDraft}
-                            onPauseDraft={handlePauseDraft}
-                            currentPhase={currentPhase}
-                            isDraftComplete={isDraftComplete}
-                            canUndo={draftState.history.length > 0}
-                            onOpenSettings={() => setIsSettingsModalOpen(true)}
-                        />
-                    </div>
+            {/* Blue+Red Rosters */}
+            <div className="rosters" id="draft">
+                <TeamArea
+                    team="blue"
+                    teamData={draftState.blueTeam}
+                    characters={characters}
+                    lightcones={lightcones}
+                    ruleSet={draftState.ruleSet}
+                    onTeamNameChange={handleTeamNameChange}
+                    onCharacterUpdate={handleCharacterUpdate}
+                    isDraftComplete={isDraftComplete}
+                    settings={draftState.settings}
+                    opponentTeamData={draftState.redTeam}
+                    resetTrigger={resetTrigger}
+                    draftMode={draftState.draftMode}
+                    isDraftStarted={draftState.isDraftStarted}
+                    isActiveTurn={currentPhase?.team === "blue"}
+                />
 
-					<div className="rosters" id="draft">
-                        <TeamArea
-							team="blue"
-							teamData={draftState.blueTeam}
-							characters={characters}
-							lightcones={lightcones}
-							ruleSet={draftState.ruleSet}
-							onTeamNameChange={handleTeamNameChange}
-							onCharacterUpdate={handleCharacterUpdate}
-							isDraftComplete={isDraftComplete}
-							settings={draftState.settings}
-							opponentTeamData={draftState.redTeam}
-							resetTrigger={resetTrigger}
-                            draftMode={draftState.draftMode}
-                            isDraftStarted={draftState.isDraftStarted}
-                            isActiveTurn={currentPhase?.team === "blue"}
-						/>
+                <TeamArea
+                    team="red"
+                    teamData={draftState.redTeam}
+                    characters={characters}
+                    lightcones={lightcones}
+                    ruleSet={draftState.ruleSet}
+                    onTeamNameChange={handleTeamNameChange}
+                    onCharacterUpdate={handleCharacterUpdate}
+                    isDraftComplete={isDraftComplete}
+                    settings={draftState.settings}
+                    opponentTeamData={draftState.blueTeam}
+                    resetTrigger={resetTrigger}
+                    draftMode={draftState.draftMode}
+                    isDraftStarted={draftState.isDraftStarted}
+                    isActiveTurn={currentPhase?.team === "red"}
+                />
+            </div>
 
-						<TeamArea
-							team="red"
-							teamData={draftState.redTeam}
-							characters={characters}
-							lightcones={lightcones}
-							ruleSet={draftState.ruleSet}
-							onTeamNameChange={handleTeamNameChange}
-							onCharacterUpdate={handleCharacterUpdate}
-							isDraftComplete={isDraftComplete}
-							settings={draftState.settings}
-							opponentTeamData={draftState.blueTeam}
-							resetTrigger={resetTrigger}
-                            draftMode={draftState.draftMode}
-                            isDraftStarted={draftState.isDraftStarted}
-                            isActiveTurn={currentPhase?.team === "red"}
-						/>
-					</div>
+            <CharacterPool
+                characters={characters}
+                selectedCharacters={getAllSelectedCharacters()}
+                onCharacterSelect={handleCharacterSelect}
+                currentPhase={currentPhase}
+                isDraftComplete={isDraftComplete}
+                isDraftStarted={draftState.isDraftStarted}
+                canBanCharacter={canBanCharacter}
+            />
 
-					<CharacterPool
-						characters={characters}
-						selectedCharacters={getAllSelectedCharacters()}
-						onCharacterSelect={handleCharacterSelect}
-						currentPhase={currentPhase}
-						isDraftComplete={isDraftComplete}
-						isDraftStarted={draftState.isDraftStarted}
-						canBanCharacter={canBanCharacter}
-					/>
-
-					<CurrentActiveSettings
-						settings={draftState.settings}
-						ruleSet={draftState.ruleSet}
-						draftMode={draftState.draftMode}
-					/>
-                </>
-            }
-            {
-                (activeTab === "teamtest") && <TeamTest characters={characters} lightcones={lightcones} teamState={{ testTeam, setTestTeam }} />
-            }
-            {
-                (activeTab === "costs") && <CostTables characters={characters} lightcones={lightcones} />
-            }
-            {
-                (activeTab === "contact") && <Contact />
-            }
+            <CurrentActiveSettings
+                settings={draftState.settings}
+                ruleSet={draftState.ruleSet}
+                draftMode={draftState.draftMode}
+            />
 
 			{/* Settings Modal */}
 			<DraftingSettings

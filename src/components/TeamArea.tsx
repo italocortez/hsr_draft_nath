@@ -508,6 +508,7 @@ export function TeamArea({
 											value={drafted.rank}
 											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
 											className="eidolon focus:outline-none"
+                                            name="eidolon"
 											style={{
 												paddingRight: `${lightcone ? `0` : ``}`,
 												marginRight: `${lightcone ? `0` : ``}`,
@@ -527,6 +528,7 @@ export function TeamArea({
 													value={drafted.lightconeRank || "S1"}
 													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
 													className="imposition focus:outline-none"
+                                                    name="imposition"
 												>
 													{(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
 														<option key={rank} value={rank} style={{ color: "black" }}>

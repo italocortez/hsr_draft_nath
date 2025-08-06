@@ -265,6 +265,7 @@ export function CharacterPool({
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value as string)}
                         className="focus:outline-none"
+                        name="search-bar"
                     />
 
                     {/* Clear All Filters Button */}
