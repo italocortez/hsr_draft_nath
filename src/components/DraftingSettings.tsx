@@ -125,7 +125,7 @@ export function DraftingSettings({
                 {/* Body */}
 				<div className="body">
                     {/* Info for when Draft is in progress */}
-                    {isDraftInProgress && <h3 className="draft-info">Certain fields are locked while Draft is in progress</h3>}
+                    {isDraftInProgress && <h3 className="draft-info" style={{ marginBottom: `-1.25rem` }}>Certain fields are locked while Draft is in progress</h3>}
 
 					{/* Draft Configuration */}
 					<div className="settings-section">

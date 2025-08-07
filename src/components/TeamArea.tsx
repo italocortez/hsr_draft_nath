@@ -494,7 +494,7 @@ export function TeamArea({
 									{/* Combined cost */}
 									<h3
 										className="total-cost"
-										title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}
+										title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
 									>
 										{lightcone
 											? `Σ ${characterCost + lightconeCost}`

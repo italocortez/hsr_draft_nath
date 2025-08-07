@@ -300,10 +300,10 @@
     user-select: none;
 
     transition: filter 300ms;
-    filter: grayscale(0%) brightness(0.95) opacity(0.9);
+    filter: grayscale(5%) brightness(0.9) opacity(0.9);
 }
 .CharacterPool > .characters-container > .character:hover > img {
-    filter: grayscale(0%) brightness(1.1) opacity(1);
+    filter: grayscale(0%) brightness(1) opacity(1);
 }
 
 /* Character's Name */

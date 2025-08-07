@@ -148,3 +148,16 @@ body {
         transform: rotate(360deg);
     }
 }
+
+@keyframes slideFromTop {
+    0% {
+        transform: translateY(-100%);
+        filter: blur(0.25rem);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        filter: blur(0);
+        opacity: 1;
+    }
+}

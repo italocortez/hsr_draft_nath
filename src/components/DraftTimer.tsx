@@ -17,12 +17,12 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
     const getPhaseBarColor = (): string => {
         if (draftState.phaseTimer <= 5) return `rgb(220, 68, 68)`;
         if (draftState.phaseTimer <= 10) return `rgb(250, 134, 21)`;
-        return `rgb(34, 197, 94)`; // Default color 
+        return `rgb(38, 175, 208)`; // Default color 
     }
     const getPhaseBarBoxShadow = (): string => {
-        if (draftState.phaseTimer <= 5) return `0px 0px 3px 0px rgb(220, 68, 68)`;
-        if (draftState.phaseTimer <= 10) return `0px 0px 3px 0px rgb(250, 134, 21)`;
-        return `0px 0px 3px 0px rgb(34, 197, 94)`; // Default color 
+        if (draftState.phaseTimer <= 5) return `0px 0px 3px 1px rgb(220, 68, 68)`;
+        if (draftState.phaseTimer <= 10) return `0px 0px 3px 1px rgb(250, 134, 21)`;
+        return `0px 0px 3px 1px rgb(38, 175, 208)`; // Default color 
     }
     const getPhaseTimerColor = (): string => {
         if (!draftState.isTimerActive) return `rgba(255, 255, 255, 0.5)`; // Grayed out when Draft is Paused
@@ -134,7 +134,7 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
 
                     {/* Center Status */}
                     <div className="draft-status">
-                        {isDraftComplete ? <h3 className="draft-complete">Completed!</h3> : <div className="begin-draft">Ready to Begin</div>}
+                        {isDraftComplete ? <h3 className="draft-complete">Completed!</h3> : <h3 className="begin-draft">Ready to Begin</h3>}
                     </div>
 
                     {/* Red Reserve */}
@@ -155,7 +155,7 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                     style={{
                         width: `${((draftState.settings.phaseTime - draftState.phaseTimer) / draftState.settings.phaseTime) * 100}%`,
                         backgroundColor: getPhaseBarColor(),
-                        opacity: (!draftState.isDraftStarted ? `0` : `1`), // Hide when Draft hasn't started
+                        opacity: ((!draftState.isDraftStarted || isDraftComplete) ? `0` : `1`), // Hide when Draft hasn't started
                         boxShadow: getPhaseBarBoxShadow(),
                     }}
                 />

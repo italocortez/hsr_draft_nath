@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, JSX } from "react";
 import { CharacterPool } from "./CharacterPool";
 import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
@@ -8,6 +8,7 @@ import { DraftingSettings } from "./DraftingSettings";
 import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
+import { createPortal } from "react-dom";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
 export type DraftMode = "4ban" | "6ban";
@@ -185,12 +186,10 @@ const checkBanRestriction = (
 interface DraftingInterfaceProps {
     characters: any[];
     lightcones: any[];
-    hidden?: boolean
+    isVisible?: boolean
 }
 
-export function DraftingInterface({ characters, lightcones, hidden }: DraftingInterfaceProps) {
-	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-
+export function DraftingInterface({ characters, lightcones, isVisible }: DraftingInterfaceProps) {
 	const [draftState, setDraftState] = useState<DraftState>({
 		blueTeam: {
 			name: "Blue Team",
@@ -221,6 +220,9 @@ export function DraftingInterface({ characters, lightcones, hidden }: DraftingIn
 	});
 
 	const toolbarRef = useRef<HTMLDivElement>(null);
+    const [showToolbarOverlay, setShowToolbarOverlay] = useState<boolean>(false);
+    const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
+    const [showSettings, setShowSettings] = useState<boolean>(false);
 
 	const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
 	const currentPhase = currentDraftOrder[draftState.currentStep];
@@ -552,52 +554,125 @@ export function DraftingInterface({ characters, lightcones, hidden }: DraftingIn
 		}));
 	};
 
-	// Handle sticky toolbar background
-	useEffect(() => {
-		const handleScroll = () => {
-			if (toolbarRef.current) {
-				const rect = toolbarRef.current.getBoundingClientRect();
-				const isSticky = rect.top <= 0;
-				
-				if (isSticky) {
-					toolbarRef.current.classList.add('sticky');
-				} else {
-					toolbarRef.current.classList.remove('sticky');
-				}
-			}
-		};
+    // Keeps track of the size of the screen, and adjusts the Toolbar Overlay accordingly
+    useEffect(() => {
+        const checkScreenSize = () => {
+            const width = window.innerWidth;
+            if (width <= 768) {
+                setScreenSize("mobile");
+            } else if (width <= 1070) {
+                setScreenSize("tablet");
+            } else {
+                setScreenSize("desktop");
+            }
+        };
 
-		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
-	}, []);
+        const handleScroll = () => {
+            if (toolbarRef.current) {
+                const rect = toolbarRef.current.getBoundingClientRect();
+                const shouldShowOverlay = rect.bottom <= -48;
+                setShowToolbarOverlay(shouldShowOverlay);
+            }
+        };
+
+        checkScreenSize();
+        handleScroll();
+
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('resize', checkScreenSize);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', checkScreenSize);
+        };
+    }, []);
+
+    const getToolbarContent = (isOverlay: boolean): JSX.Element => {
+        // Non-Overlay Toolbar always shows everything
+        if (!isOverlay) {
+            return (
+                <>
+                    <DraftProgress
+                        currentDraftOrder={currentDraftOrder}
+                        currentStep={draftState.currentStep}
+                    />
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                    <DraftControls
+                        draftState={draftState}
+                        onUndo={handleUndo}
+                        onReset={handleReset}
+                        onStartDraft={handleStartDraft}
+                        onPauseDraft={handlePauseDraft}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                        canUndo={draftState.history.length > 0}
+                        onOpenSettings={() => setShowSettings(true)}
+                    />
+                </>
+            );
+        }
+        
+        /**
+         * Wrapping a new toolbar <div> with '.toolbar' inside an overlay '.toolbar-overlay'
+         * in order to apply the usual toolbar CSS inside the new container
+         * 
+         * Overlay's appearance changes depending on device:
+         *   Desktop - one row of gird items side-by-side
+         *   Tablet - two rows of grid, one item spans both
+         *   Mobile - only show DraftTimer
+         */
+        return (
+            <div className={`toolbar ${screenSize}`}>
+                {(screenSize !== "mobile") ? <>
+                    <DraftProgress
+                        currentDraftOrder={currentDraftOrder}
+                        currentStep={draftState.currentStep}
+                    />
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                    <DraftControls
+                        draftState={draftState}
+                        onUndo={handleUndo}
+                        onReset={handleReset}
+                        onStartDraft={handleStartDraft}
+                        onPauseDraft={handlePauseDraft}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                        canUndo={draftState.history.length > 0}
+                        onOpenSettings={() => setShowSettings(true)}
+                    />
+                </> : <>
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                </>}
+            </div>
+        );
+    };
 
 	return (
-		<div className="DraftingInterface" style={{ display: (hidden ? `none` : ``) }}>
+		<div className="DraftingInterface" style={{ display: (!isVisible ? `none` : ``) }}>
             {/* Toolbar */}
-            <div className="toolbar" ref={toolbarRef}>
-                <DraftProgress
-                    currentDraftOrder={currentDraftOrder}
-                    currentStep={draftState.currentStep}
-                />
-                
-                <DraftTimer
-                    draftState={draftState}
-                    currentPhase={currentPhase}
-                    isDraftComplete={isDraftComplete}
-                />
-
-                <DraftControls
-                    draftState={draftState}
-                    onUndo={handleUndo}
-                    onReset={handleReset}
-                    onStartDraft={handleStartDraft}
-                    onPauseDraft={handlePauseDraft}
-                    currentPhase={currentPhase}
-                    isDraftComplete={isDraftComplete}
-                    canUndo={draftState.history.length > 0}
-                    onOpenSettings={() => setIsSettingsModalOpen(true)}
-                />
+            <div className={`toolbar ${screenSize}`} ref={toolbarRef}>
+                {getToolbarContent(false)}
             </div>
+
+            {/* Overlay Toolbar - appears when out of vision */}
+            {(isVisible && showToolbarOverlay) && createPortal(
+                <div className="toolbar-overlay">
+                    {getToolbarContent(true)}
+                </div>,
+                document.body
+            )}
 
             {/* Blue+Red Rosters */}
             <div className="rosters" id="draft">
@@ -664,8 +739,8 @@ export function DraftingInterface({ characters, lightcones, hidden }: DraftingIn
 				onDraftModeChange={(draftMode) =>
 					setDraftState((prev) => ({ ...prev, draftMode }))
 				}
-				isOpen={isSettingsModalOpen}
-				onClose={() => setIsSettingsModalOpen(false)}
+				isOpen={showSettings}
+				onClose={() => setShowSettings(false)}
 			/>
 		</div>
 	);

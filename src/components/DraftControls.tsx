@@ -105,37 +105,44 @@ export function DraftControls({
     return (
         <div className="DraftControls Box">
             <div className="left">
-                {!draftState.isDraftStarted ? (
-                    // Start Draft
+                {!draftState.isDraftStarted ? <>
+                    {/* Start Button */}
                     <button
                         className="button start"
                         onClick={onStartDraft}
                     >
                         {`Start Draft`}
                     </button>
-                ) : (
-                    draftState.isTimerActive ? (
-                        // Pause Draft
-                        <button
-                            onClick={onPauseDraft}
-                            className="button pause"
-                            disabled={isDraftComplete}
-                        >
-                            <PauseIcon />
-                            {`Pause`}
-                        </button>
-                    ) : (
-                        // Resume Draft
-                        <button
-                            onClick={onPauseDraft}
-                            className="button resume"
-                            disabled={isDraftComplete}
-                        >
-                            <ResumeIcon />
-                            {`Resume`}
-                        </button>
-                    )
-                )}
+                </> : isDraftComplete ? <>
+                    {/* Decoration - Draft is complete */}
+                    <button
+                        className="button"
+                        disabled
+                        style={{ flex: `1 100%`, backgroundColor: `rgb(75, 85, 99)`, cursor: `default` }}
+                    >
+                        {`Complete!`}
+                    </button>
+                </> : draftState.isTimerActive ? <>
+                    {/* Pause Button */}
+                    <button
+                        onClick={onPauseDraft}
+                        className="button pause"
+                        disabled={isDraftComplete}
+                    >
+                        <PauseIcon />
+                        {`Pause`}
+                    </button>
+                </> : <>
+                    {/* Resume Button */}
+                    <button
+                        onClick={onPauseDraft}
+                        className="button resume"
+                        disabled={isDraftComplete}
+                    >
+                        <ResumeIcon />
+                        {`Resume`}
+                    </button>
+                </>}
 
                 {/* Undo step */}
                 <button

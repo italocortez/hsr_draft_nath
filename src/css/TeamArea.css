@@ -166,12 +166,12 @@
     top: 0.25rem;
     z-index: 20;
     
-    padding: 0.5rem;
+    cursor: help;
+    padding: 0.125rem 0.5rem;
     border-radius: 0.5rem;
 
-    font-size: clamp(1rem, 2.1vw, 1.25rem);
+    font-size: 1.375rem;
     font-weight: bold;
-    line-height: 1rem;
     color: var(--color-cost);
 
     background-color: rgba(0, 0, 0, 0.66);
@@ -212,13 +212,12 @@
     margin: -0.25rem -0.5rem;
     
     cursor: pointer;
-    font-size: clamp(0.875rem, 2.1vw, 1.125rem);
+    font-size: clamp(1rem, 2.1vw, 1.188rem);
     font-weight: bold;
     background: transparent;
 
     /* Hide arrow's select */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
 
     transition: all 300ms;
 }
@@ -233,13 +232,12 @@
     margin: -0.25rem -0.5rem -0.25rem 0;
     
     cursor: pointer;
-    font-size: clamp(0.875rem, 2.1vw, 1.125rem);
+    font-size: clamp(1rem, 2.1vw, 1.188rem);
     font-weight: bold;
     background: transparent;
 
     /* Hide arrow's select */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
 
     transition: all 300ms;
     animation: fade-in 300ms;
@@ -283,7 +281,10 @@
     .TeamArea > .roster > .picks > .characters-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
 
+/* Apply on mobile+tablet screens */
+@media screen and (max-width: 1070px) {
     /* More focus on character's faces */
     .TeamArea > .roster > .picks > .characters-container > .slot > .character > img {
         object-position: 50% 25%;

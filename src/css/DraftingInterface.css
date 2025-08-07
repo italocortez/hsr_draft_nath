@@ -1,64 +1,112 @@
 .DraftingInterface {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-}
-
-.DraftingInterface > .toolbar {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
-    
-    /* Sticky positioning */
-    position: sticky;
-    top: 0;
-    z-index: 300;
-    
-    /* Initial state - no background overlay */
-    backdrop-filter: blur(0.375rem);
-    background: rgba(31, 31, 31, 1);
-    
-    /* Smooth transition for background changes */
-    transition: all 300ms ease-in-out;
-    
-    /* Add padding to prevent content from touching edges when sticky */
-    /* padding: 1rem 0;
-    margin: -1rem 0 0.01rem 0; */
 }
-
-/* Apply transparency overlay when sticky */
-.DraftingInterface > .toolbar.sticky {
-    background: rgba(0, 0, 0, 0.75);
-}
-
 .DraftingInterface > .rosters {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
-}
-
-/* Ensure toolbar components have transparent backgrounds when sticky */
-.DraftingInterface > .toolbar.sticky .Box {
-    background-color: transparent !important;
-    /* backdrop-filter: none; */
-    /* -webkit-backdrop-filter: none; */
+    gap: 1rem;
 }
 
 /* Apply on mobile+tablet screens */
 @media screen and (max-width: 1070px) {
     /* Single grid column in smaller screens */
-    .DraftingInterface > .toolbar {
-       grid-template-columns: repeat(1, minmax(0, 1fr)); 
-    }
     .DraftingInterface > .rosters {
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }
 }
 
-/* Apply on mobile screens only */
-@media screen and (max-width: 768px) {
-    /* TEMPORARY FIX TO MOBILE SCREEN BEING 50% OBSTRUCTED */
-    .DraftingInterface > .toolbar.sticky {
-        opacity: 0;
-    }
+/* Draft Toolbar */
+.toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+/* Toolbar Overlay */
+.toolbar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    
+    background-color: rgba(31, 41, 55, 0.8);
+    border-bottom: 1px solid rgb(75, 85, 101);
+    backdrop-filter: blur(0.375rem);
+    box-shadow: 1px 1px 8px 4px rgba(0, 0, 0, 0.5);
+    
+    animation: slideFromTop 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Overlay's Toolbar */
+.toolbar-overlay > .toolbar {
+    width: min(94%, 90rem); /* Overlay Toolbar - copy proportions of the real Toolbar */
+    margin: 0 auto;
+}
+.toolbar-overlay > .toolbar > * {
+    position: relative; /* Don't remove. */
+}
+.toolbar-overlay > .toolbar h3 {
+    filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.66));
+}
+
+/* Ignore Box styles in the Overlay */
+.toolbar-overlay > .toolbar > .Box {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    border-radius: 0 !important;
+}
+
+/* Toolbar Overlay Desktop */
+.toolbar-overlay > .toolbar.desktop {
+    padding-block: 0.5rem;
+}
+.toolbar-overlay > .toolbar.desktop > *:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80%;
+    width: 1px;
+    background-color: rgb(75, 85, 101);
+    z-index: 1;
+}
+
+/* Toolbar Overlay Tablet */
+.toolbar.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.toolbar.tablet > *:last-child {
+    grid-column: span 2;
+}
+.toolbar-overlay > .toolbar.tablet > *:first-child::after {
+    content: '';
+    position: absolute;
+    right: -0.5rem;
+    top: 50%;
+    transform: translateY(-45%);
+    height: 80%;
+    width: 1px;
+    background-color: rgb(75, 85, 101);
+    z-index: 1;
+}
+.toolbar-overlay > .toolbar.tablet > *:last-child::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    margin-inline: 2rem;
+    background-color: rgb(75, 85, 101);
+    z-index: 1;
+}
+
+/* Toolbar Overlay Mobile */
+.toolbar.mobile {
+    display: flex;
+    flex-direction: column;
 }
