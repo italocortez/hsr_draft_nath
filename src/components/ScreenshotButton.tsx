@@ -75,7 +75,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
         element.style.setProperty('minHeight', `${minHeight}px`, 'important');
         
         // Force desktop grid layouts (override mobile media queries)
-        if (element.classList.contains('main')) {
+        if (element.classList.contains('rosters')) {
             element.style.setProperty('grid-template-columns', 'repeat(2, minmax(0, 1fr))', 'important');
         }
         
