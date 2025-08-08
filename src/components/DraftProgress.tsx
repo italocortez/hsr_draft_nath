@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import "../css/DraftProgress.css";
 
 interface DraftProgressProps {
@@ -7,52 +6,61 @@ interface DraftProgressProps {
 }
 
 export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressProps) {
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 7 });
-  
-  const VISIBLE_BOXES = 7; // Always show exactly 7 boxes
-  
-  useEffect(() => {
-    const updateVisibleRange = () => {
-      if (currentDraftOrder.length <= VISIBLE_BOXES) {
-        // If total steps are 7 or fewer, show all
-        setVisibleRange({ start: 0, end: currentDraftOrder.length });
-      } else {
-        // Always show 7 boxes, centered around current step
-        const halfVisible = Math.floor(VISIBLE_BOXES / 2);
-        let start = Math.max(0, currentStep - halfVisible);
-        let end = Math.min(currentDraftOrder.length, start + VISIBLE_BOXES);
-        
-        // Adjust if we're near the end
-        if (end === currentDraftOrder.length) {
-          start = Math.max(0, end - VISIBLE_BOXES);
-        }
-        
-        setVisibleRange({ start, end });
-      }
-    };
+  // Calculate optimal box size and gap based on container width and number of boxes
+  const getBoxDimensions = () => {
+    const totalBoxes = currentDraftOrder.length;
+    if (totalBoxes <= 11) {
+      // For 11 or fewer boxes, use larger size (single row)
+      return { size: 'w-7 h-7', gap: 'gap-2', fontSize: 'text-xs' };
+    } else if (totalBoxes <= 22) {
+      // For 12-22 boxes, use medium size (2 rows max, up to 11 per row)
+      return { size: 'w-6 h-6', gap: 'gap-1.5', fontSize: 'text-xs' };
+    } else {
+      // For 23+ boxes, use smaller size
+      return { size: 'w-5 h-5', gap: 'gap-1', fontSize: 'text-xs' };
+    }
+  };
+  const { size, gap, fontSize } = getBoxDimensions();
 
-    updateVisibleRange();
-  }, [currentStep, currentDraftOrder.length]);
+  // Organize boxes into rows for better space utilization
+  const getRowConfiguration = () => {
+    const totalBoxes = currentDraftOrder.length;
+    if (totalBoxes <= 11) {
+      return { rows: 1, boxesPerRow: totalBoxes };
+    } else if (totalBoxes <= 22) {
+      // Use up to 11 boxes per row for better horizontal space usage
+      const boxesPerRow = Math.min(11, Math.ceil(totalBoxes / 2));
+      return { rows: Math.ceil(totalBoxes / boxesPerRow), boxesPerRow };
+    } else {
+      // For very large drafts, use up to 11 boxes per row
+      const boxesPerRow = Math.min(11, Math.ceil(totalBoxes / 3));
+      return { rows: Math.ceil(totalBoxes / boxesPerRow), boxesPerRow };
+    }
+  };
 
-  const showStartEllipsis = visibleRange.start > 0;
-  const showEndEllipsis = visibleRange.end < currentDraftOrder.length;
-  const visibleBoxes = currentDraftOrder.slice(visibleRange.start, visibleRange.end);
+  const { rows, boxesPerRow } = getRowConfiguration();
+
+  // Split boxes into rows
+  const createRows = () => {
+    const rowsArray = [];
+    for (let i = 0; i < rows; i++) {
+      const startIndex = i * boxesPerRow;
+      const endIndex = Math.min(startIndex + boxesPerRow, currentDraftOrder.length);
+      rowsArray.push(currentDraftOrder.slice(startIndex, endIndex));
+    }
+    return rowsArray;
+  };
+
+  const boxRows = createRows();
 
   return (
     <div className="DraftProgress Box">
-      <div className="flex flex-col h-full justify-center">
-        <div className="draft-progress-container flex justify-center items-center overflow-hidden">
-          <div className="flex items-center gap-2 transition-all duration-500 ease-in-out">
-          {/* Start ellipsis */}
-          {showStartEllipsis && (
-            <div className="flex items-center gap-1 ellipsis-indicator animate-fade-in">
-              <span>...</span>
-            </div>
-          )}
-          
-          {/* Visible boxes */}
-          {visibleBoxes.map((phase, index) => {
-            const actualIndex = visibleRange.start + index;
+      <div className="flex flex-col h-full justify-center items-center p-2">
+        <div className="draft-progress-container flex flex-col justify-center items-center w-full">
+          {boxRows.map((row, rowIndex) => (
+            <div key={rowIndex} className={`flex items-center justify-center ${gap} mb-1`}>
+              {row.map((phase, boxIndex) => {
+                const actualIndex = rowIndex * boxesPerRow + boxIndex;
             const isCompleted = actualIndex < currentStep;
             const isCurrent = actualIndex === currentStep;
             
@@ -86,38 +94,22 @@ export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressP
             return (
               <div
                 key={actualIndex}
-                className={`w-8 h-8 rounded ${bgColor} ${borderColor} border flex items-center justify-center cursor-help draft-progress-box animate-slide-in`}
+                    className={`${size} rounded ${bgColor} ${borderColor} border flex items-center justify-center cursor-help draft-progress-box animate-slide-in`}
                 title={`${phase.team === "blue" ? "Blue" : "Red"} Team ${phase.action === "ban" ? "Ban" : "Pick"} - Step ${actualIndex + 1}`}
-                style={{
-                  animationDelay: `${index * 50}ms`,
-                  animationFillMode: 'both'
-                }}
+                    style={{
+                      animationDelay: `${(rowIndex * boxesPerRow + boxIndex) * 30}ms`,
+                      animationFillMode: 'both'
+                    }}
               >
-                <span className="text-white text-xs font-bold">
-                  {phase.action === "ban" ? "B" : "P"}
-                </span>
-              </div>
-            );
-          })}
-          
-          {/* End ellipsis */}
-          {showEndEllipsis && (
-            <div className="flex items-center gap-1 ellipsis-indicator animate-fade-in">
-              <span>...</span>
+                    <span className={`text-white ${fontSize} font-bold`}>
+                      {phase.action === "ban" ? "B" : "P"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-          )}
-          </div>
+          ))}
         </div>
-        
-        {/* Progress indicator */}
-        <h3 className="mt-3 text-center text-sm text-gray-400">
-          Step {currentStep + 1} of {currentDraftOrder.length}
-          {(showStartEllipsis || showEndEllipsis) && (
-            <span className="ml-2 text-xs">
-              (Showing {visibleRange.start + 1}-{visibleRange.end})
-            </span>
-          )}
-        </h3>
       </div>
     </div>
   );
