@@ -347,6 +347,12 @@
         justify-content: flex-start;
     }
 
+    /* Search button takes whole width */
+    .CharacterPool > .filters > .search > input {
+        width: stretch;
+        margin-inline: 1rem;
+    }
+
     /* allow characters to take up less space */
     .CharacterPool > .characters-container {
         grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));

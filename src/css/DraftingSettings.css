@@ -179,18 +179,18 @@
 
 /* Cancel Button */
 .SettingsOverlay > .DraftingSettings > .footer .button.cancel {
-    background-color: rgb(75, 85, 99);
+    background-color: rgb(60, 70, 86);
 }
 .SettingsOverlay > .DraftingSettings > .footer .button.cancel:hover:not(:disabled), .SettingsOverlay > .DraftingSettings > .footer .button.cancel:active:not(:disabled) {
-    background-color: rgb(55, 65, 81);
+    background-color: rgb(75, 85, 99);
 }
 
 /* Apply Settings Button */
 .SettingsOverlay > .DraftingSettings > .footer .button.apply {
-    background-color: rgb(59, 130, 246);
+    background-color: rgb(8, 145, 178);
 }
 .SettingsOverlay > .DraftingSettings > .footer .button.apply:hover:not(:disabled), .SettingsOverlay > .DraftingSettings > .footer .button.apply:active:not(:disabled) {
-    background-color: rgb(47, 109, 235);
+    background-color: rgb(6, 126, 154);
 }
 
 /* Responsive Design */
