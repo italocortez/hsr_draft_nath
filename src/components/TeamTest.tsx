@@ -179,7 +179,7 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                                 {/* Combined cost */}
                                 <h3
                                     className="total-cost"
-                                    title={`Character: ${characterCost || `-`} cost. LC: ${lightconeCost || `-`} cost`}
+                                    title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
                                 >
                                     {lightcone
                                         ? `Σ ${characterCost + lightconeCost}`
@@ -197,6 +197,7 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                                             paddingRight: `${lightcone ? `0` : ``}`,
                                             marginRight: `${lightcone ? `0` : ``}`,
                                         }}
+                                        name="eidolon"
                                     >
                                         {([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
                                             <option key={rank} value={rank}>
@@ -212,6 +213,7 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                                                 value={drafted.lightconeRank || "S1"}
                                                 onChange={e => handleCharacterUpdate(index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
                                                 className="imposition focus:outline-none"
+                                                name="imposition"
                                             >
                                                 {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
                                                     <option key={rank} value={rank}>

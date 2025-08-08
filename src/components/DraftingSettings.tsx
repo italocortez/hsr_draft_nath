@@ -94,32 +94,52 @@ export function DraftingSettings({
 		return mins * 60 + secs;
 	};
 
-	if (!isOpen) return null;
+    const CloseIcon: React.FC = () => (
+        <svg 
+            width="1.5rem" 
+            height="1.5rem" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+    );
 
+    if (!isOpen) {
+        return (<></>);
+    }
 	return (
-		<div className="modal-overlay" onClick={onClose}>
-			<div className="DraftingSettings modal-content" onClick={(e) => e.stopPropagation()}>
-				<div className="modal-header">
-					<h2 className="modal-title">Draft Settings</h2>
-					<button className="modal-close" onClick={onClose}>
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-						</svg>
+		<div className="SettingsOverlay" onClick={onClose}>
+			<div className="DraftingSettings Box" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="header">
+					<h2 className="title">Draft Settings</h2>
+
+                    {/* Close Button */}
+					<button className="close-button" onClick={onClose}>
+                        <CloseIcon />
 					</button>
 				</div>
 
-				<div className="modal-body">
+                {/* Body */}
+				<div className="body">
+                    {/* Info for when Draft is in progress */}
+                    {isDraftInProgress && <h3 className="draft-info" style={{ marginBottom: `-1.25rem` }}>Certain fields are locked while Draft is in progress</h3>}
+
 					{/* Draft Configuration */}
 					<div className="settings-section">
-						<h3 className="section-title">Draft Configuration</h3>
-						<div className="settings-grid">
+						<h3 className="section-title">Configuration</h3>
+						
+                        <div className="settings-grid">
 							<div className="setting-item">
-								<label className="setting-label">Rule Set</label>
+								<h4 className="setting-label">Rule Set</h4>
 								<select
 									className="setting-input"
 									value={localRuleSet}
 									onChange={(e) => setLocalRuleSet(e.target.value as RuleSet)}
 									disabled={isDraftInProgress}
+                                    name="rule-set"
 								>
 									<option value="memoryofchaos">Memory of Chaos</option>
 									<option value="apocalypticshadow">Apocalyptic Shadow</option>
@@ -127,12 +147,13 @@ export function DraftingSettings({
 							</div>
 
 							<div className="setting-item">
-								<label className="setting-label">Draft Mode</label>
+								<h4 className="setting-label">Draft Mode</h4>
 								<select
 									className="setting-input"
 									value={localDraftMode}
 									onChange={(e) => setLocalDraftMode(e.target.value as DraftMode)}
 									disabled={isDraftInProgress}
+                                    name="draft-mode"
 								>
 									<option value="4ban">4 Ban</option>
 									<option value="6ban">6 Ban</option>
@@ -140,7 +161,7 @@ export function DraftingSettings({
 							</div>
 
 							<div className="setting-item">
-								<label className="setting-label">Ban Restriction per Team</label>
+								<h4 className="setting-label">Ban Restriction per Team</h4>
 								<select
 									className="setting-input"
 									value={localSettings.banRestriction}
@@ -151,6 +172,7 @@ export function DraftingSettings({
 										})
 									}
 									disabled={isDraftInProgress}
+                                    name="ban-restriction-per-team"
 								>
 									<option value="none">None</option>
 									<option value="onePerRole">One Per Role</option>
@@ -167,7 +189,7 @@ export function DraftingSettings({
 						<h3 className="section-title">Timer Settings</h3>
 						<div className="settings-grid">
 							<div className="setting-item">
-								<label className="setting-label">Phase Time (seconds)</label>
+								<h4 className="setting-label">Phase Time (seconds)</h4>
 								<input
 									type="number"
 									className="setting-input"
@@ -184,12 +206,13 @@ export function DraftingSettings({
 									min="8"
 									max="300"
 									disabled={isDraftInProgress}
+                                    name="phase-time"
 								/>
-								<small className="setting-note">Minimum value: 8 seconds</small>
+								<p className="setting-note">Minimum value: 8 seconds</p>
 							</div>
 
 							<div className="setting-item">
-								<label className="setting-label">Reserve Time (MM:SS)</label>
+								<h4 className="setting-label">Reserve Time (MM:SS)</h4>
 								<input
 									type="text"
 									className="setting-input"
@@ -206,8 +229,9 @@ export function DraftingSettings({
 									pattern="[0-9]{1,2}:[0-9]{2}"
 									placeholder="MM:SS"
 									disabled={isDraftInProgress}
+                                    name="reserve-time"
 								/>
-								<small className="setting-note">Minimum value: 8 seconds (0:08)</small>
+								<p className="setting-note">Minimum value: 8 seconds (0:08)</p>
 							</div>
 						</div>
 					</div>
@@ -218,7 +242,7 @@ export function DraftingSettings({
 						<div className="settings-grid">
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Roster Difference Advantage Per Point</label>
+									<h4 className="setting-label">Roster Difference Advantage Per Point</h4>
 									<InfoIcon tooltip="Adds score advantage for lower-cost team per point difference" />
 								</div>
 								<input
@@ -235,12 +259,13 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-roster-difference-advantage-per-point"
 								/>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Roster Threshold</label>
+									<h4 className="setting-label">Roster Threshold</h4>
 									<InfoIcon tooltip="Maximum team points before threshold rules apply" />
 								</div>
 								<input
@@ -257,12 +282,13 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-roster-threshold"
 								/>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Under Threshold Advantage Per Point</label>
+									<h4 className="setting-label">Under Threshold Advantage Per Point</h4>
 									<InfoIcon tooltip="Adds score per point under the threshold" />
 								</div>
 								<input
@@ -279,12 +305,13 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="apoc-under-threshold-advantage-per-point"
 								/>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Above Threshold Penalty Per Point</label>
+									<h4 className="setting-label">Above Threshold Penalty Per Point</h4>
 									<InfoIcon tooltip="Reduces score per point exceeding the threshold" />
 								</div>
 								<input
@@ -301,13 +328,14 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="apoc-above-threshold-penalty-per-point"
 								/>
-								<small className="setting-note">This value will be multiplied by -1</small>
+								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Death Penalty</label>
+									<h4 className="setting-label">Death Penalty</h4>
 									<InfoIcon tooltip="Reduces score per reported character death" />
 								</div>
 								<input
@@ -324,8 +352,9 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="apoc-death-penalty"
 								/>
-								<small className="setting-note">This value will be multiplied by -1</small>
+								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
 						</div>
 					</div>
@@ -336,7 +365,7 @@ export function DraftingSettings({
 						<div className="settings-grid">
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Roster Difference Advantage Per Point</label>
+									<h4 className="setting-label">Roster Difference Advantage Per Point</h4>
 									<InfoIcon tooltip="Reduces cycles for the lower-cost team per point cost difference" />
 								</div>
 								<input
@@ -353,13 +382,14 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-roster-difference-advantage-per-point"
 								/>
-								<small className="setting-note">This value will be multiplied by -1</small>
+								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Roster Threshold</label>
+									<h4 className="setting-label">Roster Threshold</h4>
 									<InfoIcon tooltip="Maximum team points before threshold rules apply" />
 								</div>
 								<input
@@ -376,12 +406,13 @@ export function DraftingSettings({
 										})
 									}
 									step="0.1"
+                                    name="moc-roster-threshold"
 								/>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Under Threshold Advantage Per Point</label>
+									<h4 className="setting-label">Under Threshold Advantage Per Point</h4>
 									<InfoIcon tooltip="Reduces cycles per point under the threshold" />
 								</div>
 								<input
@@ -398,13 +429,14 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-under-threshold-advantage-per-point"
 								/>
-								<small className="setting-note">This value will be multiplied by -1</small>
+								<p className="setting-note">This value will be multiplied by -1</p>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Above Threshold Penalty Per Point</label>
+									<h4 className="setting-label">Above Threshold Penalty Per Point</h4>
 									<InfoIcon tooltip="Adds cycles per point exceeding the threshold" />
 								</div>
 								<input
@@ -421,12 +453,13 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-above-threshold-penalty-per-point"
 								/>
 							</div>
 
 							<div className="setting-item">
 								<div className="setting-label-with-info">
-									<label className="setting-label">Death Penalty</label>
+									<h4 className="setting-label">Death Penalty</h4>
 									<InfoIcon tooltip="Adds cycles per reported character death" />
 								</div>
 								<input
@@ -443,22 +476,38 @@ export function DraftingSettings({
 										})
 									}
 									step="0.01"
+                                    name="moc-death-penalty"
 								/>
 							</div>
 						</div>
 					</div>
 				</div>
-
-				<div className="modal-footer">
-					<button className="button secondary" onClick={handleResetToDefaults}>
-						Reset to Defaults
+                
+                {/* Footer */}
+				<div className="footer">
+                    {/* Reset to Default */}
+                    <button 
+                        className="button reset" 
+                        onClick={handleResetToDefaults}
+                    >
+						{`Reset to Defaults`}
 					</button>
-					<div className="button-group">
-						<button className="button secondary" onClick={onClose}>
-							Cancel
+
+					<div className="right">
+                        {/* Cancel Button */}
+						<button 
+                            className="button cancel" 
+                            onClick={onClose}
+                        >
+							{`Cancel`}
 						</button>
-						<button className="button primary" onClick={handleApplySettings}>
-							Apply Settings
+                        
+                        {/* Apply Settings */}
+						<button 
+                            className="button apply" 
+                            onClick={handleApplySettings}
+                        >
+							{`Apply Settings`}
 						</button>
 					</div>
 				</div>

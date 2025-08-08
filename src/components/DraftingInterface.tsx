@@ -1,18 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useState, useEffect, useRef, JSX } from "react";
 import { CharacterPool } from "./CharacterPool";
 import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
-import { CostTables } from "./CostTables";
 import { DraftProgress } from "./DraftProgress";
-import { TeamTest } from "./TeamTest";
-import { Contact } from "./Contact";
 import { DraftTimer } from "./DraftTimer";
 import { DraftingSettings } from "./DraftingSettings";
 import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
+import { createPortal } from "react-dom";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
 export type DraftMode = "4ban" | "6ban";
@@ -187,12 +183,13 @@ const checkBanRestriction = (
 	}
 };
 
-export function DraftingInterface() {
-	const characters = useQuery(api.characters.list) || [];
-	const lightcones = useQuery(api.lightcones.list) || [];
-    const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
-	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+interface DraftingInterfaceProps {
+    characters: any[];
+    lightcones: any[];
+    isVisible?: boolean
+}
 
+export function DraftingInterface({ characters, lightcones, isVisible }: DraftingInterfaceProps) {
 	const [draftState, setDraftState] = useState<DraftState>({
 		blueTeam: {
 			name: "Blue Team",
@@ -222,11 +219,10 @@ export function DraftingInterface() {
 		},
 	});
 
-	const [activeTab, setActiveTab] = useState<
-		"draft" | "costs" | "teamtest" | "contact"
-	>("draft");
-
 	const toolbarRef = useRef<HTMLDivElement>(null);
+    const [showToolbarOverlay, setShowToolbarOverlay] = useState<boolean>(false);
+    const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
+    const [showSettings, setShowSettings] = useState<boolean>(false);
 
 	const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
 	const currentPhase = currentDraftOrder[draftState.currentStep];
@@ -558,166 +554,178 @@ export function DraftingInterface() {
 		}));
 	};
 
-	useEffect(() => {
-        // window.scrollTo({ top: 250, behavior: 'smooth' }); maybe?
-	}, [draftState.currentStep]);
+    // Keeps track of the size of the screen, and adjusts the Toolbar Overlay accordingly
+    useEffect(() => {
+        const checkScreenSize = () => {
+            const width = window.innerWidth;
+            if (width <= 768) {
+                setScreenSize("mobile");
+            } else if (width <= 1070) {
+                setScreenSize("tablet");
+            } else {
+                setScreenSize("desktop");
+            }
+        };
 
-	// Handle sticky toolbar background
-	useEffect(() => {
-		const handleScroll = () => {
-			if (toolbarRef.current) {
-				const rect = toolbarRef.current.getBoundingClientRect();
-				const isSticky = rect.top <= 0;
-				
-				if (isSticky) {
-					toolbarRef.current.classList.add('sticky');
-				} else {
-					toolbarRef.current.classList.remove('sticky');
-				}
-			}
-		};
+        const handleScroll = () => {
+            if (toolbarRef.current) {
+                const rect = toolbarRef.current.getBoundingClientRect();
+                const shouldShowOverlay = rect.bottom <= -48;
+                setShowToolbarOverlay(shouldShowOverlay);
+            }
+        };
 
-		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
-	}, []);
+        checkScreenSize();
+        handleScroll();
+
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('resize', checkScreenSize);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', checkScreenSize);
+        };
+    }, []);
+
+    const getToolbarContent = (isOverlay: boolean): JSX.Element => {
+        // Non-Overlay Toolbar always shows everything
+        if (!isOverlay) {
+            return (
+                <>
+                    <DraftProgress
+                        currentDraftOrder={currentDraftOrder}
+                        currentStep={draftState.currentStep}
+                    />
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                    <DraftControls
+                        draftState={draftState}
+                        onUndo={handleUndo}
+                        onReset={handleReset}
+                        onStartDraft={handleStartDraft}
+                        onPauseDraft={handlePauseDraft}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                        canUndo={draftState.history.length > 0}
+                        onOpenSettings={() => setShowSettings(true)}
+                    />
+                </>
+            );
+        }
+        
+        /**
+         * Wrapping a new toolbar <div> with '.toolbar' inside an overlay '.toolbar-overlay'
+         * in order to apply the usual toolbar CSS inside the new container
+         * 
+         * Overlay's appearance changes depending on device:
+         *   Desktop - one row of gird items side-by-side
+         *   Tablet - two rows of grid, one item spans both
+         *   Mobile - only show DraftTimer
+         */
+        return (
+            <div className={`toolbar ${screenSize}`}>
+                {(screenSize !== "mobile") ? <>
+                    <DraftProgress
+                        currentDraftOrder={currentDraftOrder}
+                        currentStep={draftState.currentStep}
+                    />
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                    <DraftControls
+                        draftState={draftState}
+                        onUndo={handleUndo}
+                        onReset={handleReset}
+                        onStartDraft={handleStartDraft}
+                        onPauseDraft={handlePauseDraft}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                        canUndo={draftState.history.length > 0}
+                        onOpenSettings={() => setShowSettings(true)}
+                    />
+                </> : <>
+                    <DraftTimer
+                        draftState={draftState}
+                        currentPhase={currentPhase}
+                        isDraftComplete={isDraftComplete}
+                    />
+                </>}
+            </div>
+        );
+    };
 
 	return (
-		<div className="DraftingInterface">
-			{/* Tab Navigation */}
-			<div className="tabs Box">
-				<button
-					onClick={() => setActiveTab("draft")}
-					className={`rounded-tl-lg`}
-					style={
-						activeTab === "draft"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Draft`}
-				</button>
-				<button
-					onClick={() => setActiveTab("teamtest")}
-					style={
-						activeTab === "teamtest"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Team Test`}
-				</button>
-				<button
-					onClick={() => setActiveTab("costs")}
-					style={
-						activeTab === "costs"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Costs Tables`}
-				</button>
-				<button
-					onClick={() => setActiveTab("contact")}
-					className={`rounded-tr-lg`}
-					style={
-						activeTab === "contact"
-							? { background: `rgb(8, 145, 178)`, color: `white` }
-							: undefined
-					}
-				>
-					{`Contact`}
-				</button>
-			</div>
+		<div className="DraftingInterface" style={{ display: (!isVisible ? `none` : ``) }}>
+            {/* Toolbar */}
+            <div className={`toolbar ${screenSize}`} ref={toolbarRef}>
+                {getToolbarContent(false)}
+            </div>
 
-            {
-                (activeTab === "draft") && <>
-                    <div className="toolbar" ref={toolbarRef}>
-                        <DraftProgress
-                            currentDraftOrder={currentDraftOrder}
-                            currentStep={draftState.currentStep}
-                        />
-                        
-                        <DraftTimer
-                            draftState={draftState}
-                            currentPhase={currentPhase}
-                            isDraftComplete={isDraftComplete}
-                        />
+            {/* Overlay Toolbar - appears when out of vision */}
+            {(isVisible && showToolbarOverlay) && createPortal(
+                <div className="toolbar-overlay">
+                    {getToolbarContent(true)}
+                </div>,
+                document.body
+            )}
 
-                        <DraftControls
-                            draftState={draftState}
-                            onUndo={handleUndo}
-                            onReset={handleReset}
-                            onStartDraft={handleStartDraft}
-                            onPauseDraft={handlePauseDraft}
-                            currentPhase={currentPhase}
-                            isDraftComplete={isDraftComplete}
-                            canUndo={draftState.history.length > 0}
-                            onOpenSettings={() => setIsSettingsModalOpen(true)}
-                        />
-                    </div>
+            {/* Blue+Red Rosters */}
+            <div className="rosters" id="draft">
+                <TeamArea
+                    team="blue"
+                    teamData={draftState.blueTeam}
+                    characters={characters}
+                    lightcones={lightcones}
+                    ruleSet={draftState.ruleSet}
+                    onTeamNameChange={handleTeamNameChange}
+                    onCharacterUpdate={handleCharacterUpdate}
+                    isDraftComplete={isDraftComplete}
+                    settings={draftState.settings}
+                    opponentTeamData={draftState.redTeam}
+                    resetTrigger={resetTrigger}
+                    draftMode={draftState.draftMode}
+                    isDraftStarted={draftState.isDraftStarted}
+                    isActiveTurn={currentPhase?.team === "blue"}
+                />
 
-					<div className="main" id="draft">
-                        <TeamArea
-							team="blue"
-							teamData={draftState.blueTeam}
-							characters={characters}
-							lightcones={lightcones}
-							ruleSet={draftState.ruleSet}
-							onTeamNameChange={handleTeamNameChange}
-							onCharacterUpdate={handleCharacterUpdate}
-							isDraftComplete={isDraftComplete}
-							settings={draftState.settings}
-							opponentTeamData={draftState.redTeam}
-							resetTrigger={resetTrigger}
-                            draftMode={draftState.draftMode}
-                            isDraftStarted={draftState.isDraftStarted}
-                            isActiveTurn={currentPhase?.team === "blue"}
-						/>
+                <TeamArea
+                    team="red"
+                    teamData={draftState.redTeam}
+                    characters={characters}
+                    lightcones={lightcones}
+                    ruleSet={draftState.ruleSet}
+                    onTeamNameChange={handleTeamNameChange}
+                    onCharacterUpdate={handleCharacterUpdate}
+                    isDraftComplete={isDraftComplete}
+                    settings={draftState.settings}
+                    opponentTeamData={draftState.blueTeam}
+                    resetTrigger={resetTrigger}
+                    draftMode={draftState.draftMode}
+                    isDraftStarted={draftState.isDraftStarted}
+                    isActiveTurn={currentPhase?.team === "red"}
+                />
+            </div>
 
-						<TeamArea
-							team="red"
-							teamData={draftState.redTeam}
-							characters={characters}
-							lightcones={lightcones}
-							ruleSet={draftState.ruleSet}
-							onTeamNameChange={handleTeamNameChange}
-							onCharacterUpdate={handleCharacterUpdate}
-							isDraftComplete={isDraftComplete}
-							settings={draftState.settings}
-							opponentTeamData={draftState.blueTeam}
-							resetTrigger={resetTrigger}
-                            draftMode={draftState.draftMode}
-                            isDraftStarted={draftState.isDraftStarted}
-                            isActiveTurn={currentPhase?.team === "red"}
-						/>
-					</div>
+            <CharacterPool
+                characters={characters}
+                selectedCharacters={getAllSelectedCharacters()}
+                onCharacterSelect={handleCharacterSelect}
+                currentPhase={currentPhase}
+                isDraftComplete={isDraftComplete}
+                isDraftStarted={draftState.isDraftStarted}
+                canBanCharacter={canBanCharacter}
+            />
 
-					<CharacterPool
-						characters={characters}
-						selectedCharacters={getAllSelectedCharacters()}
-						onCharacterSelect={handleCharacterSelect}
-						currentPhase={currentPhase}
-						isDraftComplete={isDraftComplete}
-						isDraftStarted={draftState.isDraftStarted}
-						canBanCharacter={canBanCharacter}
-					/>
-
-					<CurrentActiveSettings
-						settings={draftState.settings}
-						ruleSet={draftState.ruleSet}
-						draftMode={draftState.draftMode}
-					/>
-                </>
-            }
-            {
-                (activeTab === "teamtest") && <TeamTest characters={characters} lightcones={lightcones} teamState={{ testTeam, setTestTeam }} />
-            }
-            {
-                (activeTab === "costs") && <CostTables characters={characters} lightcones={lightcones} />
-            }
-            {
-                (activeTab === "contact") && <Contact />
-            }
+            <CurrentActiveSettings
+                settings={draftState.settings}
+                ruleSet={draftState.ruleSet}
+                draftMode={draftState.draftMode}
+            />
 
 			{/* Settings Modal */}
 			<DraftingSettings
@@ -731,8 +739,8 @@ export function DraftingInterface() {
 				onDraftModeChange={(draftMode) =>
 					setDraftState((prev) => ({ ...prev, draftMode }))
 				}
-				isOpen={isSettingsModalOpen}
-				onClose={() => setIsSettingsModalOpen(false)}
+				isOpen={showSettings}
+				onClose={() => setShowSettings(false)}
 			/>
 		</div>
 	);

@@ -17,7 +17,12 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
     const getPhaseBarColor = (): string => {
         if (draftState.phaseTimer <= 5) return `rgb(220, 68, 68)`;
         if (draftState.phaseTimer <= 10) return `rgb(250, 134, 21)`;
-        return `rgb(34, 197, 94)`; // Default color 
+        return `rgb(38, 175, 208)`; // Default color 
+    }
+    const getPhaseBarBoxShadow = (): string => {
+        if (draftState.phaseTimer <= 5) return `0px 0px 3px 1px rgb(220, 68, 68)`;
+        if (draftState.phaseTimer <= 10) return `0px 0px 3px 1px rgb(250, 134, 21)`;
+        return `0px 0px 3px 1px rgb(38, 175, 208)`; // Default color 
     }
     const getPhaseTimerColor = (): string => {
         if (!draftState.isTimerActive) return `rgba(255, 255, 255, 0.5)`; // Grayed out when Draft is Paused
@@ -64,11 +69,11 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                     {/* Draft is still on-going */}
 
                     {/* Blue Reserve */}
-                    <div className="blue">
+                    <div className="team blue">
                         <h3 className="title">Blue Reserve</h3>
                         
                         <h3 
-                            className="timer"
+                            className="reserve"
                             style={{ color: getReserveTimeColor(draftState.blueTeam.reserveTime) }}
                         >
                             {formatTime(draftState.blueTeam.reserveTime)}
@@ -77,11 +82,22 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
 
                     {/* Center Status */}
                     <div className="draft-status">
+                        {/* Timer */}
+                        <div
+                            className="timer"
+                            style={{ color: getPhaseTimerColor() }}   
+                        >
+                                <LeftArrowIcon />
+                                
+                                <h3>{String(draftState.phaseTimer > 0 ? draftState.phaseTimer : "0").padStart(2, "0")}</h3>
+                                
+                                <RightArrowIcon />
+                        </div>
 
                         {/* Current Turn */}
                         {draftState.isTimerActive ? (
                             <h3 className="current-move">
-                                <span style={{ color: (currentPhase?.team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)` }}>
+                                <span style={{ color: (currentPhase?.team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` }}>
                                     {currentPhase?.team === "blue" ? "Blue" : (currentPhase?.team === "red") ? "Red" : ""}
                                 </span>
                                 {` `}
@@ -90,26 +106,14 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                         ) : (
                             <h3 className="paused">PAUSED</h3>
                         )}
-
-                        {/* Timer */}
-                        <div
-                            className="timer"
-                            style={{ color: getPhaseTimerColor() }}   
-                        >
-                                <LeftArrowIcon />
-                                
-                                <h3>{draftState.phaseTimer > 0 ? draftState.phaseTimer : "0"}</h3>
-                                
-                                <RightArrowIcon />
-                        </div>
                     </div>
 
                     {/* Red Reserve */}
-                    <div className="red">
+                    <div className="team red">
                         <h3 className="title">Red Reserve</h3>
                         
                         <h3 
-                            className="timer"
+                            className="reserve"
                             style={{ color: getReserveTimeColor(draftState.redTeam.reserveTime) }}
                         >
                             {formatTime(draftState.redTeam.reserveTime)}
@@ -120,24 +124,24 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                     {/* Draft hasn't started or is complete */}
 
                     {/* Blue Reserve */}
-                    <div className="blue">
+                    <div className="team blue">
                         <h3 className="title">Blue Reserve</h3>
                         
-                        <h3 className="timer" style={{ color: getReserveTimeColor(draftState.blueTeam.reserveTime) }}>
+                        <h3 className="reserve" style={{ color: getReserveTimeColor(draftState.blueTeam.reserveTime) }}>
                             {formatTime(draftState.blueTeam.reserveTime)}
                         </h3>
                     </div>
 
                     {/* Center Status */}
                     <div className="draft-status">
-                        {isDraftComplete ? <h3 className="draft-complete">Completed!</h3> : <div className="begin-draft">Ready to Begin</div>}
+                        {isDraftComplete ? <h3 className="draft-complete">Completed!</h3> : <h3 className="begin-draft">Ready to Begin</h3>}
                     </div>
 
                     {/* Red Reserve */}
-                    <div className="red">
+                    <div className="team red">
                         <h3 className="title">Red Reserve</h3>
                         
-                        <h3 className="timer" style={{ color: getReserveTimeColor(draftState.blueTeam.reserveTime) }}>
+                        <h3 className="reserve" style={{ color: getReserveTimeColor(draftState.blueTeam.reserveTime) }}>
                             {formatTime(draftState.redTeam.reserveTime)}
                         </h3>
                     </div>
@@ -151,6 +155,8 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                     style={{
                         width: `${((draftState.settings.phaseTime - draftState.phaseTimer) / draftState.settings.phaseTime) * 100}%`,
                         backgroundColor: getPhaseBarColor(),
+                        opacity: ((!draftState.isDraftStarted || isDraftComplete) ? `0` : `1`), // Hide when Draft hasn't started
+                        boxShadow: getPhaseBarBoxShadow(),
                     }}
                 />
             </div>

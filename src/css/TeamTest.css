@@ -76,7 +76,7 @@
 
     color: rgb(220, 38, 38);
     border-radius: 50%;
-    box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.16);
+    box-shadow: 0px 0px 6px 2px rgba(0, 0, 0, 0.33);
 
     transition: all 200ms ease;
 }
@@ -108,10 +108,11 @@
     top: 0.5rem;
     z-index: 20;
     
-    padding: 0.25rem 0.625rem;
+    cursor: help;
+    padding: 0.125rem 0.5rem;
     border-radius: 0.5rem;
 
-    font-size: clamp(1.125rem, 2.2vw, 1.625rem);
+    font-size: clamp(1.375rem, 2.2vw, 1.625rem);
     font-weight: bold;
     color: var(--color-cost);
 
@@ -143,13 +144,12 @@
     margin: -0.25rem -0.5rem;
     
     cursor: pointer;
-    font-size: clamp(0.875rem, 2vw, 1.375rem);
+    font-size: clamp(1.063rem, 2vw, 1.375rem);
     font-weight: bold;
     background: transparent;
 
     /* Hide arrow's select */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
 
     transition: all 300ms;
 }
@@ -164,13 +164,12 @@
     margin: -0.25rem -0.5rem -0.25rem 0;
     
     cursor: pointer;
-    font-size: clamp(0.875rem, 2vw, 1.375rem);
+    font-size: clamp(1.063rem, 2vw, 1.375rem);
     font-weight: bold;
     background: transparent;
 
     /* Hide arrow's select */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
 
     transition: all 300ms;
     animation: fade-in 300ms;
@@ -196,9 +195,14 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* More focus on character's faces */
-    .TeamTest > .roster > .characters-container > .slot > img {
-        object-position: 50% 25%;
+    /* boxes closer to the edge as screen gets smaller */
+    .TeamTest > .roster > .characters-container > .slot > .character > .total-cost {
+        top: 0.25rem;
+        right: 0.25rem;
+    }
+    .TeamTest > .roster > .characters-container > .slot > .character > .verticals {
+        left: 0.25rem;
+        bottom: 0.25rem;
     }
 
     /* Adjust LightconeSelector space taken */
@@ -208,6 +212,14 @@
     .TeamTest > .roster > .characters-container > .slot > .LightconeSelector > .inputs > .search-bar {
         height: clamp(1.875rem, 6vw, 2.5rem);
         font-size: clamp(0.813rem, 2.8vw, 1.188rem);
+    }
+}
+
+/* Apply on mobile+tablet screens */
+@media screen and (max-width: 1070px) {
+    /* More focus on character's faces */
+    .TeamTest > .roster > .characters-container > .slot > img {
+        object-position: 50% 25%;
     }
 }
 
