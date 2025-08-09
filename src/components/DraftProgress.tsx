@@ -55,10 +55,9 @@ export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressP
 
   return (
     <div className="DraftProgress Box">
-      <div className="flex flex-col h-full justify-center items-center p-2">
-        <div className="draft-progress-container flex flex-col justify-center items-center w-full">
+      <div className="draft-progress-container">
           {boxRows.map((row, rowIndex) => (
-            <div key={rowIndex} className={`flex items-center justify-center ${gap} mb-1`}>
+            <div key={rowIndex} className={`draft-progress-row ${gap} mb-1`}>
               {row.map((phase, boxIndex) => {
                 const actualIndex = rowIndex * boxesPerRow + boxIndex;
             const isCompleted = actualIndex < currentStep;
@@ -109,7 +108,6 @@ export function DraftProgress({ currentDraftOrder, currentStep }: DraftProgressP
               })}
             </div>
           ))}
-        </div>
       </div>
     </div>
   );

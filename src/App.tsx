@@ -7,8 +7,9 @@ import "./App.css";
 import { TeamTest } from "./components/TeamTest";
 import { CostTables } from "./components/CostTables";
 import { Contact } from "./components/Contact";
+import { Tutorial } from "./components/Tutorial";
 
-type Tab = "draft" | "teamtest" | "costs" | "contact";
+type Tab = "draft" | "teamtest" | "costs" | "tutorial" | "contact";
 
 export default function App() {
     const seedCharacters = useMutation(api.characters.seedCharacters);
@@ -70,6 +71,12 @@ export default function App() {
                         {`Costs Table`}
                     </button>
                     <button
+                        onClick={_ => setActiveTab("tutorial" as Tab)}
+                        className={(activeTab === "tutorial") ? `active` : undefined}
+                    >
+                        {`Tutorial`}
+                    </button>
+                    <button
                         onClick={_ => setActiveTab("contact" as Tab)}
                         className={(activeTab === "contact") ? `active` : undefined}
                     >
@@ -97,6 +104,10 @@ export default function App() {
                         characters={characters} 
                         lightcones={lightcones} 
                     />
+                )}
+
+                {activeTab === "tutorial" && (
+                    <Tutorial />
                 )}
 
                 {activeTab === "contact" && (

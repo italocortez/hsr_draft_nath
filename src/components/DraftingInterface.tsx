@@ -4,7 +4,7 @@ import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
 import { DraftProgress } from "./DraftProgress";
 import { DraftTimer } from "./DraftTimer";
-import { DraftingSettings } from "./DraftingSettings";
+import { DraftingSettings, DEFAULT_PHASE_TIME, DEFAULT_RESERVE_TIME, DEFAULT_BAN_RESTRICTION, DEFAULT_MOC_SETTINGS, DEFAULT_APOC_SETTINGS } from "./DraftingSettings";
 import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
@@ -131,25 +131,7 @@ const DRAFT_ORDERS = {
 	],
 };
 
-const DEFAULT_PHASE_TIME = 30; // 30 seconds per phase
-const DEFAULT_RESERVE_TIME = 480; // 8 minutes (480 seconds) reserve time per team
-const DEFAULT_BAN_RESTRICTION: BanRestriction = "none";
 
-const DEFAULT_MOC_SETTINGS: MoCSettings = {
-	rosterDifferenceAdvantagePerPoint: 0,
-	rosterThreshold: 45.0,
-	underThresholdAdvantagePerPoint: 0.25,
-	aboveThresholdPenaltyPerPoint: 0.1667,
-	deathPenalty: 0.25,
-};
-
-const DEFAULT_APOC_SETTINGS: ApocSettings = {
-	rosterDifferenceAdvantagePerPoint: 40.0,
-	rosterThreshold: 50.0,
-	underThresholdAdvantagePerPoint: 0.0,
-	aboveThresholdPenaltyPerPoint: 0.0,
-	deathPenalty: 100.0,
-};
 
 const checkBanRestriction = (
 	character: any,
