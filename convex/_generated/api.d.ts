@@ -20,6 +20,7 @@ import type * as icons from "../icons.js";
 import type * as lightcones from "../lightcones.js";
 import type * as router from "../router.js";
 import type * as storage from "../storage.js";
+import type * as tutorial from "../tutorial.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   lightcones: typeof lightcones;
   router: typeof router;
   storage: typeof storage;
+  tutorial: typeof tutorial;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

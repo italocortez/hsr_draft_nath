@@ -192,6 +192,14 @@
 .SettingsOverlay > .DraftingSettings > .footer .button.apply:hover:not(:disabled), .SettingsOverlay > .DraftingSettings > .footer .button.apply:active:not(:disabled) {
     background-color: rgb(47, 109, 235);
 }
+.SettingsOverlay > .DraftingSettings > .footer .button.apply.disabled {
+    background-color: rgb(107, 114, 128);
+    color: rgb(156, 163, 175);
+    cursor: not-allowed;
+}
+.SettingsOverlay > .DraftingSettings > .footer .button.apply.disabled:hover {
+    background-color: rgb(107, 114, 128);
+}
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
@@ -218,4 +226,15 @@
     .SettingsOverlay > .DraftingSettings > .footer > .right > .button.apply {
         flex: 1 calc(60% - 0.75rem);
     }
+}
+
+/* Invalid Input Styling */
+.SettingsOverlay > .DraftingSettings > .body > .settings-section > .settings-grid > .setting-item > .setting-input.invalid {
+    border-color: rgb(220, 38, 38);
+    background-color: rgb(254, 242, 242);
+    color: rgb(220, 38, 38);
+}
+.SettingsOverlay > .DraftingSettings > .body > .settings-section > .settings-grid > .setting-item > .setting-input.invalid:focus {
+    border-color: rgb(220, 38, 38);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
