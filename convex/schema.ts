@@ -59,6 +59,13 @@ const applicationTables = {
     imageUrl: v.string(),
     type: v.optional(v.string()),
   }).index("by_name", ["name"]),
+
+  tutorial: defineTable({
+    step_order: v.number(),
+    step_name: v.string(),
+    step_explanation: v.array(v.string()),
+    reference_img: v.optional(v.union(v.id("_storage"), v.string())),
+  }).index("by_step_order", ["step_order"]),
 };
 
 export default defineSchema({
