@@ -27,7 +27,7 @@ export function Tutorial() {
     <div className="tutorial-container">
       <div className="tutorial-header">
         <h1>Quick Guide</h1>
-        <p className="tutorial-subtitle">Learn how to use the PvP</p>
+        <p className="tutorial-subtitle">Learn how to PvP</p>
       </div>
 
       <div className="tutorial-content">
