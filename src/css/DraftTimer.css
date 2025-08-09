@@ -3,7 +3,7 @@
     width: 100%;
 
     min-height: 7.625rem;
-    padding: 1rem 1.25rem;
+    padding: 1rem 0.75rem;
 
     display: flex;
     flex-direction: column;
@@ -16,6 +16,7 @@
     justify-content: space-between;
     align-items: center;
     column-gap: 0.25rem;
+    padding-inline: 0.5rem;
 }
 
 /* Team section styles */
@@ -42,11 +43,11 @@
 /* Blue/Red specifics */
 .DraftTimer > .content > .team.blue {
     text-align: start;
-    color: rgb(96, 165, 250);
+    color: rgb(59, 130, 246);
 }
 .DraftTimer > .content > .team.red {
     text-align: end;
-    color: rgb(248, 113, 113);
+    color: rgb(239, 68, 68);
 }
 
 /* Draft status */
@@ -88,7 +89,7 @@
 .DraftTimer > .content > .draft-status > .draft-complete {
     text-align: center;
     font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-    color: rgb(34, 209, 68);
+    color: rgb(96, 195, 230);
     font-weight: bold;
     line-height: 1.875rem;
 }
