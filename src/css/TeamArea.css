@@ -155,6 +155,7 @@
 
 /* Character card (Picks) */
 .TeamArea > .roster > .picks > .characters-container > .slot > .character {
+    position: relative;
     height: 100%;
     z-index: 10; /* DON'T REMOVE else NoImpositionLightconeSelector results's z-index breaks */
 }
@@ -170,7 +171,7 @@
     padding: 0.125rem 0.5rem;
     border-radius: 0.5rem;
 
-    font-size: 1.375rem;
+    font-size: clamp(1.25rem, 2.1vw, 1.375rem);
     font-weight: bold;
     color: var(--color-cost);
 
@@ -178,7 +179,7 @@
 }
 
 /* Character's Image */
-.TeamArea > .roster > .picks > .characters-container > .slot > .character > img {
+.TeamArea > .roster > .picks > .characters-container > .slot > img {
     position: absolute;
     height: 100%;
     width: 100%;
@@ -191,7 +192,7 @@
 .TeamArea > .roster > .picks > .characters-container > .slot > .character > .verticals {
     position: absolute;
     left: 0.25rem;
-    bottom: 2.125rem;
+    bottom: 0.25rem;
     z-index: 20;
 
     display: flex;
@@ -286,7 +287,7 @@
 /* Apply on mobile+tablet screens */
 @media screen and (max-width: 1070px) {
     /* More focus on character's faces */
-    .TeamArea > .roster > .picks > .characters-container > .slot > .character > img {
+    .TeamArea > .roster > .picks > .characters-container > .slot > img {
         object-position: 50% 25%;
     }
 }

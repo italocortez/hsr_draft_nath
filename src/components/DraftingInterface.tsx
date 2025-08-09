@@ -131,8 +131,6 @@ const DRAFT_ORDERS = {
 	],
 };
 
-
-
 const checkBanRestriction = (
 	character: any,
 	bannedCharacters: any[],
@@ -204,7 +202,6 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 	const toolbarRef = useRef<HTMLDivElement>(null);
     const [showToolbarOverlay, setShowToolbarOverlay] = useState<boolean>(false);
     const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
-    const [showSettings, setShowSettings] = useState<boolean>(false);
 
 	const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
 	const currentPhase = currentDraftOrder[draftState.currentStep];
@@ -570,34 +567,33 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
     }, []);
 
     const getToolbarContent = (isOverlay: boolean): JSX.Element => {
-        // Non-Overlay Toolbar always shows everything
-        if (!isOverlay) {
-            return (
-                <>
-                    <DraftProgress
-                        currentDraftOrder={currentDraftOrder}
-                        currentStep={draftState.currentStep}
-                    />
-                    <DraftTimer
-                        draftState={draftState}
-                        currentPhase={currentPhase}
-                        isDraftComplete={isDraftComplete}
-                    />
-                    <DraftControls
-                        draftState={draftState}
-                        onUndo={handleUndo}
-                        onReset={handleReset}
-                        onStartDraft={handleStartDraft}
-                        onPauseDraft={handlePauseDraft}
-                        currentPhase={currentPhase}
-                        isDraftComplete={isDraftComplete}
-                        canUndo={draftState.history.length > 0}
-                        onOpenSettings={() => setShowSettings(true)}
-                    />
-                </>
-            );
-        }
-        
+        const content = (
+            <>
+                <DraftProgress
+                    currentDraftOrder={currentDraftOrder}
+                    currentStep={draftState.currentStep}
+                />
+                <DraftTimer
+                    draftState={draftState}
+                    currentPhase={currentPhase}
+                    isDraftComplete={isDraftComplete}
+                />
+                <DraftControls
+                    draftState={draftState}
+                    onUndo={handleUndo}
+                    onReset={handleReset}
+                    onStartDraft={handleStartDraft}
+                    onPauseDraft={handlePauseDraft}
+                    currentPhase={currentPhase}
+                    isDraftComplete={isDraftComplete}
+                    canUndo={draftState.history.length > 0}
+                    onSettingsChange={handleSettingsChange}
+                    onRuleSetChange={(ruleSet) => setDraftState((prev) => ({ ...prev, ruleSet }))}
+                    onDraftModeChange={(draftMode) => setDraftState((prev) => ({ ...prev, draftMode }))}
+                />
+            </>
+        );
+
         /**
          * Wrapping a new toolbar <div> with '.toolbar' inside an overlay '.toolbar-overlay'
          * in order to apply the usual toolbar CSS inside the new container
@@ -607,38 +603,24 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
          *   Tablet - two rows of grid, one item spans both
          *   Mobile - only show DraftTimer
          */
-        return (
-            <div className={`toolbar ${screenSize}`}>
-                {(screenSize !== "mobile") ? <>
-                    <DraftProgress
-                        currentDraftOrder={currentDraftOrder}
-                        currentStep={draftState.currentStep}
-                    />
-                    <DraftTimer
-                        draftState={draftState}
-                        currentPhase={currentPhase}
-                        isDraftComplete={isDraftComplete}
-                    />
-                    <DraftControls
-                        draftState={draftState}
-                        onUndo={handleUndo}
-                        onReset={handleReset}
-                        onStartDraft={handleStartDraft}
-                        onPauseDraft={handlePauseDraft}
-                        currentPhase={currentPhase}
-                        isDraftComplete={isDraftComplete}
-                        canUndo={draftState.history.length > 0}
-                        onOpenSettings={() => setShowSettings(true)}
-                    />
-                </> : <>
-                    <DraftTimer
-                        draftState={draftState}
-                        currentPhase={currentPhase}
-                        isDraftComplete={isDraftComplete}
-                    />
-                </>}
-            </div>
-        );
+        if (isOverlay) {
+            return (
+                <div className={`toolbar ${screenSize}`}>
+                    {(screenSize !== "mobile") ? <>
+                        { content }
+                    </> : <>
+                        <DraftTimer
+                            draftState={draftState}
+                            currentPhase={currentPhase}
+                            isDraftComplete={isDraftComplete}
+                        />
+                    </>}
+                </div>
+            )
+        }
+
+        // Non-Overlay Toolbar always shows everything
+        return content;
     };
 
 	return (
@@ -708,22 +690,6 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                 ruleSet={draftState.ruleSet}
                 draftMode={draftState.draftMode}
             />
-
-			{/* Settings Modal */}
-			<DraftingSettings
-				settings={draftState.settings}
-				onSettingsChange={handleSettingsChange}
-				isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
-				draftState={draftState}
-				onRuleSetChange={(ruleSet) =>
-					setDraftState((prev) => ({ ...prev, ruleSet }))
-				}
-				onDraftModeChange={(draftMode) =>
-					setDraftState((prev) => ({ ...prev, draftMode }))
-				}
-				isOpen={showSettings}
-				onClose={() => setShowSettings(false)}
-			/>
 		</div>
 	);
 }

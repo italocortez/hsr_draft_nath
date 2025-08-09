@@ -64,7 +64,7 @@
 .DraftControls > .right > .ScreenshotButton {
     flex: 1 calc(50% - 0.5rem);
 }
-.DraftControls > .right > .button.settings {
+.DraftControls > .right > .DraftingSettings {
     flex: 1 100%;
 }
 
@@ -72,9 +72,11 @@
 .DraftControls .button.start {
     background-color: rgb(8, 145, 178);
     animation: pulsating-shadow-cyan 1500ms ease-in-out infinite alternate;
+    /* background-color: #16a34a; */
 }
 .DraftControls .button.start:hover:not(:disabled), .DraftControls .button.start:active:not(:disabled) {
     background-color: rgb(6, 126, 154);
+    /* background-color: #15803d; */
 }
 
 .DraftControls .button.resume {
@@ -103,26 +105,4 @@
 }
 .DraftControls .button.reset:hover:not(:disabled), .DraftControls .button.reset:active:not(:disabled) {
     background-color: rgb(185, 28, 28);
-}
-
-.DraftControls .button.settings {
-    background-color: rgb(60, 70, 86);
-}
-.DraftControls .button.settings:hover:not(:disabled), .DraftControls .button.settings:active:not(:disabled) {
-    background-color: rgb(75, 85, 99);
-}
-
-/* Pulsing animation for Start button */
-@keyframes pulsating-shadow-cyan {
-    0% {
-        box-shadow: 
-            1px 1px 4px 2px rgba(0, 0, 0, 0.16),
-            0px 0px 6px 2px rgba(8, 145, 178, 0.35);
-    }
-    100% {
-        box-shadow: 
-            1px 1px 4px 2px rgba(0, 0, 0, 0.16),
-            0px 0px 10px 3px rgba(8, 145, 178, 0.5),
-            0px 0px 20px 6px rgba(8, 145, 178, 0.25);
-    }
 }

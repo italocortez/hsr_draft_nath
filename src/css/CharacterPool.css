@@ -2,6 +2,16 @@
     padding: 1.5rem;
     transition: all 300ms;
 }
+.CharacterPool.blue {
+    border-color: rgb(59, 130, 246);
+    outline: 1px solid rgb(59, 130, 246);
+    background-color: rgba(59, 130, 246, 0.05);
+}
+.CharacterPool.red {
+    border-color: rgb(239, 68, 68);
+    outline: 1px solid rgb(239, 68, 68);
+    background-color: rgba(239, 68, 68, 0.05);
+}
 
 /* Sorting container */
 .CharacterPool > .filters {
@@ -213,11 +223,16 @@
 }
 .CharacterPool > .filters > .status > .begin-draft {
     color: rgb(250, 204, 21);
-    font-size: clamp(1.125rem, 1.8vw, 1.313rem);
+    font-size: clamp(1.375rem, 2.1vw, 1.5rem);
     font-weight: bold;
 }
 .CharacterPool > .filters > .status > .current-move {
-    font-size: clamp(1.5rem, 1.8vw, 1.75rem);
+    font-size: clamp(1.375rem, 2.1vw, 1.5rem);
+    font-weight: bold;
+}
+.CharacterPool > .filters > .status > .draft-complete {
+    color: rgb(96, 195, 230);
+    font-size: clamp(1.375rem, 2.1vw, 1.5rem);
     font-weight: bold;
 }
 

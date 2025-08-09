@@ -27,18 +27,92 @@ const isMobileOrSafari = (): boolean => {
     return /safari/.test(userAgent) && !/chrome/.test(userAgent) || /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
 };
 
-// Download Screenshot
-const downloadBlob = (blob: Blob, filename?: string): void => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || generateFilename();
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
+const CameraIcon: React.FC = () => (
+    <svg 
+        width="1.375rem" 
+        height="1.375rem" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path 
+            d="M9 3H15L17 5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V6C2 5.44772 2.44772 5 3 5H7L9 3Z" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+        <circle 
+            cx="12" 
+            cy="13" 
+            r="4" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+const DownloadIcon: React.FC = () => (
+    <svg 
+        width="1.375rem" 
+        height="1.375rem" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path 
+            d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+        <path 
+            d="M8 12L12 16L16 12" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+        <path 
+            d="M12 2V16" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+const LoadingSpinner: React.FC = () => (
+    <svg 
+        width="1.375rem" 
+        height="1.375rem" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ animation: `spin 800ms linear infinite` }}
+    >
+        <circle 
+            cx="12" 
+            cy="12" 
+            r="10" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeDasharray="32" 
+            strokeDashoffset="32"
+        />
+    </svg>
+);
+const ScreenshotOverlay: React.FC = () => (
+    <div className="ScreenshotOverlay">
+        <div className="content">
+            <LoadingSpinner />
+            <h2 className="title">Creating Screenshot...</h2>
+            <h3 className="sub-title">Please wait while we capture your Draft</h3>
+        </div>
+    </div>
+);
 
 function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
     const { action, targetElementId, disabled } = props;
@@ -165,6 +239,19 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
         document.body.offsetHeight;
         
         console.log('Original styles restored successfully');
+    };
+
+    // Download Screenshot
+    const downloadBlob = (blob: Blob, filename?: string): void => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || generateFilename();
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     // Create and return a Blob of a target div to be Screenshot to Clipboard/File
@@ -311,93 +398,6 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             setLoading(false);
         }
     };
-
-    const CameraIcon: React.FC = () => (
-        <svg 
-            width="1.375rem" 
-            height="1.375rem" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path 
-                d="M9 3H15L17 5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V6C2 5.44772 2.44772 5 3 5H7L9 3Z" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-            />
-            <circle 
-                cx="12" 
-                cy="13" 
-                r="4" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-    const DownloadIcon: React.FC = () => (
-        <svg 
-            width="1.375rem" 
-            height="1.375rem" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path 
-                d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-            />
-            <path 
-                d="M8 12L12 16L16 12" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-            />
-            <path 
-                d="M12 2V16" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-    const LoadingSpinner: React.FC = () => (
-        <svg 
-            width="1.375rem" 
-            height="1.375rem" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ animation: `spin 800ms linear infinite` }}
-        >
-            <circle 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeDasharray="32" 
-                strokeDashoffset="32"
-            />
-        </svg>
-    );
-    const ScreenshotOverlay: React.FC = () => (
-        <div className="ScreenshotOverlay">
-            <div className="content">
-                <LoadingSpinner />
-                <h2 className="title">Creating Screenshot...</h2>
-                <h3 className="sub-title">Please wait while we capture your Draft</h3>
-            </div>
-        </div>
-    );
 
     const getButtonIcon = (): React.ReactNode => {
         if (action === "clipboard") return <CameraIcon />;

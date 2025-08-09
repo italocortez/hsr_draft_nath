@@ -481,16 +481,15 @@ export function TeamArea({
 								className="slot"
                                 data-rarity={character.rarity}
 							>
-								{/* Character info */}
+                                {/* Character IMG */}
+                                <img
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    alt={character.display_name}
+                                    title={`${character.display_name}`}
+                                />
+								
+                                {/* Character info */}
 								<div className="character">
-
-									{/* Character IMG */}
-                                    <img
-                                        src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
-                                        alt={character.display_name}
-                                        title={`${character.display_name}`}
-                                    />
-
 									{/* Combined cost */}
 									<h3
 										className="total-cost"
@@ -768,7 +767,7 @@ export function TeamArea({
         if (!highlightRoster()) return ``;
         // if (team === "blue") return `rgb(31, 44, 71)`;
         // if (team === "red") return `rgb(55, 37, 41)`;
-        return (team === "blue") ? `rgba(31, 41, 55, 0.05)` : `rgba(239, 68, 68, 0.05)`;
+        return (team === "blue") ? `rgba(59, 130, 246, 0.05)` : `rgba(239, 68, 68, 0.05)`;
     }
 
     const getBoxShadow = (): string => {

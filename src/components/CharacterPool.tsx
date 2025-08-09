@@ -146,24 +146,15 @@ export function CharacterPool({
     
     const currentTurn = currentPhase?.team as "blue" | "red" | undefined;
 
-    const getBorderColor = (): string => {
+    const getCurrentColor = (): string => {
         if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
-        if (currentTurn === "blue") return `2px solid rgb(59, 130, 246)`;
-        if (currentTurn === "red") return `2px solid rgb(239, 68, 68)`;
-        return ``;
-    }
-    
-    const getBackgroundColor = (): string => {
-        if (!currentPhase || !isDraftStarted || isDraftComplete) return ``;
-        // if (currentTurn === "blue") return `rgb(31, 44, 71)`;
-        // if (currentTurn === "red") return `rgb(55, 37, 41)`;
-        if (currentTurn === "blue") return `rgba(31, 41, 55, 0.05)`;
-        if (currentTurn === "red") return `rgba(239, 68, 68, 0.05)`;
-        return ``;
+        if (currentTurn === "blue") return `blue`;
+        if (currentTurn === "red") return `red`;
+        return ``
     }
 
     return (
-        <div className="CharacterPool Box" style={{ border: getBorderColor(), backgroundColor: getBackgroundColor() }}>
+        <div className={`CharacterPool Box ${getCurrentColor()}`}>
             <div className="filters">
                 {/* Column 1: Elements */}
                 <div className="elements">
@@ -292,6 +283,12 @@ export function CharacterPool({
                             </span>
                             {` `}
                             {currentPhase.action}
+                        </h3>
+                    )}
+
+                    {((currentPhase?.team !== "test") && isDraftComplete) && (
+                        <h3 className="draft-complete">
+                            {`Complete!`}
                         </h3>
                     )}
                 </div>
