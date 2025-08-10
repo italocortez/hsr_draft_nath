@@ -221,3 +221,20 @@ body {
         transform: scale(1);
     }
 }
+
+@keyframes bob-left {
+    0% { 
+        transform: translateX(0px); 
+    }
+    100% { 
+        transform: translateX(-0.75rem); 
+    }
+}
+@keyframes bob-right {
+    0% { 
+        transform: translateX(0px); 
+    }
+    100% { 
+        transform: translateX(0.75rem); 
+    }
+}
