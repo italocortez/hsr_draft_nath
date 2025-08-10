@@ -8,16 +8,22 @@ interface ScreenshotButtonProps {
     disabled?: boolean;
 }
 
-// Store original styles to restore later - used for generating Screenshot in Mobile screen 
+// Store original styles to restore later - in the case screen layout isn't sufficient
 interface OriginalStyles {
     element: HTMLElement;
     styles: { [key: string]: string };
 }
 
 const backgroundColor: string = `transparent`;
-const minWidth: number = 1440;
-const minHeight: number = 612;
-const qualityScale: number = 1.5;
+
+// Target dimensions that copy a 1920x1080 screen layout
+const fixedWidth: number = 1440;
+const fixedHeight: number = 677;
+
+// Threshold to determine when screen is too small (could be viewport or div size)
+const minViewportWidth: number = 1080;
+const minViewportHeight: number = 800;
+const scale: number = 2;
 
 const generateFilename = (): string => `Draft-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
 
@@ -25,6 +31,18 @@ const generateFilename = (): string => `Draft-${new Date().toISOString().slice(0
 const isMobileOrSafari = (): boolean => {
     const userAgent = navigator.userAgent.toLowerCase();
     return /safari/.test(userAgent) && !/chrome/.test(userAgent) || /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+};
+
+// Check if we need to force the div to 1440x677 layout
+const requiresLayoutAdjusting = (): boolean => {
+    // Always force on mobile/Safari
+    if (isMobileOrSafari()) return true;
+    
+    // Check viewport size - if too small, force the layout
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    return viewportWidth < minViewportWidth || viewportHeight < minViewportHeight;
 };
 
 const CameraIcon: React.FC = () => (
@@ -118,19 +136,19 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
     const { action, targetElementId, disabled } = props;
     const [isLoading, setLoading] = useState<boolean>(false);
 
-    // Force Mobile screen into default Desktop dimensions
-    const forceDesktopLayout = (element: HTMLElement): OriginalStyles[] => {
+    // Force element into fixed resolution layout
+    const forceTargetElementLayout = (element: HTMLElement): OriginalStyles[] => {
         const originalStyles: OriginalStyles[] = [];
         
         // Store original inline styles for the main element
         const mainOriginalStyles: { [key: string]: string } = {};
         
-        // Properties we want to override for desktop layout
+        // Properties we want to override for the target element
         const propertiesToStore = [
             'width', 'minWidth', 'maxWidth',
             'height', 'minHeight', 'maxHeight',
             'transform', 'transformOrigin', 'zoom',
-            'gridTemplateColumns'
+            'gridTemplateColumns', 'overflow'
         ];
         
         propertiesToStore.forEach(prop => {
@@ -142,19 +160,18 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             styles: mainOriginalStyles
         });
 
-        // Force desktop dimensions and layout
-        element.style.setProperty('width', `${minWidth}px`, 'important');
-        element.style.setProperty('minWidth', `${minWidth}px`, 'important');
-        element.style.setProperty('height', 'auto', 'important');
-        element.style.setProperty('minHeight', `${minHeight}px`, 'important');
+        // Force the Element to the pre-set fixed layout
+        element.style.setProperty('width', `${fixedWidth}px`, 'important');
+        element.style.setProperty('height', `${fixedHeight}px`, 'important');
+        element.style.setProperty('minWidth', `${fixedWidth}px`, 'important');
+        element.style.setProperty('minHeight', `${fixedHeight}px`, 'important');
+        element.style.setProperty('maxWidth', `${fixedWidth}px`, 'important');
+        element.style.setProperty('maxHeight', `${fixedHeight}px`, 'important');
+        element.style.setProperty('overflow', 'hidden', 'important'); // Prevent content from overflowing
         
-        // Force desktop grid layouts (override mobile media queries)
+        // Restore both rosters side by side
         if (element.classList.contains('rosters')) {
             element.style.setProperty('grid-template-columns', 'repeat(2, minmax(0, 1fr))', 'important');
-        }
-        
-        if (element.classList.contains('characters-container')) {
-            element.style.setProperty('grid-template-columns', 'repeat(4, minmax(0, 1fr))', 'important');
         }
         
         // Find all child elements that might have mobile-specific styling
@@ -167,6 +184,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             // Store original inline styles
             const mobileProperties = [
                 'width', 'maxWidth', 'minWidth',
+                'height', 'maxHeight', 'minHeight',
                 'fontSize', 'padding', 'margin',
                 'flexDirection', 'flexWrap',
                 'gridTemplateColumns', 'gap',
@@ -182,16 +200,21 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
                 styles: childOriginalStyles
             });
             
-            // Force desktop grid layouts for specific classes
-            if (child.classList.contains('main')) {
-                child.style.setProperty('grid-template-columns', 'repeat(2, minmax(0, 1fr))', 'important');
-            }
-            
+            // Restore character-container as 4-by-2 grid
             if (child.classList.contains('characters-container')) {
                 child.style.setProperty('grid-template-columns', 'repeat(4, minmax(0, 1fr))', 'important');
             }
             
-            // Force desktop-like behavior for common mobile patterns
+            // Force picked character slots to fixed a height - 12rem
+            if (child.classList.contains('slot')) {
+                const charactersContainer = child.closest('.characters-container');
+                const picksContainer = charactersContainer?.closest('.picks');
+                
+                if (picksContainer) {
+                    child.style.setProperty('height', '12rem', 'important');
+                }
+            }
+            
             const classList = child.className.toLowerCase();
             if (classList.includes('mobile') || classList.includes('responsive')) {
                 child.style.setProperty('width', 'auto', 'important');
@@ -226,13 +249,15 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             });
             
             // Remove any !important overrides we added
-            element.style.removeProperty('width');
-            element.style.removeProperty('minWidth');
-            element.style.removeProperty('maxWidth');
-            element.style.removeProperty('height');
-            element.style.removeProperty('minHeight');
-            element.style.removeProperty('flexWrap');
-            element.style.removeProperty('grid-template-columns');
+            const propertiesToRemove = [
+                'width', 'minWidth', 'maxWidth', 
+                'height', 'minHeight', 'maxHeight',
+                'flexWrap', 'grid-template-columns', 'overflow'
+            ];
+            
+            propertiesToRemove.forEach(prop => {
+                element.style.removeProperty(prop);
+            });
         });
         
         // Force a reflow to ensure styles are applied
@@ -260,16 +285,17 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
         if (!elem) throw new Error(`Element with ID='${targetElementId}' not found`);
 
         let originalStyles: OriginalStyles[] = [];
+        const shouldForceLayout = requiresLayoutAdjusting();
         
         try {
-            // Force desktop layout on mobile (overlay automatically shows via isLoading state)
-            if (isMobileOrSafari()) {
-                console.log('Mobile detected - forcing desktop layout');
+            // Force target div to fixed set layout if screen is too small
+            if (shouldForceLayout) {
+                console.log('Screen too small - forcing div to 1440x677 to mimic 1920x1080 behavior');
                 
                 // Small delay to ensure overlay is rendered
                 await new Promise(resolve => setTimeout(resolve, 50));
                 
-                originalStyles = forceDesktopLayout(elem);
+                originalStyles = forceTargetElementLayout(elem);
                 
                 // Wait for layout to settle
                 await new Promise(resolve => setTimeout(resolve, 150));
@@ -277,8 +303,8 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
 
             // Calculate screenshot dimensions
             const rect = elem.getBoundingClientRect();
-            const screenshotWidth = Math.max(rect.width, minWidth) * qualityScale;
-            const screenshotHeight = Math.max(rect.height, minHeight) * qualityScale;
+            const screenshotWidth = rect.width * scale;
+            const screenshotHeight = rect.height * scale;
 
             const options = {
                 quality: 1,
@@ -291,11 +317,10 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
                 backgroundColor: backgroundColor,
                 
                 style: {
-                    zoom: String(qualityScale),
+                    zoom: String(scale),
                     transformOrigin: 'top left',
-                    width: `${Math.max(rect.width, minWidth)}px`,
-                    minWidth: `${minWidth}px`,
-                    minHeight: `${minHeight}px`,
+                    width: `${rect.width}px`,
+                    height: `${rect.height}px`,
                 },
             };
 
@@ -322,7 +347,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
         } finally {
             // Always restore original styles first
             if (originalStyles.length > 0) {
-                console.log('Restoring original mobile layout');
+                console.log('Restoring original layout');
                 restoreOriginalStyles(originalStyles);
                 
                 // Wait a moment for styles to be restored
@@ -381,12 +406,12 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
 
     const handleClick = async (): Promise<void> => {
         if (disabled || isLoading) return;
-        setLoading(true);
-
-        // Wait for Button UI
-        await new Promise(resolve => setTimeout(resolve, 250));
-        
         try {
+            setLoading(true);
+    
+            // Wait for Button UI
+            await new Promise(resolve => setTimeout(resolve, 250));
+
             if (action === "clipboard") await saveToClipboard();
             if (action === "download") await saveToFile();
         } catch (err) {
@@ -412,8 +437,8 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
 
     return (
         <>
-            {/* Overlay hides layout changes during process on Mobile screens */}
-            {(isLoading && isMobileOrSafari()) && <ScreenshotOverlay />}
+            {/* Overlay hides layout changes during process when forcing layout */}
+            {(isLoading && requiresLayoutAdjusting()) && <ScreenshotOverlay />}
 
             <button
                 className="ScreenshotButton"
