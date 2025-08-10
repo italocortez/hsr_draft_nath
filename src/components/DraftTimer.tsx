@@ -18,7 +18,7 @@ const LeftArrowIcon: React.FC = () => (
         fill="none"
         xmlns="http://www.w3.org/2000/svg" 
         style={{ 
-            animation: 'bob-left 1200ms ease-in-out infinite alternate',
+            animation: 'bob-left 1200ms ease-in-out infinite alternate, fade-in 300ms',
             transformOrigin: 'center'
         }}
     >
@@ -36,7 +36,7 @@ const RightArrowIcon: React.FC = () => (
         fill="none"
         xmlns="http://www.w3.org/2000/svg" 
         style={{ 
-            animation: 'bob-right 1200ms ease-in-out infinite alternate',
+            animation: 'bob-right 1200ms ease-in-out infinite alternate, fade-in 300ms',
             transformOrigin: 'center'
         }}
     >
