@@ -70,34 +70,40 @@
 
 
 .DraftControls .button.start {
-    background-color: rgb(8, 145, 178);
-    animation: pulsating-shadow-cyan 1500ms ease-in-out infinite alternate;
-    /* background-color: #16a34a; */
+    /* background-color: rgb(8, 145, 178); */
+    background-color: rgb(22, 163, 74);
+    animation: pulsating-shadow-green 1500ms ease-in-out infinite alternate;
 }
 .DraftControls .button.start:hover:not(:disabled), .DraftControls .button.start:active:not(:disabled) {
-    background-color: rgb(6, 126, 154);
-    /* background-color: #15803d; */
+    /* background-color: rgb(6, 126, 154); */
+    background-color: rgb(21, 128, 61);
 }
 
 .DraftControls .button.resume {
-    background-color: rgb(8, 145, 178);
+    /* background-color: rgb(8, 145, 178); */
+    background-color: rgb(22, 163, 74);
 }
 .DraftControls .button.resume:hover:not(:disabled), .DraftControls .button.resume:active:not(:disabled) {
-    background-color: rgb(6, 126, 154);
+    /* background-color: rgb(6, 126, 154); */
+    background-color: rgb(21, 128, 61);
 }
 
 .DraftControls .button.pause {
-    background-color: rgb(38, 175, 208);
+    /* background-color: rgb(38, 175, 208); */
+    background-color: rgb(217, 119, 6);
 }
 .DraftControls .button.pause:hover:not(:disabled), .DraftControls .button.pause:active:not(:disabled) {
-    background-color: rgb(8, 145, 178);
+    /* background-color: rgb(8, 145, 178); */
+    background-color: rgb(180, 83, 9);
 }
 
 .DraftControls .button.undo {
-    background-color: rgb(55, 65, 81);
+    /* background-color: rgb(55, 65, 81); */
+    background-color: rgb(45, 122, 126);
 }
 .DraftControls .button.undo:hover:not(:disabled), .DraftControls .button.undo:active:not(:disabled) {
-    background-color: rgb(75, 85, 99);
+    /* background-color: rgb(75, 85, 99); */
+    background-color: rgb(21, 94, 117);
 }
 
 .DraftControls .button.reset {
