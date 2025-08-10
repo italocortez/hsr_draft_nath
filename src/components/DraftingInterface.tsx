@@ -4,16 +4,23 @@ import { TeamArea } from "./TeamArea";
 import { DraftControls } from "./DraftControls";
 import { DraftProgress } from "./DraftProgress";
 import { DraftTimer } from "./DraftTimer";
-import { DraftingSettings, DEFAULT_PHASE_TIME, DEFAULT_RESERVE_TIME, DEFAULT_BAN_RESTRICTION, DEFAULT_MOC_SETTINGS, DEFAULT_APOC_SETTINGS } from "./DraftingSettings";
+import { DEFAULT_PHASE_TIME, DEFAULT_RESERVE_TIME, DEFAULT_BAN_RESTRICTION, DEFAULT_MOC_SETTINGS, DEFAULT_APOC_SETTINGS } from "./DraftingSettings";
 import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
 import { createPortal } from "react-dom";
+import { Action, Character, CharacterRank, Lightcone, LightconeRank, Team, Turn } from "@/lib/utils";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
 export type DraftMode = "4ban" | "6ban";
-export type CharacterRank = "E0" | "E1" | "E2" | "E3" | "E4" | "E5" | "E6";
-export type LightconeRank = "S1" | "S2" | "S3" | "S4" | "S5";
+export type BanRestriction = "none" | "onePerRole" | "oneDPS" | "oneSupport" | "oneSustain";
+
+export interface TeamState {
+    name: string;
+    drafted: DraftedCharacter[];
+    banned: Id<"character">[];
+    reserveTime: number; // in seconds
+}
 
 export interface DraftedCharacter {
 	characterId: Id<"character">;
@@ -25,15 +32,8 @@ export interface DraftedCharacter {
 // Selected (picked / banned) by any team
 export interface SelectedCharacter { 
     characterId: Id<"character">;
-    action: "pick" | "ban";
+    action: Action;
 };
-
-export type BanRestriction =
-	| "none"
-	| "onePerRole"
-	| "oneDPS"
-	| "oneSupport"
-	| "oneSustain";
 
 export interface MoCSettings {
 	rosterDifferenceAdvantagePerPoint: number; // final value multiplied by -1
@@ -60,18 +60,8 @@ export interface DraftSettings {
 }
 
 export interface DraftState {
-	blueTeam: {
-		name: string;
-		drafted: DraftedCharacter[];
-		banned: Id<"character">[];
-		reserveTime: number; // in seconds
-	};
-	redTeam: {
-		name: string;
-		drafted: DraftedCharacter[];
-		banned: Id<"character">[];
-		reserveTime: number; // in seconds
-	};
+	blueTeam: TeamState;
+	redTeam: TeamState;
 	currentStep: number;
 	ruleSet: RuleSet;
 	draftMode: DraftMode;
@@ -82,7 +72,7 @@ export interface DraftState {
 	settings: DraftSettings;
 }
 
-const DRAFT_ORDERS = {
+const DRAFT_ORDERS: Record<DraftMode, Turn[]> = {
 	"4ban": [
 		{ team: "blue", action: "ban" },
 		{ team: "red", action: "ban" },
@@ -132,8 +122,8 @@ const DRAFT_ORDERS = {
 };
 
 const checkBanRestriction = (
-	character: any,
-	bannedCharacters: any[],
+	character: Character,
+	bannedCharacters: Character[],
 	restriction: BanRestriction
 ) => {
 	switch (restriction) {
@@ -164,8 +154,8 @@ const checkBanRestriction = (
 };
 
 interface DraftingInterfaceProps {
-    characters: any[];
-    lightcones: any[];
+    characters: Character[];
+    lightcones: Lightcone[];
     isVisible?: boolean
 }
 
@@ -203,9 +193,9 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
     const [showToolbarOverlay, setShowToolbarOverlay] = useState<boolean>(false);
     const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
 
-	const currentDraftOrder = DRAFT_ORDERS[draftState.draftMode];
-	const currentPhase = currentDraftOrder[draftState.currentStep];
-	const isDraftComplete = draftState.currentStep >= currentDraftOrder.length;
+	const currentDraftOrder: Turn[] = DRAFT_ORDERS[draftState.draftMode];
+	const currentPhase: Turn = currentDraftOrder[draftState.currentStep];
+	const isDraftComplete: boolean = draftState.currentStep >= currentDraftOrder.length;
 
 	// Timer effect
 	useEffect(() => {
@@ -221,8 +211,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 					};
 				} else {
 					// Phase timer expired, use reserve time
-					const currentTeam =
-						currentPhase?.team === "blue" ? "blueTeam" : "redTeam";
+					const currentTeam = (currentPhase?.team === "blue") ? "blueTeam" : "redTeam";
 					const newReserveTime = prev[currentTeam].reserveTime - 1;
 
 					if (newReserveTime <= 0) {
@@ -253,8 +242,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 	useEffect(() => {
 		if (!draftState.isDraftStarted || isDraftComplete || !currentPhase) return;
 
-		const currentTeam =
-			currentPhase.team === "blue" ? draftState.blueTeam : draftState.redTeam;
+		const currentTeam = (currentPhase.team === "blue") ? draftState.blueTeam : draftState.redTeam;
 
 		if (currentTeam.reserveTime === 0 && draftState.phaseTimer <= 0) {
 			const selectedCharacters = getAllSelectedCharacters();
@@ -285,7 +273,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 
 	const canBanCharacter = (
 		characterId: Id<"character">,
-		team: "blue" | "red"
+		team: Team
 	) => {
 		if (draftState.settings.banRestriction === "none") {
 			return true;
@@ -294,10 +282,10 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 		const character = characters.find((c) => c._id === characterId);
 		if (!character) return false;
 
-		const teamData = team === "blue" ? draftState.blueTeam : draftState.redTeam;
+		const teamData = (team === "blue") ? draftState.blueTeam : draftState.redTeam;
 		const bannedCharacters = teamData.banned
 			.map((id) => characters.find((c) => c._id === id))
-			.filter(Boolean);
+			.filter((character): character is Character => character !== undefined); // Filter out undefined values
 
 		return checkBanRestriction(
 			character,
@@ -306,11 +294,11 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 		);
 	};
 
-	const preserveLightconeSelections = (prevTeam: any, currentTeam: any) => {
+	const preserveLightconeSelections = (prevTeam: TeamState, currentTeam: TeamState) => {
 		return {
 			...prevTeam,
-			drafted: prevTeam.drafted.map((prevChar: any, index: number) => {
-				const currentChar = currentTeam.drafted[index];
+			drafted: prevTeam.drafted.map((prevChar: DraftedCharacter, index: number) => {
+				const currentChar: DraftedCharacter = currentTeam.drafted[index];
 				if (currentChar && currentChar.characterId === prevChar.characterId) {
 					// Preserve the current lightcone selections and eidolon rank
 					return {
@@ -334,7 +322,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 
 		// Check ban restrictions for ban actions
 		if (currentPhase.action === "ban" && !isAutoSelect) {
-			if (!canBanCharacter(characterId, currentPhase.team as "blue" | "red")) {
+			if (!canBanCharacter(characterId, currentPhase.team)) {
 				return; // Don't allow the ban if it violates restrictions
 			}
 		}
@@ -479,23 +467,23 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 		}));
 	};
 
-	const handleTeamNameChange = (team: "blue" | "red", name: string) => {
+	const handleTeamNameChange = (team: Team, name: string) => {
 		setDraftState((prev) => ({
 			...prev,
-			[team === "blue" ? "blueTeam" : "redTeam"]: {
-				...prev[team === "blue" ? "blueTeam" : "redTeam"],
+			[(team === "blue") ? "blueTeam" : "redTeam"]: {
+				...prev[(team === "blue") ? "blueTeam" : "redTeam"],
 				name,
 			},
 		}));
 	};
 
 	const handleCharacterUpdate = (
-		team: "blue" | "red",
+		team: Team,
 		index: number,
 		updates: Partial<DraftedCharacter>
 	) => {
 		setDraftState((prev) => {
-			const teamKey = team === "blue" ? "blueTeam" : "redTeam";
+			const teamKey = (team === "blue") ? "blueTeam" : "redTeam";
 			const newTeam = { ...prev[teamKey] };
 			newTeam.drafted = [...newTeam.drafted];
 			newTeam.drafted[index] = { ...newTeam.drafted[index], ...updates };

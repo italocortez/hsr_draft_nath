@@ -3,6 +3,7 @@ import "../css/DraftControls.css";
 import { DraftMode, DraftSettings, DraftState, RuleSet } from "./DraftingInterface";
 import { useState } from "react";
 import { DraftingSettings } from "./DraftingSettings";
+import { Turn } from "@/lib/utils";
 
 interface DraftControlsProps {
     draftState: DraftState;
@@ -10,7 +11,7 @@ interface DraftControlsProps {
     onReset: () => void;
     onStartDraft: () => void;
     onPauseDraft: () => void;
-    currentPhase?: { team: string; action: string };
+    currentPhase?: Turn;
     isDraftComplete: boolean;
     canUndo: boolean;
 

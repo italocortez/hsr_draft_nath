@@ -1,9 +1,10 @@
 import { DraftState } from "./DraftingInterface";
 import "../css/DraftTimer.css";
+import { Turn } from "@/lib/utils";
 
 interface DraftTimerProps {
   draftState: DraftState;
-  currentPhase?: { team: string; action: string };
+  currentPhase?: Turn;
   isDraftComplete: boolean;
 }
 

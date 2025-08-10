@@ -1,13 +1,14 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { RuleSet, CharacterRank, DraftedCharacter, LightconeRank, SelectedCharacter } from "./DraftingInterface";
+import { RuleSet, DraftedCharacter, SelectedCharacter } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
 import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
 import LightconeSelector from "./LightconeSelector";
+import { Character, CharacterRank, Eidolons, Lightcone, LightconeRank, SuperImpositions } from "@/lib/utils";
 
 interface TeamTestProps {
-    characters: any[];
-    lightcones: any[];
+    characters: Character[];
+    lightcones: Lightcone[];
     teamState: { testTeam: DraftedCharacter[], setTestTeam: Dispatch<SetStateAction<DraftedCharacter[]>> };
 }
 
@@ -136,7 +137,7 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
             
             <div className="characters-container">
                 {Array.from({ length: 8 }).map((_, index) => {
-                    const drafted = testTeam[index];
+                    const drafted: DraftedCharacter = testTeam[index];
                     if (!drafted) {
                         return (
                             <div key={index} className="slot empty">
@@ -145,12 +146,12 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                         );
                     }
 
-                    const character = characters.find(c => c._id === drafted.characterId);
+                    const character: Character | undefined = characters.find(c => c._id === drafted.characterId);
                     if (!character) return null;
 
-                    const characterCost = character.cost[ruleSet][drafted.rank];
-                    const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
-                    const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+                    const characterCost: number = character.cost[ruleSet][drafted.rank];
+                    const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
+                    const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 
                     return (
                         <div
@@ -190,16 +191,16 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                                 <div className="verticals">
                                     {/* Eidolon */}
                                     <select
-                                        value={drafted.rank}
+                                        value={drafted.rank as CharacterRank}
                                         onChange={e => handleCharacterUpdate(index, { rank: e.target.value as CharacterRank })}
                                         className="eidolon focus:outline-none"
+                                        name="eidolon"
                                         style={{
                                             paddingRight: `${lightcone ? `0` : ``}`,
                                             marginRight: `${lightcone ? `0` : ``}`,
                                         }}
-                                        name="eidolon"
                                     >
-                                        {([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
+                                        {[...Eidolons].map((rank) => (
                                             <option key={rank} value={rank}>
                                                 {rank}
                                             </option>
@@ -210,12 +211,12 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
                                     {drafted.lightconeId && (
                                         <>
                                             <select
-                                                value={drafted.lightconeRank || "S1"}
+                                                value={(drafted.lightconeRank || "S1") as LightconeRank}
                                                 onChange={e => handleCharacterUpdate(index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
                                                 className="imposition focus:outline-none"
                                                 name="imposition"
                                             >
-                                                {(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
+                                                {[...SuperImpositions].map((rank) => (
                                                     <option key={rank} value={rank}>
                                                         {rank}
                                                     </option>
@@ -246,7 +247,7 @@ export function TeamTest({ characters, lightcones, teamState: { testTeam, setTes
             isDraftComplete={testTeam.length >= 8}
             isDraftStarted={true}
             onCharacterSelect={handleCharacterSelect}
-            currentPhase={{ team: "test", action: "" }}
+            currentPhase={{ team: "test", action: "test" }}
             canBanCharacter={undefined}
         />
     </div>

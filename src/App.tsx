@@ -8,14 +8,15 @@ import { TeamTest } from "./components/TeamTest";
 import { CostTables } from "./components/CostTables";
 import { Contact } from "./components/Contact";
 import { Tutorial } from "./components/Tutorial";
+import { Character, Lightcone } from "./lib/utils";
 
 type Tab = "draft" | "teamtest" | "costs" | "tutorial" | "contact";
 
 export default function App() {
     const seedCharacters = useMutation(api.characters.seedCharacters);
     const seedLightcones = useMutation(api.lightcones.seedLightcones);
-    const characters = useQuery(api.characters.list) || [];
-    const lightcones = useQuery(api.lightcones.list) || [];
+    const characters: Character[] = useQuery(api.characters.list) || [];
+    const lightcones: Lightcone[] = useQuery(api.lightcones.list) || [];
 
     const [activeTab, setActiveTab] = useState<Tab>("draft");
     const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);

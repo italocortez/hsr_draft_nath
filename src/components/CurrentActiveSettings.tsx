@@ -1,4 +1,4 @@
-import { DraftSettings, RuleSet, DraftMode } from "./DraftingInterface";
+import { DraftSettings, RuleSet, DraftMode, BanRestriction } from "./DraftingInterface";
 import "../css/CurrentActiveSettings.css";
 
 interface CurrentActiveSettingsProps {
@@ -14,7 +14,7 @@ export function CurrentActiveSettings({ settings, ruleSet, draftMode }: CurrentA
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatBanRestriction = (restriction: string) => {
+  const formatBanRestriction = (restriction: BanRestriction) => {
     switch (restriction) {
       case "none": return "None";
       case "onePerRole": return "One Per Role";
