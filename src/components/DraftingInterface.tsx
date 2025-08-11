@@ -10,6 +10,7 @@ import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
 import { createPortal } from "react-dom";
 import { Action, Character, CharacterRank, Lightcone, LightconeRank, Team, Turn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
 export type DraftMode = "4ban" | "6ban";
@@ -519,6 +520,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 				? newSettings.phaseTime
 				: prev.phaseTimer,
 		}));
+        toast.success("Changes applied to configuration");
 	};
 
     // Keeps track of the size of the screen, and adjusts the Toolbar Overlay accordingly

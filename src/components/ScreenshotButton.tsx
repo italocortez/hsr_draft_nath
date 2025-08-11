@@ -1,6 +1,7 @@
 import { useState, JSX } from "react";
 import * as htmlToImage from 'html-to-image';
 import "../css/ScreenshotButton.css";
+import { toast } from "sonner";
 
 interface ScreenshotButtonProps {
     action: "clipboard" | "download";
@@ -374,25 +375,25 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
                         title: 'Draft Screenshot',
                         text: 'Draft screenshot',
                     });
+                    toast.success("Copied Draft to clipboard");
                 } else {
                     throw new Error('Web Share API not supported');
                 }
             } catch (err) {
-                console.log('Share failed or not supported, falling back to download:', err);
-                
-                // Fallback: Auto-download for mobile using helper function
+                // Fallback: Download for mobile/safari if share not supported
+                // toast.error("Share failed or unsupported. Downloading Draft instead");
                 // downloadBlob(blob, filename); Disabling this for now as backing out of clipboard Screenshot would instead trigger download (unintended behavior)
-                console.log('Screenshot downloaded (mobile fallback)');
+                toast.error("Share failed or unsupported. Consider downloading instead");
             }
         } else {
             // Desktop: Copy to clipboard
             if (navigator.clipboard && window.ClipboardItem) {
                 const clipboardItem = new ClipboardItem({ 'image/png': blob });
                 await navigator.clipboard.write([clipboardItem]);
-                console.log('Screenshot copied to clipboard');
+                toast.success("Copied Draft to clipboard");
             } else {
-                // Fallback: Download if clipboard not supported using helper function
-                console.log('Clipboard not supported, downloading instead');
+                // Fallback: Download if clipboard not supported
+                toast.error("Clipboard unsupported. Downloading Draft instead");
                 downloadBlob(blob, filename);
             }
         }
@@ -402,6 +403,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
     const saveToFile = async (): Promise<void> => {
         const blob = await generateScreenshot();
         downloadBlob(blob);
+        toast.success("Downloaded Draft");
     };
 
     const handleClick = async (): Promise<void> => {
@@ -415,10 +417,7 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             if (action === "clipboard") await saveToClipboard();
             if (action === "download") await saveToFile();
         } catch (err) {
-            const errorMessage = (err instanceof Error) ? err.message : 'Unknown error occurred';
-            console.error(`Screenshot ${action} failed:`, err);
-            // You can replace this with your preferred error handling
-            alert(`Failed: ${errorMessage}`);
+            toast.error("Something went wrong during the creation of Screenshot.");
         } finally {
             setLoading(false);
         }
