@@ -106,17 +106,11 @@ export function CharacterPool({
         );
     };
 
-    const clearAllRoleFilters = () => {
-        setSelectedRoles([]);
-    };
-
-    const clearAllElementFilters = () => {
-        setSelectedElements([]);
-    };
-
+    const clearAllRoleFilters = () => setSelectedRoles([]);
+    const clearAllElementFilters = () => setSelectedElements([]);
     const clearAllFilters = () => {
-        setSelectedRoles([]);
-        setSelectedElements([]);
+        clearAllRoleFilters();
+        clearAllElementFilters();
         setSearchTerm("");
     };
 

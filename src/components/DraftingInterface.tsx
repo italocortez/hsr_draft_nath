@@ -642,7 +642,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     resetTrigger={resetTrigger}
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}
-                    isActiveTurn={currentPhase?.team === "blue"}
+                    currentPhase={currentPhase}
                 />
 
                 <TeamArea
@@ -659,7 +659,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     resetTrigger={resetTrigger}
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}
-                    isActiveTurn={currentPhase?.team === "red"}
+                    currentPhase={currentPhase}
                 />
             </div>
 
