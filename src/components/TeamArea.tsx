@@ -438,11 +438,6 @@ export function TeamArea({
 				<div className="sub-header">
 					<h2 className="title">{`Picks (${teamData.drafted?.length ?? 0}/8)`}</h2>
 
-                    {/* Active Tag */}
-                    {highlightRoster() && (
-                        <h3 className="active-tag" style={{ backgroundColor: (team === "blue") ? `rgb(49, 120, 226)` : `rgb(220, 38, 38)` }}>Active</h3>
-                    )}
-
 					<h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
 				</div>
 
