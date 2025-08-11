@@ -1,12 +1,12 @@
 import { ChangeEvent, ChangeEventHandler, JSX, useEffect, useMemo, useRef, useState } from "react";
-import { LightconeRank } from "@/components/DraftingInterface";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/LightconeSelector.css";
+import { Lightcone, LightconeRank, Rarity } from "@/lib/utils";
 
 interface LightconeSelectorProps {
-	lightcones: any[];
+	lightcones: Lightcone[];
     selectedLightconeId?: Id<"lightcones">;
     selectedRank?: LightconeRank;
     onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
@@ -61,11 +61,11 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
         setIsSearching(false);
     }
 
-    const filteredLightcones = searchTerm.trim() ? searchResults : lightcones;
-    const selectedLightcone = selectedLightconeId ? lightcones.find(l => l._id === selectedLightconeId) : null;
-    const inputValue = (isSearching || !selectedLightcone) ? searchTerm : selectedLightcone.display_name;
+    const filteredLightcones: Lightcone[] = searchTerm.trim() ? searchResults : lightcones;
+    const selectedLightcone: Lightcone | undefined = selectedLightconeId ? lightcones.find(l => l._id === selectedLightconeId) : undefined;
+    const inputValue: string = (isSearching || !selectedLightcone) ? searchTerm : selectedLightcone.display_name;
 
-    const getRarityColor = (lightconeRarity: number): string => {
+    const getRarityColor = (lightconeRarity: Rarity | undefined): string => {
         if (!lightconeRarity) return ``;
 
         switch (lightconeRarity) {
@@ -82,7 +82,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
 
     return (
         <div className="LightconeSelector" ref={dropdownRef}>
-            <div className="inputs" title={selectedLightcone ? `${selectedRank || `S1`} ${selectedLightcone.display_name}` : undefined}>
+            <div className="inputs" title={selectedLightcone ? `${(selectedRank || "S1") as LightconeRank} ${selectedLightcone.display_name}` : undefined}>
                 {/* SearchBar */}
                 <input
                     className="search-bar focus:outline-none"
@@ -100,7 +100,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                 {
                     (selectedLightcone && !isSearching) && <>
                         <span className="cost">
-                            {selectedLightcone.cost[selectedRank || "S1"].toFixed(1)}
+                            {selectedLightcone.cost[(selectedRank || "S1") as LightconeRank].toFixed(1)}
                         </span>
                     </>
                 }

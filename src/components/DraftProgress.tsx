@@ -1,7 +1,8 @@
+import { Turn } from "@/lib/utils";
 import "../css/DraftProgress.css";
 
 interface DraftProgressProps {
-  currentDraftOrder: { team: string; action: string }[];
+  currentDraftOrder: Turn[];
   currentStep: number;
 }
 

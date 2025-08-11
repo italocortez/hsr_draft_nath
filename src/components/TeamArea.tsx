@@ -1,53 +1,44 @@
 import { useState, useEffect } from "react";
-import { DraftedCharacter, RuleSet, CharacterRank, LightconeRank, DraftSettings, DraftMode } from "./DraftingInterface";
+import { DraftedCharacter, RuleSet, DraftSettings, DraftMode, TeamState } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/TeamArea.css";
 import LightconeSelector from "./LightconeSelector";
+import { Character, CharacterRank, Eidolons, SuperImpositions, Lightcone, LightconeRank, Team } from "@/lib/utils";
 
 interface TeamAreaProps {
-  team: "blue" | "red";
-  teamData: {
-    name: string;
-    drafted: DraftedCharacter[];
-    banned: Id<"character">[];
-    reserveTime: number;
-  };
-  characters: any[];
-  lightcones: any[];
-  ruleSet: RuleSet;
-  onTeamNameChange: (team: "blue" | "red", name: string) => void;
-  onCharacterUpdate: (team: "blue" | "red", index: number, updates: Partial<DraftedCharacter>) => void;
-  isDraftComplete?: boolean;
-  settings?: DraftSettings;
-  opponentTeamData?: {
-    name: string;
-    drafted: DraftedCharacter[];
-    banned: Id<"character">[];
-    reserveTime: number;
-  };
-  resetTrigger?: number;
-  draftMode: DraftMode;
-  isDraftStarted?: boolean;
-  isActiveTurn?: boolean;
+    team: Team;
+    teamData: TeamState;
+    characters: Character[];
+    lightcones: Lightcone[];
+    ruleSet: RuleSet;
+    onTeamNameChange: (team: Team, name: string) => void;
+    onCharacterUpdate: (team: Team, index: number, updates: Partial<DraftedCharacter>) => void;
+    isDraftComplete?: boolean;
+    settings?: DraftSettings;
+    opponentTeamData?: TeamState;
+    resetTrigger?: number;
+    draftMode: DraftMode;
+    isDraftStarted?: boolean;
+    isActiveTurn?: boolean;
 }
 
 interface MoCResultData {
-  firstHalfCycles: number | string;
-  secondHalfCycles: number | string;
-  deadCharacters: number | string;
-  additionalCycleModifier: number | string;
+    firstHalfCycles: number | string;
+    secondHalfCycles: number | string;
+    deadCharacters: number | string;
+    additionalCycleModifier: number | string;
 }
 
 interface ApocResultData {
-  firstHalfScore: number | string;
-  secondHalfScore: number | string;
-  deadCharacters: number | string;
-  additionalScoreModifier: number | string;
+    firstHalfScore: number | string;
+    secondHalfScore: number | string;
+    deadCharacters: number | string;
+    additionalScoreModifier: number | string;
 }
 
 interface ResultData {
-  memoryofchaos: MoCResultData;
-  apocalypticshadow: ApocResultData;
+    memoryofchaos: MoCResultData;
+    apocalypticshadow: ApocResultData;
 }
 
 function WarningIcon() {
@@ -66,7 +57,6 @@ function WarningIcon() {
     </svg>
   );
 }
-
 function InfoIcon() {
   return (
     <svg
@@ -85,11 +75,10 @@ function InfoIcon() {
 }
 
 interface TooltipProps {
-  text: string;
-  children: React.ReactNode;
-  disabled?: boolean;
+    text: string;
+    children: React.ReactNode;
+    disabled?: boolean;
 }
-
 function Tooltip({ text, children, disabled }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -117,67 +106,67 @@ function Tooltip({ text, children, disabled }: TooltipProps) {
 }
 
 export function TeamArea({
-  team,
-  teamData,
-  characters,
-  lightcones,
-  ruleSet,
-  onTeamNameChange,
-  onCharacterUpdate,
-  isDraftComplete = false,
-  settings,
-  opponentTeamData,
-  resetTrigger,
-  draftMode,
-  isDraftStarted = false,
-  isActiveTurn,
+    team,
+    teamData,
+    characters,
+    lightcones,
+    ruleSet,
+    onTeamNameChange,
+    onCharacterUpdate,
+    isDraftComplete = false,
+    settings,
+    opponentTeamData,
+    resetTrigger,
+    draftMode,
+    isDraftStarted = false,
+    isActiveTurn,
 }: TeamAreaProps) {
-  const [editingName, setEditingName] = useState(false);
-  const [tempName, setTempName] = useState<string>(teamData.name);
-  const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
-  const [finalScore, setFinalScore] = useState<number>(0);
-  const [resultData, setResultData] = useState<ResultData>({
-    memoryofchaos: {
-      firstHalfCycles: 0,
-      secondHalfCycles: 0,
-      deadCharacters: 0,
-      additionalCycleModifier: 0,
-    },
-    apocalypticshadow: {
-      firstHalfScore: 0,
-      secondHalfScore: 0,
-      deadCharacters: 0,
-      additionalScoreModifier: 0,
-    },
-  });
-
-  // Default team names
-  const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
-  
-  // Use default name if current name is empty or just whitespace
-  const displayName = teamData.name.trim() || defaultTeamName;
-
-  // Reset result data when resetTrigger changes
-  useEffect(() => {
-    if (resetTrigger !== undefined && resetTrigger > 0) {
-      setResultData({
+    const [editingName, setEditingName] = useState<boolean>(false);
+    const [tempName, setTempName] = useState<string>(teamData.name);
+    const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
+    const [finalScore, setFinalScore] = useState<number>(0);
+    const [resultData, setResultData] = useState<ResultData>({
         memoryofchaos: {
-          firstHalfCycles: 0,
-          secondHalfCycles: 0,
-          deadCharacters: 0,
-          additionalCycleModifier: 0,
+        firstHalfCycles: 0,
+        secondHalfCycles: 0,
+        deadCharacters: 0,
+        additionalCycleModifier: 0,
         },
         apocalypticshadow: {
-          firstHalfScore: 0,
-          secondHalfScore: 0,
-          deadCharacters: 0,
-          additionalScoreModifier: 0,
+        firstHalfScore: 0,
+        secondHalfScore: 0,
+        deadCharacters: 0,
+        additionalScoreModifier: 0,
         },
-      });
-      setFinalScore(0);
-      setActiveTab("roster");
-    }
-  }, [resetTrigger]);
+    });
+
+    // Default team names
+    const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
+    
+    // Use default name if current name is empty or just whitespace
+    const displayName = teamData.name.trim() || defaultTeamName;
+
+    // Reset result data when resetTrigger changes
+    useEffect(() => {
+        if (resetTrigger !== undefined && resetTrigger > 0) {
+            setResultData({
+                memoryofchaos: {
+                firstHalfCycles: 0,
+                secondHalfCycles: 0,
+                deadCharacters: 0,
+                additionalCycleModifier: 0,
+                },
+                apocalypticshadow: {
+                firstHalfScore: 0,
+                secondHalfScore: 0,
+                deadCharacters: 0,
+                additionalScoreModifier: 0,
+                },
+            });
+            setFinalScore(0);
+            setActiveTab("roster");
+        }
+    }, [resetTrigger]);
 
   const calculateTotalCost = () => {
     return teamData.drafted.reduce((total, drafted) => {
@@ -459,7 +448,7 @@ export function TeamArea({
 
 				<div className="characters-container">
 					{Array.from({ length: 8 }).map((_, index) => {
-						const drafted = teamData.drafted[index];
+						const drafted: DraftedCharacter = teamData.drafted[index];
 						if (!drafted) {
 							return (
 								<div key={index} className="slot empty">
@@ -468,12 +457,12 @@ export function TeamArea({
 							);
 						}
 
-						const character = characters.find(c => c._id === drafted.characterId);
+						const character: Character | undefined = characters.find(c => c._id === drafted.characterId);
 						if (!character) return null;
 
-						const characterCost = character.cost[ruleSet][drafted.rank];
-						const lightcone = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) : null;
-						const lightconeCost = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+						const characterCost: number = character.cost[ruleSet][drafted.rank];
+						const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
+						const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 
 						return (
 							<div
@@ -481,16 +470,15 @@ export function TeamArea({
 								className="slot"
                                 data-rarity={character.rarity}
 							>
-								{/* Character info */}
+                                {/* Character IMG */}
+                                <img
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    alt={character.display_name}
+                                    title={`${character.display_name}`}
+                                />
+								
+                                {/* Character info */}
 								<div className="character">
-
-									{/* Character IMG */}
-                                    <img
-                                        src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
-                                        alt={character.display_name}
-                                        title={`${character.display_name}`}
-                                    />
-
 									{/* Combined cost */}
 									<h3
 										className="total-cost"
@@ -505,7 +493,7 @@ export function TeamArea({
 									<div className="verticals">
 										{/* Eidolon */}
 										<select
-											value={drafted.rank}
+											value={drafted.rank as CharacterRank}
 											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
 											className="eidolon focus:outline-none"
                                             name="eidolon"
@@ -514,7 +502,7 @@ export function TeamArea({
 												marginRight: `${lightcone ? `0` : ``}`,
 											}}
 										>
-											{([ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as CharacterRank[]).map((rank) => (
+											{[...Eidolons].map((rank) => (
 												<option key={rank} value={rank} style={{ color: "black" }}>
 													{rank}
 												</option>
@@ -525,12 +513,12 @@ export function TeamArea({
 										{drafted.lightconeId && (
 											<>
 												<select
-													value={drafted.lightconeRank || "S1"}
+													value={(drafted.lightconeRank || "S1") as LightconeRank}
 													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
 													className="imposition focus:outline-none"
                                                     name="imposition"
 												>
-													{(["S1", "S2", "S3", "S4", "S5"] as LightconeRank[]).map((rank) => (
+													{[...SuperImpositions].map((rank) => (
 														<option key={rank} value={rank} style={{ color: "black" }}>
 															{rank}
 														</option>
@@ -557,12 +545,12 @@ export function TeamArea({
 			{/* Banned characters */}
 			<div className="bans">
 				<h2 className="sub-header">
-                    {`Bans (${teamData.banned?.length ?? 0}/${draftMode === "4ban" ? `2` : draftMode === "6ban" ? `3` : `0`})`}
+                    {`Bans (${teamData.banned?.length ?? 0}/${(draftMode === "4ban") ? `2` : (draftMode === "6ban") ? `3` : `0`})`}
                 </h2>
 
 				<div className="characters-container">
                     {Array.from({ length: (draftMode === "4ban") ? 2 : (draftMode === "6ban") ? 3 : 0 }).map((_, index) => {
-                        const bannedCharacterId = teamData.banned[index];
+                        const bannedCharacterId: Id<"character"> = teamData.banned[index];
                         
                         if (!bannedCharacterId) {
                             return (
@@ -572,7 +560,7 @@ export function TeamArea({
                             );
                         }
 
-                        const character = characters.find((c) => c._id === bannedCharacterId);
+                        const character: Character | undefined = characters.find((c) => c._id === bannedCharacterId);
                         if (!character) return null;
 
                         return (
@@ -758,38 +746,8 @@ export function TeamArea({
         }
     };
 
-    const getBorderColor = (): string => {
-        if (team === "blue") return `2px solid rgb(59, 130, 246)`;
-        if (team === "red") return `2px solid rgb(239, 68, 68)`;
-        return ``;
-    }
-
-    const getBackgroundColor = (): string => {
-        if (!highlightRoster()) return ``;
-        // if (team === "blue") return `rgb(31, 44, 71)`;
-        // if (team === "red") return `rgb(55, 37, 41)`;
-        return (team === "blue") ? `rgba(31, 41, 55, 0.05)` : `rgba(239, 68, 68, 0.05)`;
-    }
-
-    const getBoxShadow = (): string => {
-        if (!highlightRoster()) return ``;
-        return `1px 1px 6px 5px ${(team === "blue" ? `rgba(59, 130, 246, 0.33)` : `rgba(239, 68, 68, 0.33)`)}`;
-    }
-
-    const getPulsingAnimation = (): string => {
-        if (!highlightRoster()) return ``;
-        return `pulsating-shadow-${team} 1400ms cubic-bezier(0.4, 0, 0.6, 1) infinite alternate`;
-    }
-
     return (
-        <div className="TeamArea Box" 
-            style={{ 
-                border: getBorderColor(), 
-                backgroundColor:  getBackgroundColor(), 
-                // boxShadow: getBoxShadow(),
-                animation: getPulsingAnimation(),
-            }}
-        >
+        <div className={`TeamArea Box ${team} ${highlightRoster() ? `active` : ``}`}>
             {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
             <div className="header">
                 {
@@ -798,8 +756,6 @@ export function TeamArea({
                         <h1 
                             className="title name" 
                             onClick={handleStartEditing}
-
-                            style={{ color: `${(team === "blue") ? `rgb(96, 165, 250)` : `rgb(248, 113, 113)`}` }}
                         >
                             {displayName}
                         </h1>
@@ -824,15 +780,9 @@ export function TeamArea({
                 <div className="navigation">
                     {/* Roster button */}
                     <button
-                        className="tab-button"
+                        className={`tab-button ${(activeTab === "roster") ? `active` : ``}`}
                         onClick={_ => setActiveTab("roster")}
-
-                        style={{ 
-                            backgroundColor: `${ (activeTab === "roster") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
-                            borderBottom: `${ (activeTab === "roster") ? `2px solid white` : `none` }`, // Active tab has border
-
-                            borderTopRightRadius: `0.5rem`,
-                        }}
+                        style={{ borderTopRightRadius: `0.5rem` }}
                     >
                         {`Roster`}
                     </button>
@@ -840,16 +790,9 @@ export function TeamArea({
                     {/* Results button */}
                     <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
                         <button
-                            className="tab-button"
+                            className={`tab-button ${(activeTab === "result") ? `active` : ``}`}
                             onClick={_ => isDraftComplete && setActiveTab("result")}
                             disabled={!isDraftComplete}
-
-                            style={{ 
-                                backgroundColor: `${ (activeTab === "result") ? (team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` : `transparent` }`,
-                                borderBottom: `${ (activeTab === "result") ? `2px solid white` : `none` }`, // Active tab has border
-                                cursor: `${ !isDraftComplete ? `not-allowed` : `pointer` }`,
-                                color: `${ !isDraftComplete ? `rgb(129, 133, 139)` : `white` }`,
-                            }}
                         >
                             {`Result`}
                         </button>

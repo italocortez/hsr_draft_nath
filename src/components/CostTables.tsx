@@ -2,18 +2,23 @@ import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { RuleSet } from "./DraftingInterface";
+import { Character, CharacterRank, Lightcone, LightconeRank, Rarity, Role, UniqueRoles } from "@/lib/utils";
 
 interface CostTablesProps {
-  characters: any[];
-  lightcones: any[];
+  characters: Character[];
+  lightcones: Lightcone[];
 }
 
-type CharacterSortField = "name" | "rarity" | "E0" | "E1" | "E2" | "E3" | "E4" | "E5" | "E6";
-type LightconeSortField = "name" | "rarity" | "S1" | "S2" | "S3" | "S4" | "S5";
 type SortDirection = "asc" | "desc";
+type CharacterSortField = "name" | "rarity" | CharacterRank;
+type LightconeSortField = "name" | "rarity" | LightconeRank;
 
-interface SortState {
-  field: string;
+interface CharacterSortState {
+  field: CharacterSortField;
+  direction: SortDirection;
+}
+interface LightconeSortState {
+  field: LightconeSortField;
   direction: SortDirection;
 }
 
@@ -47,187 +52,171 @@ function SortIcon({ direction, isActive }: { direction?: SortDirection; isActive
 }
 
 export function CostTables({ characters, lightcones }: CostTablesProps) {
-  const icons = useQuery(api.icons.list) || [];
-  const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("apocalypticshadow");
-  const [characterSearch, setCharacterSearch] = useState("");
-  const [lightconeSearch, setLightconeSearch] = useState("");
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  
-  // Sort states
-  const [characterSort, setCharacterSort] = useState<SortState>({ field: "name", direction: "asc" });
-  const [lightconeSort, setLightconeSort] = useState<SortState>({ field: "name", direction: "asc" });
-
-  // Get unique roles from characters
-  const uniqueRoles = useMemo(() => {
-    const roles = [...new Set(characters.map(char => char.role))].filter(Boolean);
-    return roles.sort();
-  }, [characters]);
-
-  // Create role icon mapping
-  const roleIconMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    uniqueRoles.forEach(role => {
-      const icon = icons.find(icon => icon.name === role);
-      if (icon) {
-        map[role] = icon.imageUrl;
-      }
-    });
-    return map;
-  }, [uniqueRoles, icons]);
-
-  const handleCharacterSort = (field: CharacterSortField) => {
-    setCharacterSort(prev => ({
-      field,
-      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
-    }));
-  };
-
-  const handleLightconeSort = (field: LightconeSortField) => {
-    setLightconeSort(prev => ({
-      field,
-      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
-    }));
-  };
-
-  const sortedAndFilteredCharacters = useMemo(() => {
-    let filtered = characters;
-
-    // Apply search filter
-    if (characterSearch.trim()) {
-      filtered = filtered.filter(char => {
-        return char.aliases.some((alias: string) => 
-          alias.toLowerCase().includes(characterSearch.toLowerCase())
-        ) || char.display_name.toLowerCase().includes(characterSearch.toLowerCase());
-      });
-    }
-
-    // Apply role filter
-    if (selectedRoles.length > 0) {
-      filtered = filtered.filter(char => selectedRoles.includes(char.role));
-    }
-
-    // Apply sorting
-    const sorted = [...filtered].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      switch (characterSort.field) {
-        case "name":
-          aValue = a.display_name.toLowerCase();
-          bValue = b.display_name.toLowerCase();
-          break;
-        case "rarity":
-          aValue = a.rarity;
-          bValue = b.rarity;
-          break;
-        default:
-          // Handle E0-E6 columns
-          aValue = a.cost[selectedRuleSet][characterSort.field];
-          bValue = b.cost[selectedRuleSet][characterSort.field];
-          break;
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return characterSort.direction === "asc" 
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (characterSort.direction === "asc") {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
-    });
-
-    return sorted;
-  }, [characters, characterSearch, selectedRoles, characterSort, selectedRuleSet]);
-
-  const sortedAndFilteredLightcones = useMemo(() => {
-    let filtered = lightcones.filter(lightcone => {
-      if (!lightconeSearch.trim()) return true;
-      return lightcone.aliases.some((alias: string) => 
-        alias.toLowerCase().includes(lightconeSearch.toLowerCase())
-      ) || lightcone.display_name.toLowerCase().includes(lightconeSearch.toLowerCase());
-    });
-
-    // Apply sorting
-    const sorted = [...filtered].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      switch (lightconeSort.field) {
-        case "name":
-          aValue = a.display_name.toLowerCase();
-          bValue = b.display_name.toLowerCase();
-          break;
-        case "rarity":
-          aValue = a.rarity;
-          bValue = b.rarity;
-          break;
-        default:
-          // Handle S1-S5 columns
-          aValue = a.cost[lightconeSort.field];
-          bValue = b.cost[lightconeSort.field];
-          break;
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return lightconeSort.direction === "asc" 
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (lightconeSort.direction === "asc") {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
-    });
-
-    return sorted;
-  }, [lightcones, lightconeSearch, lightconeSort]);
-
-  const toggleRoleFilter = (role: string) => {
-    setSelectedRoles(prev => 
-      prev.includes(role) 
-        ? prev.filter(r => r !== role)
-        : [...prev, role]
-    );
-  };
-
-  const clearAllRoleFilters = () => {
-    setSelectedRoles([]);
-  };
-
-  const renderSortableHeader = (
-    label: string,
-    field: string,
-    currentSort: SortState,
-    onSort: (field: any) => void,
-    className: string = "text-center py-3 px-4 font-medium"
-  ) => {
-    const isActive = currentSort.field === field;
+    const icons = useQuery(api.icons.list) || [];
+    const [selectedRuleSet, setSelectedRuleSet] = useState<RuleSet>("apocalypticshadow");
+    const [characterSearchTerm, setCharacterSearchTerm] = useState<string>("");
+    const [lightconeSearchTerm, setLightconeSearchTerm] = useState<string>("");
+    const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
     
-    return (
-      <th 
-        className={`${className} cursor-pointer hover:bg-gray-700 transition-colors duration-200 select-none ${
-          isActive ? "bg-gray-700" : ""
-        }`}
-        onClick={() => onSort(field)}
-        title={`Sort by ${label}`}
-      >
-        <div className="flex items-center justify-center">
-          <span className={`transition-colors duration-200 ${
-            isActive ? "text-cyan-400" : "text-white"
-          }`}>
-            {label}
-          </span>
-          <SortIcon direction={currentSort.direction} isActive={isActive} />
-        </div>
-      </th>
-    );
-  };
+    // Sort states
+    const [characterSort, setCharacterSort] = useState<CharacterSortState>({ field: "name", direction: "asc" });
+    const [lightconeSort, setLightconeSort] = useState<LightconeSortState>({ field: "name", direction: "asc" });
+
+    // Create Role Icon mappings
+    const roleIconMap = useMemo(() => {
+        const map = {} as Record<Role, string>;
+        [...UniqueRoles].forEach(role => {
+            const icon = icons.find(icon => icon.name === role);
+            if (icon) map[role] = icon.imageUrl;
+        });
+        return map;
+    }, [icons]);
+
+    const handleCharacterSort = (field: CharacterSortField) => {
+        setCharacterSort(prev => ({
+            field,
+            direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+        }));
+    };
+
+    const handleLightconeSort = (field: LightconeSortField) => {
+        setLightconeSort(prev => ({
+            field,
+            direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+        }));
+    };
+
+    const sortedAndFilteredCharacters = useMemo((): Character[] => {
+        let filtered: Character[] = characters;
+
+        // Apply search filter
+        if (characterSearchTerm.trim()) {
+            filtered = filtered.filter(char => {
+                return char.aliases.some((alias: string) => 
+                    alias.toLowerCase().includes(characterSearchTerm.toLowerCase())
+                    ) || char.display_name.toLowerCase().includes(characterSearchTerm.toLowerCase());
+            });
+        }
+
+        // Apply role filter
+        if (selectedRoles.length > 0) {
+            filtered = filtered.filter(char => selectedRoles.includes(char.role));
+        }
+
+        // Apply sorting
+        const sorted = [...filtered].sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (characterSort.field) {
+                case "name":
+                    aValue = a.display_name.toLowerCase();
+                    bValue = b.display_name.toLowerCase();
+                    break;
+                case "rarity":
+                    aValue = a.rarity;
+                    bValue = b.rarity;
+                    break;
+                default:
+                    aValue = a.cost[selectedRuleSet][characterSort.field];
+                    bValue = b.cost[selectedRuleSet][characterSort.field];
+                    break;
+            }
+
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                return characterSort.direction === "asc" 
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            }
+            return characterSort.direction === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number);
+        });
+
+        return sorted;
+    }, [characters, characterSearchTerm, selectedRoles, characterSort, selectedRuleSet]);
+
+    const sortedAndFilteredLightcones = useMemo((): Lightcone[] => {
+        let filtered: Lightcone[] = lightcones;
+        
+        // Apply search filter
+        filtered = filtered.filter(lightcone => {
+            if (!lightconeSearchTerm.trim()) return true;
+            
+            return lightcone.aliases.some((alias: string) => 
+                alias.toLowerCase().includes(lightconeSearchTerm.toLowerCase())
+                ) || lightcone.display_name.toLowerCase().includes(lightconeSearchTerm.toLowerCase());
+        });
+
+        // Apply sorting
+        const sorted = [...filtered].sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (lightconeSort.field) {
+                case "name":
+                    aValue = a.display_name.toLowerCase();
+                    bValue = b.display_name.toLowerCase();
+                    break;
+                case "rarity":
+                    aValue = a.rarity;
+                    bValue = b.rarity;
+                    break;
+                default:
+                    aValue = a.cost[lightconeSort.field];
+                    bValue = b.cost[lightconeSort.field];
+                    break;
+            }
+
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                return lightconeSort.direction === "asc" 
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            }
+            return lightconeSort.direction === "asc" ? (aValue as number) - (bValue as number) : (bValue as number) - (aValue as number);
+        });
+
+        return sorted;
+    }, [lightcones, lightconeSearchTerm, lightconeSort]);
+
+    const toggleRoleFilter = (role: Role) => {
+        setSelectedRoles(prev => 
+            prev.includes(role) 
+            ? prev.filter(r => r !== role)
+            : [...prev, role]
+        );
+    };
+
+    const clearAllRoleFilters = () => {
+        setSelectedRoles([]);
+    };
+
+    const renderSortableHeader = (
+        label: string,
+        field: string,
+        currentSort: CharacterSortState | LightconeSortState,
+        onSort: (field: any) => void,
+        className: string = "text-center py-3 px-4 font-medium"
+    ) => {
+        const isActive = currentSort.field === field;
+        
+        return (
+            <th 
+                className={`${className} cursor-pointer hover:bg-gray-700 transition-colors duration-200 select-none ${
+                isActive ? "bg-gray-700" : ""
+                }`}
+                onClick={() => onSort(field)}
+                title={`Sort by ${label}`}
+            >
+                <div className="flex items-center justify-center">
+                <span className={`transition-colors duration-200 ${
+                    isActive ? "text-cyan-400" : "text-white"
+                }`}>
+                    {label}
+                </span>
+                <SortIcon direction={currentSort.direction} isActive={isActive} />
+                </div>
+            </th>
+        );
+    };
 
   return (
     <div className="space-y-6">
@@ -251,59 +240,57 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
             <input
               type="text"
               placeholder="Search characters..."
-              value={characterSearch}
-              onChange={(e) => setCharacterSearch(e.target.value)}
+              value={characterSearchTerm}
+              onChange={(e) => setCharacterSearchTerm(e.target.value)}
               className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </div>
           </div>
 
-          {/* Role Filters */}
-          {uniqueRoles.length > 0 && (
+            {/* Role Filters */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-400 font-medium">Filter by Role:</span>
                 {selectedRoles.length > 0 && (
-                  <button
+                    <button
                     onClick={clearAllRoleFilters}
                     className="text-xs text-cyan-400 hover:text-cyan-300 underline"
-                  >
-                    Clear Roles
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {uniqueRoles.map(role => {
-                  const isSelected = selectedRoles.includes(role);
-                  const iconUrl = roleIconMap[role];
-                  
-                  return (
-                    <button
-                      key={role}
-                      onClick={() => toggleRoleFilter(role)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        isSelected 
-                          ? "bg-cyan-600 text-white border-2 border-cyan-400" 
-                          : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
-                      }`}
                     >
-                      {iconUrl && (
-                        <img
-                          src={iconUrl}
-                          alt={role}
-                          className="w-4 h-4 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <span className="capitalize">{role}</span>
+                    Clear Roles
                     </button>
-                  );
+                )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                {[...UniqueRoles].map(role => {
+                    const isSelected = selectedRoles.includes(role);
+                    const iconUrl = roleIconMap[role];
+                    
+                    return (
+                    <button
+                        key={role}
+                        onClick={() => toggleRoleFilter(role)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        isSelected 
+                            ? "bg-cyan-600 text-white border-2 border-cyan-400" 
+                            : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
+                        }`}
+                    >
+                        {iconUrl && (
+                        <img
+                            src={iconUrl}
+                            alt={role}
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            }}
+                        />
+                        )}
+                        <span className="capitalize">{role}</span>
+                    </button>
+                    );
                 })}
-              </div>
+                </div>
             </div>
-          )}
         </div>
 
         <div className="overflow-x-auto">
@@ -357,8 +344,8 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
           <input
             type="text"
             placeholder="Search lightcones..."
-            value={lightconeSearch}
-            onChange={(e) => setLightconeSearch(e.target.value)}
+            value={lightconeSearchTerm}
+            onChange={(e) => setLightconeSearchTerm(e.target.value)}
             className="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>

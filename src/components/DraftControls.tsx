@@ -1,7 +1,9 @@
 import ScreenshotButton from "./ScreenshotButton";
 import "../css/DraftControls.css";
-import { DraftState } from "./DraftingInterface";
+import { DraftMode, DraftSettings, DraftState, RuleSet } from "./DraftingInterface";
 import { useState } from "react";
+import { DraftingSettings } from "./DraftingSettings";
+import { Turn } from "@/lib/utils";
 
 interface DraftControlsProps {
     draftState: DraftState;
@@ -9,10 +11,14 @@ interface DraftControlsProps {
     onReset: () => void;
     onStartDraft: () => void;
     onPauseDraft: () => void;
-    currentPhase?: { team: string; action: string };
+    currentPhase?: Turn;
     isDraftComplete: boolean;
     canUndo: boolean;
-    onOpenSettings: () => void;
+
+    // DraftingSettings methods
+    onSettingsChange: (settings: DraftSettings) => void;
+    onRuleSetChange: (ruleSet: RuleSet) => void;
+    onDraftModeChange: (draftMode: DraftMode) => void;
 }
 
 export function DraftControls({
@@ -24,7 +30,9 @@ export function DraftControls({
     currentPhase,
     isDraftComplete,
     canUndo,
-    onOpenSettings,
+    onSettingsChange: handleSettingsChange,
+    onRuleSetChange: handleRuleSetChange,
+    onDraftModeChange: handleDraftModeChange,
 }: DraftControlsProps) {
     const PauseIcon: React.FC = () => (
         <svg 
@@ -75,30 +83,6 @@ export function DraftControls({
             <path d="M21 3v5h-5"/>
             <path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/>
             <path d="M3 21v-5h5"/>
-        </svg>
-    );
-    const SettingsIcon: React.FC = () => (
-        <svg
-            width="1.375rem"
-            height="1.375rem"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <path
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
         </svg>
     );
 
@@ -175,13 +159,14 @@ export function DraftControls({
                 <ScreenshotButton action="download" targetElementId="draft" />
 
                 {/* Draft Settings */}
-                <button
-                    className="button settings"
-                    onClick={onOpenSettings}
-                >
-                    <SettingsIcon />
-                    {`Settings`}
-                </button>
+                <DraftingSettings 
+                    draftState={draftState}
+                    settings={draftState.settings}
+                    isDraftInProgress={draftState.isDraftStarted && !isDraftComplete}
+                    onSettingsChange={handleSettingsChange}
+                    onRuleSetChange={handleRuleSetChange}
+                    onDraftModeChange={handleDraftModeChange}
+                />
             </div>
         </div>
     );

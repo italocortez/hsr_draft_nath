@@ -28,9 +28,8 @@
     transition: all 200ms ease;
 }
 .DraftControls .button:disabled {
-    cursor: not-allowed;
+    opacity: 0.33;
     box-shadow: none;
-    filter: brightness(0.66) grayscale(10%);
 }
 
 /* Left half Layout */
@@ -65,55 +64,51 @@
 .DraftControls > .right > .ScreenshotButton {
     flex: 1 calc(50% - 0.5rem);
 }
-.DraftControls > .right > .button.settings {
+.DraftControls > .right > .DraftingSettings {
     flex: 1 100%;
 }
 
 
-/* Start Draft */
 .DraftControls .button.start {
+    /* background-color: rgb(8, 145, 178); */
     background-color: rgb(22, 163, 74);
+    animation: pulsating-shadow-green 1500ms ease-in-out infinite alternate;
 }
 .DraftControls .button.start:hover:not(:disabled), .DraftControls .button.start:active:not(:disabled) {
+    /* background-color: rgb(6, 126, 154); */
     background-color: rgb(21, 128, 61);
 }
 
-/* Pause Draft */
-.DraftControls .button.pause {
-    background-color: rgb(217, 119, 6);
-}
-.DraftControls .button.pause:hover:not(:disabled), .DraftControls .button.pause:active:not(:disabled) {
-    background-color: rgb(180, 83, 9);
-}
-
-/* Resume Draft */
 .DraftControls .button.resume {
+    /* background-color: rgb(8, 145, 178); */
     background-color: rgb(22, 163, 74);
 }
 .DraftControls .button.resume:hover:not(:disabled), .DraftControls .button.resume:active:not(:disabled) {
+    /* background-color: rgb(6, 126, 154); */
     background-color: rgb(21, 128, 61);
 }
 
-/* Undo */
+.DraftControls .button.pause {
+    /* background-color: rgb(38, 175, 208); */
+    background-color: rgb(217, 119, 6);
+}
+.DraftControls .button.pause:hover:not(:disabled), .DraftControls .button.pause:active:not(:disabled) {
+    /* background-color: rgb(8, 145, 178); */
+    background-color: rgb(180, 83, 9);
+}
+
 .DraftControls .button.undo {
+    /* background-color: rgb(55, 65, 81); */
     background-color: rgb(45, 122, 126);
 }
 .DraftControls .button.undo:hover:not(:disabled), .DraftControls .button.undo:active:not(:disabled) {
+    /* background-color: rgb(75, 85, 99); */
     background-color: rgb(21, 94, 117);
 }
 
-/* Reset */
 .DraftControls .button.reset {
     background-color: rgb(220, 38, 38);
 }
 .DraftControls .button.reset:hover:not(:disabled), .DraftControls .button.reset:active:not(:disabled) {
     background-color: rgb(185, 28, 28);
-}
-
-/* Settings */
-.DraftControls .button.settings {
-    background-color: rgb(75, 85, 99);
-}
-.DraftControls .button.settings:hover:not(:disabled), .DraftControls .button.settings:active:not(:disabled) {
-    background-color: rgb(55, 65, 81);
 }
