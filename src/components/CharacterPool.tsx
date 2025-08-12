@@ -4,7 +4,19 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/CharacterPool.css";
 import { SelectedCharacter } from "./DraftingInterface";
-import { Character, Element, Role, Team, Turn, UniqueElements, UniqueRoles } from "@/lib/utils";
+import { Character, Element, Path, Role, Team, Turn, UniqueElements, UniquePaths, UniqueRoles } from "@/lib/utils";
+
+const ClearIcon: React.FC = () => (
+    <svg 
+        width="1.375rem" 
+        height="1.375rem" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
 
 interface CharacterPoolProps {
     characters: Character[];
@@ -28,6 +40,7 @@ export function CharacterPool({
     const icons = useQuery(api.icons.list) || [];
 
     const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+    const [selectedPaths, setSelectedPaths] = useState<Path[]>([]);
     const [selectedElements, setSelectedElements] = useState<Element[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -37,6 +50,16 @@ export function CharacterPool({
         [...UniqueRoles].forEach(role => {
             const icon = icons.find(icon => icon.name === role);
             if (icon) map[role] = icon.imageUrl;
+        });
+        return map;
+    }, [icons]);
+
+    // Create Path Icon mappings
+    const pathIconMap = useMemo(() => {
+        const map = {} as Record<Path, string>;
+        [...UniquePaths].forEach(path => {
+            const icon = icons.find(icon => icon.name === path);
+            if (icon) map[path] = icon.imageUrl;
         });
         return map;
     }, [icons]);
@@ -57,25 +80,30 @@ export function CharacterPool({
 
         // Apply search filter (existing logic)
         if (searchTerm.trim()) {
-        filtered = filtered.filter(char => {
-            return char.aliases.some((alias: string) => 
-            alias.toLowerCase().includes(searchTerm.toLowerCase())
-            ) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase());
-        });
+            filtered = filtered.filter(char => {
+                return char.aliases.some((alias: string) => 
+                    alias.toLowerCase().includes(searchTerm.toLowerCase())
+                    ) || char.display_name.toLowerCase().includes(searchTerm.toLowerCase());
+            });
         }
 
         // Apply role filter
         if (selectedRoles.length > 0) {
-        filtered = filtered.filter(char => selectedRoles.includes(char.role));
+            filtered = filtered.filter(char => selectedRoles.includes(char.role));
         }
 
         // Apply element filter
         if (selectedElements.length > 0) {
-        filtered = filtered.filter(char => selectedElements.includes(char.element));
+            filtered = filtered.filter(char => selectedElements.includes(char.element));
+        }
+
+        // Apply path filter
+        if (selectedPaths.length > 0) {
+            filtered = filtered.filter(char => selectedPaths.includes(char.path));
         }
 
         return filtered;
-    }, [characters, searchTerm, selectedRoles, selectedElements]);
+    }, [characters, searchTerm, selectedRoles, selectedElements, selectedPaths]);
 
     const isCharacterSelectable = (characterId: Id<"character">) => {
         if (selectedCharacters.some(selected => selected.characterId === characterId) || isDraftComplete || !currentPhase || !isDraftStarted) {
@@ -106,10 +134,20 @@ export function CharacterPool({
         );
     };
 
+    const togglePathFilter = (path: Path) => {
+        setSelectedPaths(prev => 
+            prev.includes(path) 
+            ? prev.filter(e => e !== path)
+            : [...prev, path]
+        );
+    };
+
     const clearAllRoleFilters = () => setSelectedRoles([]);
+    const clearAllPathFilters = () => setSelectedPaths([]);
     const clearAllElementFilters = () => setSelectedElements([]);
     const clearAllFilters = () => {
         clearAllRoleFilters();
+        clearAllPathFilters();
         clearAllElementFilters();
         setSearchTerm("");
     };
@@ -132,64 +170,10 @@ export function CharacterPool({
 
     return (
         <div className={`CharacterPool Box ${getCurrentColor()}`}>
+            {/* Filter options */}
             <div className="filters">
-                {/* Column 1: Elements */}
-                <div className="elements">
-                    <div className="sub-header">
-                        <h3 className="title">Filter by Element:</h3>
-
-                        {/* Clear Elements Button */}
-                        {selectedElements.length > 0 && (
-                            <button
-                                onClick={clearAllElementFilters}
-                                className="clear-button"
-                            >
-                                {`Clear Elements`}
-                            </button>
-                        )}
-                    </div>
-                    
-                    {[...UniqueElements].map(element => {
-                        const isSelected: boolean = selectedElements.includes(element);
-                        const iconUrl: string = elementIconMap[element];
-
-                        return (
-                            <button
-                                key={element}
-                                onClick={_ => toggleElementFilter(element)}
-                                className={`elem-button ${isSelected ? `selected` : ``} focus:outline-none`}
-                                title={element}
-                            >
-                                {iconUrl && (
-                                    <img
-                                        src={iconUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='10' font-weight='bold' text-anchor='middle' fill='white'>${element.slice(0, 4)}</text></svg>`}
-                                        alt={element}
-                                        className="elem-img"
-                                    />
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Column 2: Roles */}
+                {/* Roles */}
                 <div className="roles">
-                    <div className="sub-header">
-                        <h3 className="title">Filter by Role:</h3>
-
-                        {/* Clear Roles Button */}
-                        {
-                            selectedRoles.length > 0 && <>
-                                <button
-                                    onClick={clearAllRoleFilters}
-                                    className="clear-button"
-                                >
-                                    {`Clear Roles`}
-                                </button>
-                            </>
-                        }
-                    </div>
-
                     {[...UniqueRoles].map(role => {
                         const isSelected: boolean = selectedRoles.includes(role);
                         const iconUrl: string = roleIconMap[role];
@@ -198,73 +182,104 @@ export function CharacterPool({
                             <button
                                 key={role}
                                 onClick={_ => toggleRoleFilter(role)}
-                                className={`role-button ${isSelected ? `selected` : ``} focus:outline-none`}
+                                className={`role ${isSelected ? `selected` : ``}`}
                                 title={role}
                             >
-                                {/* Role's Icon */}
                                 {iconUrl && (
                                     <img
-                                        src={iconUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='10' font-weight='bold' text-anchor='middle' fill='white'>${role.slice(0, 3)}</text></svg>`}
+                                        src={iconUrl}
                                         alt={role}
-                                        className="role-img"
+                                        style={{ height: `1.25rem`, width: `1.25rem` }}
                                     />
                                 )}
                                 
-                                {/* Role's title */}
                                 <span className="capitalize">{role}</span>
                             </button>
                         );
                     })}
                 </div>
 
-                {/* Column 3: Search & clear all */}
-                <div className="search">
-                    <input
-                        type="text"
-                        placeholder="Search characters..."
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value as string)}
-                        className="focus:outline-none"
-                        name="search-bar"
-                    />
+                {/* Elements */}
+                <div className="elements">
+                    {[...UniqueElements].map(element => {
+                        const isSelected: boolean = selectedElements.includes(element);
+                        const iconUrl: string = elementIconMap[element];
 
-                    {/* Clear All Filters Button */}
-                    {(selectedRoles.length > 0 || selectedElements.length > 0 || searchTerm.trim().length > 0) && (
-                        <button
-                            className="clear-all-button"
-                            onClick={clearAllFilters}
-                        >
-                            {`Clear All Filters`}
-                        </button>
-                    )}
+                        return (
+                            <button
+                                key={element}
+                                onClick={_ => toggleElementFilter(element)}
+                                className={`elem ${isSelected ? `selected` : ``}`}
+                                title={element}
+                            >
+                                {iconUrl && (
+                                    <img
+                                        src={iconUrl}
+                                        alt={element}
+                                        style={{ height: `1.875rem`, width: `1.875rem` }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                {/* Column 4: Shortened Draft status */}
-                <div className="status">
-                    {currentPhase?.action !== "test" && <>
-                        {(!isDraftStarted && !isDraftComplete) && (
-                            <h3 className="begin-draft">Press "Start Draft" to begin</h3>
-                        )}
+                {/* Paths */}
+                <div className="paths">
+                    {[...UniquePaths].map(path => {
+                        const isSelected: boolean = selectedPaths.includes(path);
+                        const iconUrl: string = pathIconMap[path];
 
-                        {(currentPhase && isDraftStarted && !isDraftComplete) && (
-                            <h3 className="current-move">
-                                <span style={{ color: (currentPhase.team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` }}>
-                                    {currentPhase.team === "blue" ? "Blue Team" : "Red Team"}
-                                </span>
-                                {` `}
-                                {currentPhase.action}
-                            </h3>
-                        )}
-
-                        {isDraftComplete && (
-                            <h3 className="draft-complete">
-                                {`Complete!`}
-                            </h3>
-                        )}
-                    </>}
+                        return (
+                            <button
+                                key={path}
+                                onClick={_ => togglePathFilter(path)}
+                                className={`path ${isSelected ? `selected` : ``}`}
+                                title={path}
+                            >
+                                {iconUrl && (
+                                    <img
+                                        src={iconUrl}
+                                        alt={path}
+                                        style={{ height: `1.5rem`, width: `1.5rem` }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
+
+                {/* Search bar */}
+                <input
+                    type="text"
+                    placeholder="Search characters..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value as string)}
+                    className="search-bar focus:outline-none"
+                    name="search-bar"
+                />
+
+                {/* Clear All Filters */}
+                <button
+                    className="clear-button"
+                    onClick={clearAllFilters}
+                    disabled={!(selectedRoles.length > 0 || selectedPaths.length > 0 || selectedElements.length > 0 || searchTerm.trim().length > 0)}
+                    title={`Clear all filters`}
+                >
+                    <ClearIcon />
+
+                    <span>{`Clear All`}</span>
+                </button>
             </div>
 
+            {/* Draft Status */}
+            <div className="status-container">
+                {(currentPhase?.action !== "test") && <>
+                    {!isDraftStarted && <h3 className="begin-draft">Press "Start Draft" to begin</h3>}
+                    {isDraftComplete && <h3 className="draft-complete">Complete!</h3>}
+                </>}
+            </div>
+            
             {/* Character pool */}
             <div className="characters-container">
                 {filteredCharacters.map(character => {
