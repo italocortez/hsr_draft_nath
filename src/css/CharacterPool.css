@@ -278,6 +278,7 @@
 
     color: rgb(156, 163, 175);
     font-size: 1.125rem;
+    user-select: none;
 }
 
 /* Apply on mobile screens only */

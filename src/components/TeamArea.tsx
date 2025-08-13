@@ -531,6 +531,7 @@ export function TeamArea({
 									selectedLightconeId={drafted.lightconeId}
 									selectedRank={drafted.lightconeRank}
 									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })}
+                                    equippingCharacter={character}
 								/>
 							</div>
 						);
