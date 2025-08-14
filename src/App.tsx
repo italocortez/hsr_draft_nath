@@ -37,7 +37,6 @@ export default function App() {
     const lightcones: Lightcone[] = useQuery(api.lightcones.list) || [];
 
     const [activeTab, setActiveTab] = useState<Tab>("draft");
-    const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
     const [showScrollToTop, setShowScrollToTop] = useState<boolean>(false);
   
     // Get favicon URL from Convex storage
@@ -134,7 +133,6 @@ export default function App() {
                     <TeamTest 
                         characters={characters} 
                         lightcones={lightcones} 
-                        teamState={{ testTeam, setTestTeam }}
                     />
                 )}
 

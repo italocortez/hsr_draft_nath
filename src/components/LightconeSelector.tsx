@@ -14,30 +14,19 @@ interface LightconeSelectorProps {
 }
 
 function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
-    const { lightcones, selectedLightconeId, selectedRank, onLightconeChange, equippingCharacter: character } = props;
+    const { lightcones, selectedLightconeId, selectedRank, onLightconeChange, equippingCharacter } = props;
     const dropdownRef = useRef<HTMLDivElement>(null);
     
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [character, setCharacter] = useState<Character | undefined>(equippingCharacter);
 
-    const [signatureLightcone, setSignatureLightcone] = useState<Lightcone | null>(null);
+    const [signatureLightcone, setSignatureLightcone] = useState<Lightcone | undefined>(undefined);
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [filteredLightcones, setFilteredLightcones] = useState<Lightcone[]>([]);
     const selectedLightcone: Lightcone | undefined = selectedLightconeId ? lightcones.find(l => l._id === selectedLightconeId) : undefined;
 
     useEffect(() => {
-        // Check if Character is limited banner (has Signature)
-        if (character?.rarity === 5) {
-            const characterName = character.display_name.toLowerCase().replace(/\s/g, "");
-            const sigLC: Lightcone | undefined = lightcones.find(lightcone => 
-                lightcone.aliases.some(alias => 
-                    alias.toLowerCase() === characterName // LC alias matches Character's name
-                    || character.aliases.some(charAlias => alias.toLowerCase() === charAlias.toLowerCase()) // Character alias matches LC alias
-                )
-            );
-            if (sigLC) setSignatureLightcone(sigLC);
-        }
-        
         // Close dropdown when clicking outside
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -57,6 +46,37 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
         
         filterOutLightcones(searchTerm);
     }, [searchTerm]);
+
+    useEffect(() => {
+        // Check if character passed as argument
+        if (equippingCharacter) {
+            setCharacter(equippingCharacter);
+
+            // Check if they're is limited banner (has Signature)
+            if (equippingCharacter.rarity === 5) {
+                const characterName = equippingCharacter.display_name.toLowerCase().replace(/\s/g, "");
+                const sigLC: Lightcone | undefined = lightcones.find(lightcone => 
+                    lightcone.aliases.some(alias => 
+                        alias.toLowerCase() === characterName // LC alias matches Character's name
+                        || equippingCharacter.aliases.some(charAlias => alias.toLowerCase() === charAlias.toLowerCase()) // Character alias matches LC alias
+                    )
+                );
+
+                // Signature found - safely exit useEffect
+                if (sigLC) {
+                    setSignatureLightcone(sigLC);
+                    return undefined;
+                }
+            } 
+
+            // Character isn't a limited or no Signature was found
+            setSignatureLightcone(undefined);
+        } else {
+            // No Character provided
+            setCharacter(undefined);
+            setSignatureLightcone(undefined);
+        }
+    }, [equippingCharacter]);
 
     const filterOutLightcones = (term: string) => {
         term = term.toLowerCase().replace(/\s/g, ""); // Lowercase ~ Remove spaces
@@ -86,7 +106,8 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
     };
 
     const handleSelectLightcone = (lightcone: Lightcone) => {
-        if (lightcone.rarity === 5) {
+        // Limited LCs are selected as S1 by default
+        if (lightcone.rarity === 5 && !lightcone.aliases.some(alias => alias.toLowerCase() === "shop")) {
             onLightconeChange(lightcone._id, "S1" as LightconeRank);
         } else {
             onLightconeChange(lightcone._id, "S5" as LightconeRank);
