@@ -38,19 +38,10 @@
     align-items: flex-end;
     gap: 0.5rem;
 }
-.TeamTest > .graphics > .content > * {
-    /* DON'T TOUCH THESE TWO - LONG NAMES FIX */
-    flex: calc(25% - 1.5rem);
-    max-width: calc(25% - 0.5rem);
-
-    height: 100%;
-}
-.TeamTest > .graphics > .content > * > h3 {
-    /* DON'T TOUCH THESE FOUR - LONG NAMES FIX */
-    width: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+.TeamTest > .graphics > .content > div {
+    flex: 1 !important;
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 .TeamTest > .graphics > .footer {

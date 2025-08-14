@@ -8,6 +8,27 @@ import { Character, CharacterRank, Eidolons, Element, Lightcone, LightconeRank, 
 import LoadoutManager, { Loadout, loadoutCount } from "@/lib/LoadoutManager";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
 
 interface CostBreakdown {
     index: number;
@@ -292,12 +313,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
             {/* Loadout */}
             <div className="roster Box">
-                {/* <div className="sub-header">
-                    <h2 className="title">{`Picks (${testTeam?.length ?? 0}/8)`}</h2>
-
-                    <h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
-                </div> */}
-                
                 <div className="characters-container">
                     {Array.from({ length: 4 }).map((_, index) => {
                         const drafted: DraftedCharacter = currentTeam[index];
@@ -351,16 +366,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
                                 {/* Character info */}
                                 <div className="character">
-                                    {/* Combined cost */}
-                                    {/* <h3
-                                        className="total-cost"
-                                        title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
-                                    >
-                                        {lightcone
-                                            ? `Σ ${characterCost + lightconeCost}`
-                                            : characterCost}
-                                    </h3> */}
-
                                     <img
                                         src={elementIconUrl}
                                         className="element"
@@ -424,164 +429,163 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
             <div className="graphics Box">
                 <div className="header">
-                    {/* Switch */}
-                    {/* <div className="relative">
-                        <button
-                            onClick={_ => setRuleSet(prev => prev === "memoryofchaos" ? "apocalypticshadow" : "memoryofchaos")}
-                            className={`
-                                relative inline-flex w-24 shrink-0 cursor-pointer rounded-full border-2 border-transparent 
-                                transition-colors duration-300 ease-in-out focus:outline-none focus:outline-none bg-gray-600
-                            `}
-                            style={{ display: `flex`, alignItems: `center` }}
-                        >
-                            <span
-                                className={`
-                                pointer-events-none inline-block transform rounded-full shadow-lg ring-0 
-                                transition-all duration-300 ease-in-out flex items-center justify-center
-                                ${(ruleSet === "memoryofchaos") ? 'translate-x-14' : 'translate-x-0'}
-                                `}
-                            >
-                                <div className="relative overflow-hidden rounded-full" style={{ padding: `1px` }}>
-                                    {modeIconMap[ruleSet] && (
-                                        <img
-                                            src={modeIconMap[ruleSet]}
-                                            alt={ruleSet}
-                                            className="object-cover transition-opacity duration-200"
-                                            style={{ height: `1.813rem`, width: `1.813rem` }}
-                                        />
-                                    )}
-                                </div>
-                            </span>
-                        </button>
-                    </div> */}
+                    <h3 className="text-white font-medium">Team Cost Breakdown</h3>
+                    
+                    {/* Legend */}
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
 
-                    {/* Switch Container */}
-                    <button
-                        onClick={_ => setRuleSet(prev => prev === "memoryofchaos" ? "apocalypticshadow" : "memoryofchaos")}
-                        className="relative w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none"
-                    >
-                        {/* Track Bar */}
-                        <div 
-                            className={`absolute top-1/2 left-2 right-2 h-5 rounded-full transition-colors duration-300 transform -translate-y-1/2 ${
-                            (ruleSet === "memoryofchaos") ? 'bg-blue-300' : 'bg-green-300'
-                            }`}
-                            style={{  }}
-                        />
-
-                        {/* Thumb */}
-                        <div
-                            className={`absolute top-1/2 w-8 h-8 rounded-full shadow-md transition-all duration-300 transform -translate-y-1/2 flex items-center justify-center ${
-                                (ruleSet === "memoryofchaos") 
-                                ? 'translate-x-8 bg-blue-500' 
-                                : 'translate-x-1 bg-green-500'
-                                }`}
-                            style={{ backgroundColor: (ruleSet === "memoryofchaos") ? `rgb(0, 145, 255)` : `` }}
-                        >
-                            {/* Icon */}
-                            {modeIconMap[ruleSet] && (
-                                <img
-                                    src={modeIconMap[ruleSet]}
-                                    alt={ruleSet}
-                                    style={{ width: '100%', height: '1.5rem', objectFit: `contain`, objectPosition: `50% 50%` }}
-                                />
-                            )}
+                            <span className="text-sm text-white">Character</span>
+                            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#FF004D' }}></div>
                         </div>
-                    </button>
+                        <div className="flex items-center gap-2">
+
+                            <span className="text-sm text-white">LC</span>
+                            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#7E2553' }}></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="content">
-                    {Array.from({ length: 4 }).map((_, index) => {
-                        const drafted: DraftedCharacter = currentTeam[index];
-                        if (!drafted) {
-                            return (
-                                <div key={index} className="slot empty">
-                                    <h3>{`Empty`}</h3>
-                                </div>
-                            );
-                        }
-
-                        const character: Character | undefined = characters.find(c => c._id === drafted.characterId);
-                        if (!character) return null;
-
-                        const characterCost: number = character.cost[ruleSet][drafted.rank];
-                        const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
-                        const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
-
-                        return (
-                            <div className="character" style={{ display: `flex`, flexDirection: `column-reverse`, alignItems: `center` }}>
-                                <h3 className="name" style={{ color: `rgb(209, 213, 219)`, fontWeight: `500` }}>{character.display_name}</h3>
-
-                                {/* <div className="cost-visuals" style={{ position: `relative`, display: `flex`, flexDirection: `column-reverse`, alignItems: `center`, height: `stretch` }}>
-                                </div> */}
-
-                                <div style={{ flex: 1, width: `min-content`, display: `flex`, alignItems: `flex-end`, backgroundColor: `rgb(55, 65, 81)`, borderRadius: `0.25rem`, overflow: `hidden` }}>
-                                    {/* ~20 cost should be the limit */}
-                                    <div className="cost-bar" style={{ backgroundColor: `rgb(8, 145, 178)`, width: 32, height: `${String(Math.min(Math.floor(characterCost + lightconeCost), 10))}rem`, bottom: `1rem` }} />
-                                </div>
-
-                                <h3
-                                    className="total-cost"
-                                    title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
-                                    style={{ zIndex: `20`, fontSize: `1.25rem`, fontWeight: `bold`, color: `var(--color-cost)` }}
-                                >
-                                    {lightcone
-                                        ? `Σ ${characterCost + lightconeCost}`
-                                        : characterCost}
-                                </h3>
-                            </div>
-                        );
-                    })}
-                </div>
+								    {currentTeam.length > 0 ? (
+								        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+								            <Bar
+								                data={{
+								                    labels: currentTeam.map(drafted => {
+								                        const character = characters.find(c => c._id === drafted.characterId);
+								                        return character ? character.display_name : 'Unknown';
+								                    }),
+								                    datasets: [
+								                        {
+								                            label: 'Character',
+								                            data: currentTeam.map(drafted => {
+								                                const character = characters.find(c => c._id === drafted.characterId);
+								                                if (!character) return 0;
+								                                
+								                                return character.cost[ruleSet][drafted.rank];
+								                            }),
+								                            backgroundColor: '#FF004D',
+								                            borderColor: '#CC0039',
+								                            borderWidth: 1,
+								                        },
+								                        {
+								                            label: 'LC',
+								                            data: currentTeam.map(drafted => {
+								                                const character = characters.find(c => c._id === drafted.characterId);
+								                                if (!character) return 0;
+								                                
+								                                if (drafted.lightconeId && drafted.lightconeRank) {
+								                                    const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+								                                    if (lightcone) {
+								                                        return lightcone.cost[drafted.lightconeRank];
+								                                    }
+								                                }
+								                                return 0;
+								                            }),
+								                            backgroundColor: '#7E2553',
+								                            borderColor: '#5A1A3A',
+								                            borderWidth: 1,
+								                        },
+								                    ],
+								                }}
+								                options={{
+								                    responsive: true,
+								                    maintainAspectRatio: false,
+																	  layout: {
+																				padding: {
+																						top: 15, // Add padding at the top to prevent clipping
+																						left: 5,
+																						right: 5,
+																						bottom: 5
+																				}
+																		},
+								                    plugins: {
+								                        legend: {
+								                            display: false,
+								                        },
+								                        datalabels: {
+								                            display: true,
+								                            anchor: 'end',
+								                            align: 'top',
+								                            clamp: true,
+								                            color: '#ffffff',
+								                            font: { weight: 'bold', size: 12 },
+								                            formatter: (value: number, ctx: any) => {
+								                                if (ctx.datasetIndex !== 1) return '';
+								                                const drafted = currentTeam[ctx.dataIndex];
+								                                const char = characters.find(c => c._id === drafted.characterId);
+								                                if (!char) return '';
+								                                let total = char.cost[ruleSet][drafted.rank];
+								                                if (drafted.lightconeId && drafted.lightconeRank) {
+								                                    const lc = lightcones.find(l => l._id === drafted.lightconeId);
+								                                    if (lc) total += lc.cost[drafted.lightconeRank];
+								                                }
+								                                return total.toFixed(1);
+								                            },
+								                            offset: -5,
+								                        },
+								                        tooltip: {
+								                        }
+								                    },
+								                    scales: {
+								                        x: {
+								                            stacked: true,
+								                            ticks: {
+								                                color: '#ffffff',
+								                                maxRotation: 45,
+								                                minRotation: 0,
+								                            },
+								                            grid: {
+								                              color: '#374151',
+																							display: false
+								                            },
+								                        },
+								                        y: {
+								                            stacked: true,
+								                            beginAtZero: true,
+								                            ticks: {
+								                                color: '#ffffff',
+								                                callback: function(value) {
+								                                    return typeof value === 'number' ? value.toFixed(1) : value;
+								                                },
+																								display: false
+								                            },
+								                            grid: {
+								                                color: '#374151',
+																								display: false
+								                            },
+								                            title: {
+								                                display: true,
+								                                text: 'Cost',
+								                                color: '#ffffff',
+								                                font: {
+								                                    size: 14,
+								                                    weight: 'bold'
+								                                }
+								                            }
+								                        },
+								                    },
+								                }}
+								            />
+								        </div>
+								    ) : (
+								        <div className="flex items-center justify-center h-full">
+								            <p className="text-gray-400 text-lg">No characters selected</p>
+								        </div>
+								    )}
+								</div>
                 
                 <div className="footer">
-                    <h3>Total:</h3>
-                    <h2 className="total-cost" style={{ color: `var(--color-cost)`, fontSize: `1.625rem`, fontWeight: `bold`, backgroundColor: `rgba(0, 0, 0, 0.5)`, padding: `0.125rem 0.5rem` }}>{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
-                </div>
-            </div>
-
-            {/* Individual Cost Breakdown */}
-            {/* {currentTeam.length > 0 && (
-                <div className="graphics Box p-6">
-                    <h3 className="text-white text-xl font-semibold mb-4">Individual Cost Breakdown</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-white">
-                            <thead>
-                                <tr className="border-b border-gray-600">
-                                    <th className="text-left p-3 font-semibold">Character</th>
-                                    <th className="text-center p-3 font-semibold">Rank</th>
-                                    <th className="text-center p-3 font-semibold">MoC Cost</th>
-                                    <th className="text-center p-3 font-semibold">AS Cost</th>
-                                    <th className="text-left p-3 font-semibold">Lightcone</th>
-                                    <th className="text-center p-3 font-semibold">LC Rank</th>
-                                    <th className="text-center p-3 font-semibold">LC Cost</th>
-                                    <th className="text-center p-3 font-semibold">Total MoC</th>
-                                    <th className="text-center p-3 font-semibold">Total AS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {getCostBreakdown().map((breakdown, idx) => (
-                                    <tr key={idx} className="border-b border-gray-700">
-                                        <td className="p-3 font-medium">{breakdown.characterName}</td>
-                                        <td className="p-3 text-center">{breakdown.characterRank}</td>
-                                        <td className="p-3 text-center">{breakdown.characterCostMOC.toFixed(1)}</td>
-                                        <td className="p-3 text-center">{breakdown.characterCostAS.toFixed(1)}</td>
-                                        <td className="p-3 text-sm">{breakdown.lightconeName}</td>
-                                        <td className="p-3 text-center">{breakdown.lightconeRank}</td>
-                                        <td className="p-3 text-center">{breakdown.lightconeCost.toFixed(1)}</td>
-                                        <td className="p-3 text-center font-semibold">{breakdown.totalMOC.toFixed(1)}</td>
-                                        <td className="p-3 text-center font-semibold">{breakdown.totalAS.toFixed(1)}</td>
-                                    </tr>
-                                ))}
-                                <tr className="border-t-2 border-gray-500 font-bold">
-                                    <td colSpan={7} className="p-3 text-right">Team Total:</td>
-                                    <td className="p-3 text-center">{getTotalCostForMode('memoryofchaos').toFixed(1)}</td>
-                                    <td className="p-3 text-center">{getTotalCostForMode('apocalypticshadow').toFixed(1)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div className="flex justify-center items-center w-full">
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-white">Total:</h3>
+                            <h2 className="total-cost" style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: 'bold' }}>
+                                {getTotalCostForMode(ruleSet).toFixed(1)}
+                            </h2>
+                        </div>
                     </div>
                 </div>
-            )} */}
+            </div>
 
             {/* Character Pool */}
             <CharacterPool
