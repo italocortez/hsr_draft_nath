@@ -3,7 +3,7 @@ import { DraftedCharacter, RuleSet, DraftSettings, DraftMode, TeamState } from "
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/TeamArea.css";
 import LightconeSelector from "./LightconeSelector";
-import { Character, CharacterRank, Eidolons, SuperImpositions, Lightcone, LightconeRank, Team } from "@/lib/utils";
+import { Character, CharacterRank, Eidolons, SuperImpositions, Lightcone, LightconeRank, Team, Turn, Action } from "@/lib/utils";
 
 interface TeamAreaProps {
     team: Team;
@@ -19,7 +19,7 @@ interface TeamAreaProps {
     resetTrigger?: number;
     draftMode: DraftMode;
     isDraftStarted?: boolean;
-    isActiveTurn?: boolean;
+    currentPhase?: Turn;
 }
 
 interface MoCResultData {
@@ -119,7 +119,7 @@ export function TeamArea({
     resetTrigger,
     draftMode,
     isDraftStarted = false,
-    isActiveTurn,
+    currentPhase
 }: TeamAreaProps) {
     const [editingName, setEditingName] = useState<boolean>(false);
     const [tempName, setTempName] = useState<string>(teamData.name);
@@ -429,7 +429,7 @@ export function TeamArea({
         );
     };
 
-    const highlightRoster = (): boolean => (isActiveTurn && isDraftStarted && !isDraftComplete) || false;
+    const highlightRoster = (): boolean => ((currentPhase?.team === team) && isDraftStarted && !isDraftComplete) || false;
 
     const renderRosterTab = () => (
 		<div className="roster">
@@ -438,20 +438,16 @@ export function TeamArea({
 				<div className="sub-header">
 					<h2 className="title">{`Picks (${teamData.drafted?.length ?? 0}/8)`}</h2>
 
-                    {/* Active Tag */}
-                    {highlightRoster() && (
-                        <h3 className="active-tag" style={{ backgroundColor: (team === "blue") ? `rgb(49, 120, 226)` : `rgb(220, 38, 38)` }}>Active</h3>
-                    )}
-
 					<h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
 				</div>
 
 				<div className="characters-container">
 					{Array.from({ length: 8 }).map((_, index) => {
 						const drafted: DraftedCharacter = teamData.drafted[index];
+                        const isNextSlot = highlightRoster() && (currentPhase?.action === "pick") && (index === teamData.drafted.length);
 						if (!drafted) {
 							return (
-								<div key={index} className="slot empty">
+								<div key={index} className={`slot empty ${isNextSlot ? `highlight` : ``}`}>
 									<h3>{`Empty`}</h3>
 								</div>
 							);
@@ -535,6 +531,7 @@ export function TeamArea({
 									selectedLightconeId={drafted.lightconeId}
 									selectedRank={drafted.lightconeRank}
 									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, index, { lightconeId, lightconeRank: rank })}
+                                    equippingCharacter={character}
 								/>
 							</div>
 						);
@@ -551,10 +548,10 @@ export function TeamArea({
 				<div className="characters-container">
                     {Array.from({ length: (draftMode === "4ban") ? 2 : (draftMode === "6ban") ? 3 : 0 }).map((_, index) => {
                         const bannedCharacterId: Id<"character"> = teamData.banned[index];
-                        
+                        const isNextSlot = highlightRoster() && (currentPhase?.action === "ban") && (index === teamData.banned.length);
                         if (!bannedCharacterId) {
                             return (
-                                <div key={index} className="slot empty">
+                                <div key={index} className={`slot empty ${isNextSlot ? `highlight` : ``}`}>
                                     <h3>{`Empty`}</h3>
                                 </div>
                             );

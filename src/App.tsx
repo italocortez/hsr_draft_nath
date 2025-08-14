@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { DraftedCharacter, DraftingInterface } from "./components/DraftingInterface";
 import { useEffect, useState } from "react";
 import "./App.css";
@@ -12,6 +12,24 @@ import { Character, Lightcone } from "./lib/utils";
 
 type Tab = "draft" | "teamtest" | "costs" | "tutorial" | "contact";
 
+const ScrollToTopIcon: React.FC = () => (
+    <svg 
+        width="clamp(1.625rem, 3vw, 2.125rem)" 
+        height="clamp(1.625rem, 3vw, 2.125rem)" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path 
+            d="M12 19V5M5 12L12 5L19 12" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
 export default function App() {
     const seedCharacters = useMutation(api.characters.seedCharacters);
     const seedLightcones = useMutation(api.lightcones.seedLightcones);
@@ -20,6 +38,7 @@ export default function App() {
 
     const [activeTab, setActiveTab] = useState<Tab>("draft");
     const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
+    const [showScrollToTop, setShowScrollToTop] = useState<boolean>(false);
   
     // Get favicon URL from Convex storage
     const faviconUrl = useQuery(api.storage.getStorageUrl, { 
@@ -41,6 +60,25 @@ export default function App() {
             }
         }
     }, [faviconUrl]);
+
+    // Handle scroll to top button visibility
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPercentage = 0.33; // % of Page
+            const maximumScrollDistance = 2400; // x maximum pixels required to scroll
+            
+            // Reveal button after scrolling down 30% of document height OR 2400px, whichever is smaller
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const percentageThreshold = totalHeight * scrollPercentage;
+            const scrollThreshold = Math.min(percentageThreshold, maximumScrollDistance);
+            
+            setShowScrollToTop(window.scrollY > scrollThreshold);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
     return (
         <div className="App">
@@ -116,7 +154,25 @@ export default function App() {
                 )}
             </main>
 
-            <Toaster />
+            {/* Scroll to Top Button */}
+            <button
+                onClick={scrollToTop}
+                className={`scroll-button ${showScrollToTop ? `visible` : ``}`}
+                title="Scroll to Start"
+            >
+                <ScrollToTopIcon />
+            </button>
+
+            {/* Notifications Enabler */}
+            <Toaster 
+                position="bottom-left" 
+                richColors
+                toastOptions={{
+                    style: {
+                        fontSize: `1rem`
+                    }
+                }}
+            />
         </div>
     );
 }
