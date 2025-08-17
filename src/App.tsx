@@ -100,13 +100,13 @@ export default function App() {
                         onClick={_ => setActiveTab("teamtest" as Tab)}
                         className={(activeTab === "teamtest") ? `active` : undefined}
                     >
-                        {`Team Test`}
+                        {`Loadouts`}
                     </button>
                     <button
                         onClick={_ => setActiveTab("costs" as Tab)}
                         className={(activeTab === "costs") ? `active` : undefined}
                     >
-                        {`Costs Table`}
+                        {`Costs`}
                     </button>
                     <button
                         onClick={_ => setActiveTab("tutorial" as Tab)}
@@ -163,7 +163,7 @@ export default function App() {
 
             {/* Notifications Enabler */}
             <Toaster 
-                position="bottom-left" 
+                position="top-left" 
                 richColors
                 toastOptions={{
                     style: {

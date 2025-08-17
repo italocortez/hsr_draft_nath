@@ -7,7 +7,8 @@ export interface Loadout {
     notes: string;
 }
 
-export const loadoutCount = 3; // 3 loadout slots
+export const teamSize = 4; // 4 Character slots
+export const loadoutSlots = 3; // 3 loadout slots
 
 class LoadoutManager {
     private static readonly STORAGE_KEY = 'honkai_team_loadouts';
@@ -35,7 +36,7 @@ class LoadoutManager {
 
 
     public static getDefaultLoadouts(): Loadout[] {
-        return Array.from({ length: loadoutCount })
+        return Array.from({ length: loadoutSlots })
             .map((_, index) => (
                 { name: `Team ${index + 1}`, team: [], notes: "" }
             )
@@ -49,7 +50,7 @@ class LoadoutManager {
 
     // Save a specific state to localStorage
     public static saveLoadout(index: number, loadout: Loadout): void {
-        if (index < 0 || index >= loadoutCount) {
+        if (index < 0 || index >= loadoutSlots) {
             toast.error(`'${index}' Invalid Loadout index`);
             return;
         }
@@ -61,7 +62,7 @@ class LoadoutManager {
 
     // Clear a specific state in localStorage from loadout slot
     public static clearLoadout(index: number): void {
-        if (index < 0 || index >= loadoutCount) {
+        if (index < 0 || index >= loadoutSlots) {
             toast.error(`'${index}' Invalid Loadout index`);
             return;
         }
@@ -83,7 +84,7 @@ class LoadoutManager {
 
     // Get one Loadout by index
     public static getLoadout(index: number): Loadout {
-        if (index < 0 || index >= loadoutCount) {
+        if (index < 0 || index >= loadoutSlots) {
             toast.error(`'${index}' Invalid Loadout index`);
             throw new Error();
         }
@@ -95,7 +96,7 @@ class LoadoutManager {
     // Remember the last Loadout slot worked on
     // setLatestTeamIndex
     public static saveCurrentLoadoutIndex(index: number): void {
-        if (index < 0 || index >= loadoutCount) {
+        if (index < 0 || index >= loadoutSlots) {
             toast.error(`'${index}' Invalid Loadout index`);
             return;
         }
@@ -114,7 +115,7 @@ class LoadoutManager {
             const stored = localStorage.getItem(this.LOADOUT_INDEX_KEY);
             const index = stored ? parseInt(stored, 10) : 0;
 
-            return (index >= 0 && index < loadoutCount) ? index : 0;
+            return (index >= 0 && index < loadoutSlots) ? index : 0;
         } catch (error) {
             toast.error(`Failed to load current Loadout's index`);
             return 0;
