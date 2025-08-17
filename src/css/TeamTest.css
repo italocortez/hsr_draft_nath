@@ -455,7 +455,7 @@
     align-items: center;
     padding: 1rem 2rem 0.5rem 2rem;
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header::before, .TeamTest > .main > .control > .header > .rosters > .rosters-list > .dropdown-header::after {
+.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header::before, .TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header::after {
     content: '';
     flex: 1;
     height: 2px;
