@@ -787,51 +787,6 @@
     }
 }
 
-/* Notes Box */
-.TeamTest > .notes-box {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    
-    box-sizing: border-box;
-    background: rgb(31 41 55);
-    border: 1px solid rgb(55 65 81);
-    border-radius: 0.5rem;
-}
-
-.TeamTest > .notes-box > .notes-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.TeamTest > .notes-box > .notes-textarea {
-    width: 100%;
-    min-height: 120px;
-    max-height: 200px;
-    padding: 1rem;
-    border: 1px solid rgb(75, 85, 99);
-    border-radius: 0.5rem;
-    background-color: rgb(55, 65, 81);
-    color: white;
-    font-family: ui-sans-serif, system-ui, sans-serif;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    resize: vertical;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.TeamTest > .notes-box > .notes-textarea:focus {
-    outline: none;
-    border-color: rgb(59, 130, 246);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.TeamTest > .notes-box > .notes-textarea::placeholder {
-    color: rgb(156, 163, 175);
-}
-
 /* Apply on mobile+tablet screens */
 @media screen and (max-width: 1070px) {
     /* More focus on character's faces */
