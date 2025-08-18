@@ -891,32 +891,6 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                 </div>
             </div>
 
-            {/* Notes Box */}
-            <div className="notes-box">
-                <div className="notes-header">
-                    <h3 className="text-white font-medium">Notes</h3>
-                    <span className="text-gray-400 text-sm">
-                        {(loadouts[currentLoadoutIndex]?.notes || "").length}/1000
-                    </span>
-                </div>
-                <textarea
-                    value={loadouts[currentLoadoutIndex]?.notes || ""}
-                    onChange={(e) => {
-                        if (e.target.value.length <= 1000) {
-                            const newLoadouts = [...loadouts];
-                            newLoadouts[currentLoadoutIndex] = {
-                                ...newLoadouts[currentLoadoutIndex],
-                                notes: e.target.value
-                            };
-                            setLoadouts(newLoadouts);
-                        }
-                    }}
-                    placeholder="Add notes about this loadout..."
-                    className="notes-textarea"
-                    maxLength={1000}
-                />
-            </div>
-
             {/* Character Pool */}
             <CharacterPool
                 characters={characters}
