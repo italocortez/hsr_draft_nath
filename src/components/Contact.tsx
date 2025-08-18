@@ -36,7 +36,7 @@ export function Contact() {
           <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
             <h3 className="text-white font-semibold mb-2">Discord Server</h3>
             <a
-              href="https://discord.com/invite/vS8kdxmsmE"
+              href="https://discord.com/invite/HbXErzYVQ5"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium"

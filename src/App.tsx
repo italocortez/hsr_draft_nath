@@ -37,7 +37,6 @@ export default function App() {
     const lightcones: Lightcone[] = useQuery(api.lightcones.list) || [];
 
     const [activeTab, setActiveTab] = useState<Tab>("draft");
-    const [testTeam, setTestTeam] = useState<DraftedCharacter[]>([]);
     const [showScrollToTop, setShowScrollToTop] = useState<boolean>(false);
   
     // Get favicon URL from Convex storage
@@ -101,13 +100,13 @@ export default function App() {
                         onClick={_ => setActiveTab("teamtest" as Tab)}
                         className={(activeTab === "teamtest") ? `active` : undefined}
                     >
-                        {`Team Test`}
+                        {`Loadouts`}
                     </button>
                     <button
                         onClick={_ => setActiveTab("costs" as Tab)}
                         className={(activeTab === "costs") ? `active` : undefined}
                     >
-                        {`Costs Table`}
+                        {`Costs`}
                     </button>
                     <button
                         onClick={_ => setActiveTab("tutorial" as Tab)}
@@ -134,7 +133,6 @@ export default function App() {
                     <TeamTest 
                         characters={characters} 
                         lightcones={lightcones} 
-                        teamState={{ testTeam, setTestTeam }}
                     />
                 )}
 
@@ -165,7 +163,7 @@ export default function App() {
 
             {/* Notifications Enabler */}
             <Toaster 
-                position="bottom-left" 
+                position="top-left" 
                 richColors
                 toastOptions={{
                     style: {

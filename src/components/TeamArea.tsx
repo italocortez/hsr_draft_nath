@@ -469,6 +469,7 @@ export function TeamArea({
                                 {/* Character IMG */}
                                 <img
                                     src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    className="portrait"
                                     alt={character.display_name}
                                     title={`${character.display_name}`}
                                 />
@@ -563,7 +564,7 @@ export function TeamArea({
                         return (
                             <div key={index} className="slot" data-rarity={character.rarity}>
                                 <img
-                                    className="character"
+                                    className="character portrait"
                                     src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
                                     alt={`${character.display_name} (Banned)`}
                                     title={`${character.display_name} (Banned)`}

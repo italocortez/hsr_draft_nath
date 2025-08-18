@@ -312,6 +312,7 @@ export function CharacterPool({
                             {/* Character IMG */}
                             <img
                                 src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                className="portrait"
                                 alt={character.display_name}
                                 title={`${character.display_name}`}
                             />

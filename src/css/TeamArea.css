@@ -217,7 +217,7 @@
 }
 
 /* Character's Image */
-.TeamArea > .roster > .picks > .characters-container > .slot > img {
+.TeamArea > .roster > .picks > .characters-container > .slot > .portrait {
     position: absolute;
     height: 100%;
     width: 100%;
@@ -309,6 +309,11 @@
     filter: grayscale(100%) brightness(1);
 }
 
+/* Fix to LC Search results going out-of-bounds! */
+.TeamArea > .roster > .picks > .characters-container > .slot:nth-child(2n) > .LightconeSelector > .result-set {
+    left: unset;
+}
+
 /* Apply on mobile screens only */
 @media screen and (max-width: 640px) {
     /* Limit width of team name input */
@@ -325,8 +330,7 @@
 /* Apply on mobile+tablet screens */
 @media screen and (max-width: 1070px) {
     /* More focus on character's faces */
-    .TeamArea > .roster > .picks > .characters-container > .slot > img {
+    .TeamArea > .roster > .picks > .characters-container > .slot > .portrait {
         object-position: 50% 25%;
     }
 }
-

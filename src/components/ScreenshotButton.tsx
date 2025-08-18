@@ -1,7 +1,8 @@
-import { useState, JSX } from "react";
+import { useState, JSX, useEffect } from "react";
 import * as htmlToImage from 'html-to-image';
 import "../css/ScreenshotButton.css";
 import { toast } from "sonner";
+import { createPortal } from "react-dom";
 
 interface ScreenshotButtonProps {
     action: "clipboard" | "download";
@@ -26,7 +27,7 @@ const minViewportWidth: number = 1080;
 const minViewportHeight: number = 800;
 const scale: number = 2;
 
-const generateFilename = (): string => `Draft-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+const generateFilename = (): string => `Screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
 
 // Detect if User is on Mobile/Safari - Special handling
 const isMobileOrSafari = (): boolean => {
@@ -123,15 +124,41 @@ const LoadingSpinner: React.FC = () => (
         />
     </svg>
 );
-const ScreenshotOverlay: React.FC = () => (
-    <div className="ScreenshotOverlay">
-        <div className="content">
-            <LoadingSpinner />
-            <h2 className="title">Creating Screenshot...</h2>
-            <h3 className="sub-title">Please wait while we capture your Draft</h3>
-        </div>
-    </div>
-);
+const ScreenshotOverlay: React.FC = () => {
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        // Create or get the portal container
+        let container = document.getElementById('screenshot-overlay-portal');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'screenshot-overlay-portal';
+            document.body.appendChild(container);
+        }
+        setPortalContainer(container);
+
+        // Cleanup: remove container when component unmounts
+        return () => {
+            const existingContainer = document.getElementById('screenshot-overlay-portal');
+            if (existingContainer && existingContainer.children.length === 0) {
+                document.body.removeChild(existingContainer);
+            }
+        };
+    }, []);
+
+    if (!portalContainer) return null;
+
+    return createPortal(
+        <div className="ScreenshotOverlay">
+            <div className="content">
+                <LoadingSpinner />
+                <h2 className="title">Creating Screenshot...</h2>
+                <h3 className="sub-title">Please wait while we capture your Draft</h3>
+            </div>
+        </div>,
+        portalContainer
+    );
+};
 
 function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
     const { action, targetElementId, disabled } = props;
@@ -213,10 +240,13 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
                 
                 if (picksContainer) {
                     child.style.setProperty('height', '12rem', 'important');
+                } else {
+                    child.style.setProperty('height', '100%', 'important');
+                    child.style.setProperty('min-height', '100%', 'important');
                 }
             }
             
-            const classList = child.className.toLowerCase();
+            const classList = (child.className?.toString() || '').toLowerCase(); // Handles HTML and SVG Elements
             if (classList.includes('mobile') || classList.includes('responsive')) {
                 child.style.setProperty('width', 'auto', 'important');
                 child.style.setProperty('maxWidth', 'none', 'important');
