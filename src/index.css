@@ -12,9 +12,11 @@
 
     --border-5star: rgb(251, 191, 36);
     --border-4star: rgb(168, 85, 247);
+    --border-3star: rgb(46, 135, 250);
 
     --shadow-5star: 2px 2px 4px 3px rgba(251, 191, 36, 0.16);
     --shadow-4star: 2px 2px 4px 3px rgba(168, 85, 247, 0.16);
+    --shadow-3star: 2px 2px 4px 3px rgba(46, 135, 250, 0.16);
 
     --lc-3star: rgb(96, 165, 250);
     --lc-4star: rgb(192, 132, 252);
@@ -56,7 +58,7 @@ body {
 }
 
 
-/* 5* Character */
+/* 5* Entity */
 [data-rarity="5"] {
     border: 1px solid var(--border-5star);
     box-shadow: var(--shadow-5star);
@@ -65,13 +67,19 @@ body {
     background: var(--gradient-5star);
 }
 
-/* 4* Character */
+/* 4* Entity */
 [data-rarity="4"] {
     border: 1px solid var(--border-4star);
     box-shadow: var(--shadow-4star);
 }
 [data-rarity="4"] .portrait {
     background: var(--gradient-4star);
+}
+
+/* 3* Entity */
+[data-rarity="3"] {
+    border: 1px solid var(--border-3star);
+    box-shadow: var(--shadow-3star);
 }
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */

@@ -5,7 +5,7 @@ import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
 import LightconeSelector from "./LightconeSelector";
 import { Character, CharacterRank, Eidolons, Element, Lightcone, LightconeRank, Path, SuperImpositions, UniqueElements, UniquePaths } from "@/lib/utils";
-import LoadoutManager, { Loadout, teamSize } from "@/lib/LoadoutManager";
+import LoadoutManager, { Loadout, LoadoutCharacter, teamSize } from "@/lib/LoadoutManager";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
@@ -134,94 +134,134 @@ interface PresetTeam {
     name: string;
     characters: DraftedCharacter[];
 }
-const presetTeams: PresetTeam[] = [
+
+interface PresetTeamTemplate {
+    name: string;
+    characters: Partial<LoadoutCharacter>[];
+}
+
+const presetTeamTemplates: PresetTeamTemplate[] = [
     {
         name: "Phainon",
         characters: [
-            { characterId: ("k97a5m9a17jcmvegq0r5fywmf17nese0" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn72st4sw2bfsnh49k30jj1g0n7njh7r" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Phainon + Thus Burns the Dawn
-            { characterId: ("k978apcyhknm1y61mxs23rbced7nex05" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn77jsbswdyrd750y1zqtnn2cs7njnkm" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Cerydra + Epoch Etched in Golden Blood
-            { characterId: ("k977e3xtk9s3367xs9c16m7h5s7neh4p" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn70ggr4ggj06x35y82jse58sd7nkd62" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Sunday + A Grounded Ascent
-            { characterId: ("k976p9djhk4f9zgfte2mjfyz3s7ne0qv" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn72zccerxtzxpn3qxhyqw48kx7nkq6y" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Bronya + But the Battle Isn't Over
+            { characterName: "Phainon", rank: "E0", lightconeName: "Thus Burns the Dawn", lightconeRank: "S1" },
+            { characterName: "Cerydra", rank: "E0", lightconeName: "Epoch Etched in Golden Blood", lightconeRank: "S1" },
+            { characterName: "Sunday", rank: "E0", lightconeName: "A Grounded Ascent", lightconeRank: "S1" },
+            { characterName: "Bronya", rank: "E0", lightconeName: "But the Battle Isn't Over", lightconeRank: "S1" },
         ]
     },
     {
         name: "Castorice",
         characters: [
-            { characterId: ("k9764wr4x5hwgshhatqs4qq79h7neegd" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn78jv855hw5tny19z770g4tyn7nj0xk" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Castorice + Make Farewells More Beautiful
-            { characterId: ("k97a9wrtw2adsj4542rdjewfb97nfabr" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7dw18xba6zx1e2wh7e78g9qx7njfhb" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Tribbie + If Time Were a Flower
-            { characterId: ("k977j0xkfyf2jq8rxswr7far5n7nf97z" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn78dzbd7b51cnh9bevfjgnhz97nj4s5" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Hyacine + Long May Rainbows Adorn the Sky
-            { characterId: ("k976cg42vpczqq9bh80hwbh4an7nezr6" as Id<"character">), rank: ("E6" as CharacterRank), lightconeId: ("kn76gwj2a8g5hgqsjfden6nbrn7nk5e7" as Id<"lightcones">), lightconeRank: ("S5" as LightconeRank) }, // MC Remembrance + Sailing Towards A Second Life
+            { characterName: "Castorice", rank: "E0", lightconeName: "Make Farewells More Beautiful", lightconeRank: "S1" },
+            { characterName: "Tribbie", rank: "E0", lightconeName: "If Time Were a Flower", lightconeRank: "S1" },
+            { characterName: "Hyacine", rank: "E0", lightconeName: "Long May Rainbows Adorn the Sky", lightconeRank: "S1" },
+            { characterName: "MC Remembrance", rank: "E6", lightconeName: "Sailing Towards A Second Life", lightconeRank: "S5" },
         ]
     },
     {
         name: "Saber",
         characters: [
-            { characterId: ("k9754r9f6szn75acjp7w7a54p97nefha" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7bq15fy62e5wk5haay9wz01d7nj43c" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Saber + A Thankless Coronation
-            { characterId: ("k977e3xtk9s3367xs9c16m7h5s7neh4p" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn70ggr4ggj06x35y82jse58sd7nkd62" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Sunday + A Grounded Ascent
-            { characterId: ("k97810829e9352yvz2vg5qzsss7neq86" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7df79brpvpks465hcs0cm78s7nk5fs" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Robin + Flowing Nightglow
-            { characterId: ("k9766zxwjq807p935g5sb93tfx7nfyeb" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7a1cmkeymd15zqt2ymjdqck97nk1r4" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Huohuo + Night of Fright
+            { characterName: "Saber", rank: "E0", lightconeName: "A Thankless Coronation", lightconeRank: "S1" },
+            { characterName: "Sunday", rank: "E0", lightconeName: "A Grounded Ascent", lightconeRank: "S1" },
+            { characterName: "Robin", rank: "E0", lightconeName: "Flowing Nightglow", lightconeRank: "S1" },
+            { characterName: "Huohuo", rank: "E0", lightconeName: "Night of Fright", lightconeRank: "S1" },
         ]
     },
     {
         name: "Archer",
         characters: [
-            { characterId: ("k971ddqj1pw5x5f08s9jzjpaz97neeps" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn74sm5sahm7gszrhk6bcq46xn7nkp1a" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Archer + The Hell Where Ideals Burn
-            { characterId: ("k978qka446vy5thqbvn6crrqv57ne1qw" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn70txch1779dh1j68htjzwhe97nk2ah" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Sparkle + Earthly Escapade
-            { characterId: ("k97fm6h5zxcmh8n17fyekanv5h7neptb" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn74ejphy0kcppypw9djzepk6h7njd2s" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Silver Wolf + Incessant Rain
-            { characterId: ("k974vzpj9nqgdt5r0cdgh2edqx7nej1f" as Id<"character">), rank: ("E6" as CharacterRank), lightconeId: ("kn7bk9eqhrzvbst0d0mpm5mvqx7nkq2n" as Id<"lightcones">), lightconeRank: ("S5" as LightconeRank) }, // Gallagher + Quid Pro Quo
+            { characterName: "Archer", rank: "E0", lightconeName: "The Hell Where Ideals Burn", lightconeRank: "S1" },
+            { characterName: "Sparkle", rank: "E0", lightconeName: "Earthly Escapade", lightconeRank: "S1" },
+            { characterName: "Silver Wolf", rank: "E0", lightconeName: "Incessant Rain", lightconeRank: "S1" },
+            { characterName: "Gallagher", rank: "E6", lightconeName: "Quid Pro Quo", lightconeRank: "S5" },
         ]
     },
     {
         name: "Acheron",
         characters: [
-            { characterId: ("k971yf2pyr48ccjhd3b04e4hqh7ne2t2" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn79mj8dm65vktscprd4b6808x7njx00" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Acheron + Along the Passing Shore
-            { characterId: ("k976vb20n5hqchcsbzg89rx04s7nfcta" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn73mfbc8bwmye38evhjet1bb17nj2rr" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Cipher + Lies Dance on the Breeze
-            { characterId: ("k978pgybt1ewtfhg35bfggc18n7nfzcf" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn734smf185sgw47vtrd1r6pvh7njknm" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Jiaoqiu + Those Many Springs
-            { characterId: ("k97cdrr4k6zt5aarjmbsx5bz817nfn6z" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn747rxg98pa58a9p83ta5fdcd7njbpm" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Aventurine + Inherently Unjust Destiny
+            { characterName: "Acheron", rank: "E0", lightconeName: "Along the Passing Shore", lightconeRank: "S1" },
+            { characterName: "Cipher", rank: "E0", lightconeName: "Lies Dance on the Breeze", lightconeRank: "S1" },
+            { characterName: "Jiaoqiu", rank: "E0", lightconeName: "Those Many Springs", lightconeRank: "S1" },
+            { characterName: "Aventurine", rank: "E0", lightconeName: "Inherently Unjust Destiny", lightconeRank: "S1" },
         ]
     },
     {
         name: "Feixiao",
         characters: [
-            { characterId: ("k9791zwayydp16ys38e29ng17n7neyv7" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn71y8bwxg0gpfp3x6jn9wdks97nk620" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Feixiao + I Venture Forth to Hunt
-            { characterId: ("k97dnx79871dj628zy4g548re17ne90s" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn71wahsrhctqmh0yqv2rkw5817nky9s" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Topaz + Worrisome, Blissful
-            { characterId: ("k97810829e9352yvz2vg5qzsss7neq86" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7df79brpvpks465hcs0cm78s7nk5fs" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Robin + Flowing Nightglow
-            { characterId: ("k97cdrr4k6zt5aarjmbsx5bz817nfn6z" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn747rxg98pa58a9p83ta5fdcd7njbpm" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Aventurine + Inherently Unjust Destiny
+            { characterName: "Feixiao", rank: "E0", lightconeName: "I Venture Forth to Hunt", lightconeRank: "S1" },
+            { characterName: "Topaz", rank: "E0", lightconeName: "Worrisome, Blissful", lightconeRank: "S1" },
+            { characterName: "Robin", rank: "E0", lightconeName: "Flowing Nightglow", lightconeRank: "S1" },
+            { characterName: "Aventurine", rank: "E0", lightconeName: "Inherently Unjust Destiny", lightconeRank: "S1" },
         ]
     },
     {
         name: "Firefly",
         characters: [
-            { characterId: ("k97ah2ksjey5036tkqhecq9ybx7ne7b4" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn743sqwrqbv95qgxzyna1a2dd7njzv1" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Firefly + Whereabouts Should Dreams Rest
-            { characterId: ("k9750srm30azpys5shmk8qcex17neqb8" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7awbmkp1e1a5nbm0bqq6svkh7nk20v" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Fugue + Long Road Leads Home
-            { characterId: ("k97f16tew7csfmad66z3sdw9j57nfmph" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7eqt2dvfsg1dqaxsnaycj2rs7njrja" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Lingsha + Scent Alone Stays True
-            { characterId: ("k972cf91sg2p70td2m6b15c2z97nfy2z" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7d5qnrbkgdyhpdcs4g34d6d57njyfg" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Ruan Mei + Past Self in Mirror
+            { characterName: "Firefly", rank: "E0", lightconeName: "Whereabouts Should Dreams Rest", lightconeRank: "S1" },
+            { characterName: "Fugue", rank: "E0", lightconeName: "Long Road Leads Home", lightconeRank: "S1" },
+            { characterName: "Lingsha", rank: "E0", lightconeName: "Scent Alone Stays True", lightconeRank: "S1" },
+            { characterName: "Ruan Mei", rank: "E0", lightconeName: "Past Self in Mirror", lightconeRank: "S1" },
         ]
     },
     {
         name: "DoT Kafka",
         characters: [
-            { characterId: ("k974gjdammnrsd1bcbcykaw5rn7ne79d" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn79pjvc877bb7d9t16cbyapxn7nj319" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Kafka + Patience Is All You Need
-            { characterId: ("k97ewdd4gzzh1v64d7jwem2zjd7nfwkz" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn70ceg10zcz5hkwr35xja3bg97njrd5" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Hysilens + Why Does the Ocean Sing
-            { characterId: ("k97fq3ggy3ztzf7je96mh785p97nfkqj" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn70vz5aqpnjhefbmn693h7ky57nk97p" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Black Swan + Reforged Remembrance
-            { characterId: ("k9766zxwjq807p935g5sb93tfx7nfyeb" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7a1cmkeymd15zqt2ymjdqck97nk1r4" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Huohuo + Night of Fright
+            { characterName: "Kafka", rank: "E0", lightconeName: "Patience Is All You Need", lightconeRank: "S1" },
+            { characterName: "Hysilens", rank: "E0", lightconeName: "Why Does the Ocean Sing", lightconeRank: "S1" },
+            { characterName: "Black Swan", rank: "E0", lightconeName: "Reforged Remembrance", lightconeRank: "S1" },
+            { characterName: "Huohuo", rank: "E0", lightconeName: "Night of Fright", lightconeRank: "S1" },
         ]
     },
     {
         name: "The Herta",
         characters: [
-            { characterId: ("k973ahce4gjxpqkg1a3yp2v0v17nehvd" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn77qr931sske3f371c0y0r7as7nkecv" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // The Herta + Into the Unreachable Veil
-            { characterId: ("k970q9v4avaxhsap8yr9ax6twx7nf8v9" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn72nny42bcqv8qq0rd34314b97njdc4" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Anaxa + Life Should Be Cast to Flames
-            { characterId: ("k97a9wrtw2adsj4542rdjewfb97nfabr" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7dw18xba6zx1e2wh7e78g9qx7njfhb" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Tribbie + If Time Were a Flower
-            { characterId: ("k97f16tew7csfmad66z3sdw9j57nfmph" as Id<"character">), rank: ("E0" as CharacterRank), lightconeId: ("kn7eqt2dvfsg1dqaxsnaycj2rs7njrja" as Id<"lightcones">), lightconeRank: ("S1" as LightconeRank) }, // Lingsha + Scent Alone Stays True
+            { characterName: "The Herta", rank: "E0", lightconeName: "Into the Unreachable Veil", lightconeRank: "S1" },
+            { characterName: "Anaxa", rank: "E0", lightconeName: "Life Should Be Cast to Flames", lightconeRank: "S1" },
+            { characterName: "Tribbie", rank: "E0", lightconeName: "If Time Were a Flower", lightconeRank: "S1" },
+            { characterName: "Lingsha", rank: "E0", lightconeName: "Scent Alone Stays True", lightconeRank: "S1" },
         ]
     }
 ];
 
+// Helper function to convert template to actual preset team
+const convertTemplateToLoadoutTeam = (template: PresetTeamTemplate, characters: Character[], lightcones: Lightcone[]): LoadoutCharacter[] => {
+    const convertedCharacters: LoadoutCharacter[] = template.characters.map(templateChar => {
+        const character = characters.find(c => c.display_name === templateChar.characterName);
+        if (!character) {
+            console.warn(`Character not found: ${templateChar.characterName}`);
+            return null;
+        }
+
+        let lightconeId: Id<"lightcones"> | undefined;
+        if (templateChar.lightconeName) {
+            const lightcone = lightcones.find(l => l.display_name === templateChar.lightconeName);
+            if (lightcone) {
+                lightconeId = lightcone._id;
+            } else {
+                console.warn(`Lightcone not found: ${templateChar.lightconeName}`);
+            }
+        }
+
+        return {
+            characterId: character._id,
+            characterName: character.name,
+            rank: templateChar.rank,
+            lightconeId: lightconeId,
+            lightconeName: templateChar.lightconeName,
+            lightconeRank: templateChar.lightconeRank
+        };
+    }).filter(Boolean) as LoadoutCharacter[];
+
+    return convertedCharacters;
+};
+
 interface PresetTeamsDropdownProps {
-    onSelectTeam: (newTeam: DraftedCharacter[]) => void;
+    onSelectTeam: (newTeam: LoadoutCharacter[]) => void;
+    characters: Character[];
+    lightcones: Lightcone[];
 }
-const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam }) => {
+const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam, characters, lightcones }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -242,8 +282,9 @@ const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam 
     }, []);
 
     // Close dropdown when team is selected
-    const handleTeamSelect = (newTeam: DraftedCharacter[]) => {
-        onSelectTeam(newTeam);
+    const handleTeamSelect = (template: PresetTeamTemplate) => {
+        const presetTeam: LoadoutCharacter[] = convertTemplateToLoadoutTeam(template, characters, lightcones);
+        onSelectTeam(presetTeam);
         closeDropdown();
     };
 
@@ -263,13 +304,13 @@ const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam 
                     ref={dropdownRef}
                     className="preset-list"
                 >
-                    {presetTeams.map((team: PresetTeam, index: number) => (
+                    {presetTeamTemplates.map((template: PresetTeamTemplate, index: number) => (
                         <button
                             key={index}
-                            onClick={_ => handleTeamSelect(team.characters)}
+                            onClick={_ => handleTeamSelect(template)}
                             className="preset-option"
                         >
-                            <h3 className="title">{team.name}</h3>
+                            <h3 className="title">{template.name}</h3>
                         </button>
                     ))}
                 </div>
@@ -288,7 +329,7 @@ interface ConfirmationModalProps {
     cancelText?: string;
     isDangerous?: boolean;
 }
-const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     isOpen,
     onConfirm,
     onCancel,
@@ -412,19 +453,23 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
     const [showCharacters, setShowCharacters] = useState<boolean>(true); // Show character names on the cost breakdown chart
     const [showResetConfirmation, setShowResetConfirmation] = useState<boolean>(false); // Show overlay to confirm resetting Loadouts
 
-    const currentTeam: DraftedCharacter[] = loadouts[loadoutIndex]?.team || [];
+    const currentTeam: LoadoutCharacter[] = loadouts[loadoutIndex]?.team || [];
     const currentName: string = loadouts[loadoutIndex]?.name || defaultTeamName;
 
     // Initialize Loadouts and active loadout
     useEffect(() => {
-        const storedLoadouts = LoadoutManager.loadLoadouts();
-        const storedIndex = LoadoutManager.loadCurrentLoadoutIndex();
-        const lastRuleSet = LoadoutManager.getLatestRulesetView();
-        
-        setLoadouts(storedLoadouts);
-        setLoadoutIndex(storedIndex);
-        setRuleSet(lastRuleSet);
-    }, []);
+        if (characters && lightcones) {
+            LoadoutManager.refreshLoadoutIds(characters, lightcones); // Check all IDs are up to date with Database
+
+            const storedLoadouts: Loadout[] = LoadoutManager.loadLoadouts();
+            const storedIndex: number = LoadoutManager.loadCurrentLoadoutIndex();
+            const lastRuleSet: RuleSet = LoadoutManager.getLatestRulesetView();
+            
+            setLoadouts(storedLoadouts);
+            setLoadoutIndex(storedIndex);
+            setRuleSet(lastRuleSet);
+        }
+    }, [characters, lightcones]);
 
     // Save the index of last Loadout slot worked on 
     useEffect(() => {
@@ -473,7 +518,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         return map;
     }, [icons]);
 
-    const updateCurrentLoadout = (newTeam: DraftedCharacter[]) => {
+    const updateCurrentLoadout = (newTeam: LoadoutCharacter[]) => {
         setLoadouts(prev => {
             const newLoadouts = [...prev];
             newLoadouts[loadoutIndex] = {
@@ -487,8 +532,9 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
     const handleCharacterSelect = (character: Character) => {
         if (currentTeam.some(selected => selected.characterId === character._id) || currentTeam.length >= teamSize) return;
 
-        const newCharacter: DraftedCharacter = {
+        const newCharacter: LoadoutCharacter = {
             characterId: character._id,
+            characterName: character.name,
             rank: getCharacterRank(character),
         };
 
@@ -902,7 +948,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                             const drafted: DraftedCharacter = loadout.team[charIndex];
                                             if (!drafted) {
                                                 return (
-                                                    <div key={index} className="slot empty">
+                                                    <div key={charIndex} className="slot empty">
                                                         <h3>{`Empty`}</h3>
                                                     </div>
                                                 );
@@ -1013,7 +1059,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                         />
 
                         {/* Load Preset Roster */}
-                        <PresetTeamsDropdown onSelectTeam={updateCurrentLoadout} />
+                        <PresetTeamsDropdown 
+                            onSelectTeam={updateCurrentLoadout} 
+                            characters={characters}
+                            lightcones={lightcones}
+                        />
                     </div>
 
                 </div>

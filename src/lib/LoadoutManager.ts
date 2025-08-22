@@ -1,8 +1,20 @@
 import { DraftedCharacter, RuleSet } from "@/components/DraftingInterface";
 import { toast } from "sonner";
+import { Character, CharacterRank, Lightcone, LightconeRank } from "./utils";
+import { Id } from "../../convex/_generated/dataModel";
+
+export interface LoadoutCharacter {
+    characterId: Id<"character">;
+    characterName: string;
+    rank: CharacterRank;
+
+    lightconeId?: Id<"lightcones">;
+    lightconeName?: string;
+    lightconeRank?: LightconeRank;
+}
 
 export interface Loadout {
-    team: DraftedCharacter[];
+    team: LoadoutCharacter[];
     name: string; // Slot name
     notes: string;
 }
@@ -92,6 +104,35 @@ class LoadoutManager {
 
         const loadouts = this.loadLoadouts();
         return loadouts[index] || null;
+    }
+
+    public static refreshLoadoutIds(characters: Character[], lightcones: Lightcone[]): void {
+        if (!characters || !lightcones) {
+            toast.error(`Invalid characters/lightcones array`);
+            throw new Error();
+        }
+
+        const loadouts = this.loadLoadouts();
+        for (let i = 0; i < loadouts.length; i++) {
+            const currLoadout = loadouts[i];
+            for (let j = 0; j < currLoadout.team.length; j++) {
+                const currCharacter = currLoadout.team[j];
+
+                const characterDb: Character | undefined = characters.find(c => c.name === currCharacter.characterName);
+                if (characterDb && currCharacter.characterId !== characterDb?._id) {
+                    currLoadout.team = [ ...currLoadout.team, { ...currCharacter, characterId: characterDb?._id } ];
+                }
+
+                if (currCharacter.lightconeName) {
+                    const lightconeDb: Lightcone | undefined = lightcones.find(l => l.name === currCharacter.lightconeName);
+                    if (lightconeDb && currCharacter.lightconeId !== lightconeDb?._id) {
+                        currLoadout.team = [ ...currLoadout.team, { ...currCharacter, lightconeId: lightconeDb?._id } ];
+                    }
+                }
+            }
+        }
+        
+        this.saveLoadouts(loadouts);
     }
 
     // Remember the last Loadout slot worked on

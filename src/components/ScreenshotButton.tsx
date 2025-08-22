@@ -237,10 +237,11 @@ function ScreenshotButton(props: ScreenshotButtonProps): JSX.Element {
             if (child.classList.contains('slot')) {
                 const charactersContainer = child.closest('.characters-container');
                 const picksContainer = charactersContainer?.closest('.picks');
+                const bansContainer = charactersContainer?.closest('.bans');
                 
                 if (picksContainer) {
                     child.style.setProperty('height', '12rem', 'important');
-                } else {
+                } else if (!bansContainer) { // Bugfix - Apply height=100% to slots that aren't in picks/bans (TestTeam as an example)
                     child.style.setProperty('height', '100%', 'important');
                     child.style.setProperty('min-height', '100%', 'important');
                 }

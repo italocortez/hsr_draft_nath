@@ -327,7 +327,7 @@ export function CharacterPool({
             {(filteredCharacters.length === 0) && <>
                 <h3 className="info">
                     {
-                        (searchTerm || selectedRoles.length > 0 || selectedElements.length > 0) ? 
+                        (searchTerm || selectedRoles.length > 0 || selectedElements.length > 0 || selectedPaths.length > 0) ? 
                             "No characters found matching your filters."
                         :
                             "Loading characters..."

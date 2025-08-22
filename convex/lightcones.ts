@@ -3,14 +3,15 @@ import { Id } from "./_generated/dataModel";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-const mapToLightcone = (character: any): Lightcone => ({
-    _id: (character._id as Id<"lightcones">),
-    display_name: (character.display_name as string),
-    aliases: (character.aliases as string[]),
-    path: (character.path as Path),
-    cost: (character.cost as LightconeCost),
-    rarity: (character.rarity as Rarity),
-    // imageUrl: (character.imageUrl as string | undefined),
+const mapToLightcone = (lightcone: any): Lightcone => ({
+    _id: (lightcone._id as Id<"lightcones">),
+    name: (lightcone.name as string),
+    display_name: (lightcone.display_name as string),
+    aliases: (lightcone.aliases as string[]),
+    path: (lightcone.path as Path),
+    cost: (lightcone.cost as LightconeCost),
+    rarity: (lightcone.rarity as Rarity),
+    // imageUrl: (lightcone.imageUrl as string | undefined),
 });
 
 export const list = query({

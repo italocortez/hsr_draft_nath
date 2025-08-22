@@ -5,6 +5,7 @@ import { v } from "convex/values";
 
 const mapToCharacter = (character: any): Character => ({
     _id: (character._id as Id<"character">),
+    name: (character.name as string),
     display_name: (character.display_name as string),
     aliases: (character.aliases as string[]),
     element: (character.element as Element),

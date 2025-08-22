@@ -63,7 +63,7 @@ export default function App() {
     // Handle scroll to top button visibility
     useEffect(() => {
         const handleScroll = () => {
-            const scrollPercentage = 0.33; // % of Page
+            const scrollPercentage = 0.25; // % of Page
             const maximumScrollDistance = 2400; // x maximum pixels required to scroll
             
             // Reveal button after scrolling down 30% of document height OR 2400px, whichever is smaller
