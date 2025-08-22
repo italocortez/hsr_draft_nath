@@ -21,7 +21,7 @@ const ClearIcon: React.FC = () => (
 interface CharacterPoolProps {
     characters: Character[];
     selectedCharacters: SelectedCharacter[];
-    onCharacterSelect: (characterId: Id<"character">) => void;
+    onCharacterSelect: (character: Character) => void;
     currentPhase?: Turn;
     isDraftComplete: boolean;
     isDraftStarted: boolean;
@@ -152,13 +152,13 @@ export function CharacterPool({
         setSearchTerm("");
     };
 
-    const wrapCharacterSelect = (characterID: Id<"character">) => {
-        if (!isCharacterSelectable(characterID)) return;
+    const wrapCharacterSelect = (character: Character) => {
+        if (!isCharacterSelectable(character._id)) return;
 
         // Upon selecting a Character, reset all filters - ensure UI updates
         clearAllFilters();
         
-        onCharacterSelect(characterID);
+        onCharacterSelect(character);
     }
 
     const getCurrentColor = (): string => {
@@ -268,7 +268,7 @@ export function CharacterPool({
                 >
                     <ClearIcon />
 
-                    <span>{`Clear All`}</span>
+                    <span>{`Clear`}</span>
                 </button>
             </div>
 
@@ -299,7 +299,7 @@ export function CharacterPool({
                         <button
                             key={character._id}
                             className={`character ${getCharacterStatus()}`}
-                            onClick={_ => isSelectable && wrapCharacterSelect(character._id)}
+                            onClick={_ => isSelectable && wrapCharacterSelect(character)}
                             disabled={!isSelectable}
                             data-rarity={character.rarity}
                         >   

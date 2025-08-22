@@ -254,7 +254,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 					availableCharacters[
 						Math.floor(Math.random() * availableCharacters.length)
 					];
-				handleCharacterSelect(randomCharacter._id, true);
+				handleCharacterSelect(randomCharacter, true);
 			}
 		}
 	}, [
@@ -315,7 +315,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 	};
 
 	const handleCharacterSelect = (
-		characterId: Id<"character">,
+		character: Character,
 		isAutoSelect = false
 	) => {
 		if (isDraftComplete || !currentPhase) return;
@@ -323,7 +323,7 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 
 		// Check ban restrictions for ban actions
 		if (currentPhase.action === "ban" && !isAutoSelect) {
-			if (!canBanCharacter(characterId, currentPhase.team)) {
+			if (!canBanCharacter(character._id, currentPhase.team)) {
 				return; // Don't allow the ban if it violates restrictions
 			}
 		}
@@ -359,18 +359,18 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 			if (currentPhase.team === "blue") {
 				newState.blueTeam = {
 					...newState.blueTeam,
-					banned: [...newState.blueTeam.banned, characterId],
+					banned: [...newState.blueTeam.banned, character._id],
 				};
 			} else {
 				newState.redTeam = {
 					...newState.redTeam,
-					banned: [...newState.redTeam.banned, characterId],
+					banned: [...newState.redTeam.banned, character._id],
 				};
 			}
 		} else {
 			const draftedChar: DraftedCharacter = {
-				characterId,
-				rank: "E0",
+				characterId: character._id,
+				rank: getCharacterRank(character),
 			};
 
 			if (currentPhase.team === "blue") {
@@ -522,6 +522,12 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 		}));
         toast.success("Changes applied to configuration");
 	};
+
+    const getCharacterRank = (character: Character): CharacterRank => {
+        if (character.rarity !== 5) return "E6"; // Default 4-star Characters to be E6
+        if (character.display_name.startsWith("MC ")) return "E6"; // Default Trailblazer variations are E6
+        return "E0";
+    }
 
     // Keeps track of the size of the screen, and adjusts the Toolbar Overlay accordingly
     useEffect(() => {

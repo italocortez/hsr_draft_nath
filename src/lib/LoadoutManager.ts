@@ -1,4 +1,4 @@
-import { DraftedCharacter } from "@/components/DraftingInterface";
+import { DraftedCharacter, RuleSet } from "@/components/DraftingInterface";
 import { toast } from "sonner";
 
 export interface Loadout {
@@ -13,6 +13,7 @@ export const loadoutSlots = 3; // 3 loadout slots
 class LoadoutManager {
     private static readonly STORAGE_KEY = 'honkai_team_loadouts';
     private static readonly LOADOUT_INDEX_KEY = 'honkai_current_loadout_index';
+    private static readonly RULESET_VIEW_KEY = 'honkai_ruleset_view';
 
     // Save all Loadouts state
     public static saveLoadouts(loadouts: Loadout[]): void {
@@ -119,6 +120,32 @@ class LoadoutManager {
         } catch (error) {
             toast.error(`Failed to load current Loadout's index`);
             return 0;
+        }
+    }
+
+    // Load on startup the last viewed ruleset
+    public static getLatestRulesetView(): RuleSet {
+        try {
+            const stored = localStorage.getItem(this.RULESET_VIEW_KEY);
+            const ruleSet: RuleSet = (stored ? stored : "apocalypticshadow") as RuleSet;
+
+            return ruleSet;
+        } catch (error) {
+            toast.error(`Failed to load current RuleSet view`);
+            return ("apocalypticshadow" as RuleSet);
+        }
+    }
+
+    public static setLatestRulesetView(ruleSet: RuleSet): void {
+        if (!ruleSet) {
+            toast.error(`'${ruleSet}' Invalid RuleSet`);
+            return;
+        }
+
+        try {
+            localStorage.setItem(this.RULESET_VIEW_KEY, ruleSet);
+        } catch (error) {
+            toast.error(`Failed to save current RuleSet view`);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Lightcone, LightconeCost, Rarity } from "../src/lib/utils";
+import { Lightcone, LightconeCost, Path, Rarity } from "../src/lib/utils";
 import { Id } from "./_generated/dataModel";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
@@ -7,6 +7,7 @@ const mapToLightcone = (character: any): Lightcone => ({
     _id: (character._id as Id<"lightcones">),
     display_name: (character.display_name as string),
     aliases: (character.aliases as string[]),
+    path: (character.path as Path),
     cost: (character.cost as LightconeCost),
     rarity: (character.rarity as Rarity),
     // imageUrl: (character.imageUrl as string | undefined),

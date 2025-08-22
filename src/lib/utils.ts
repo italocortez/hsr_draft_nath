@@ -48,6 +48,7 @@ export interface Lightcone {
     _id: Id<"lightcones">;
     display_name: string;
     aliases: string[];
+    path: Path;
     cost: LightconeCost;
     rarity: Rarity;
     imageUrl?: string | undefined;

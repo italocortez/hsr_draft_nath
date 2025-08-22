@@ -1,0 +1,15 @@
+.CostTables {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.CostTables > .table {
+    padding: 1.5rem;
+}
+
+.CostTables > .table > .header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
