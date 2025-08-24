@@ -64,6 +64,7 @@ interface DraftControlsProps {
     onReset: () => void;
     onStartDraft: () => void;
     onPauseDraft: () => void;
+    currentPhase: Turn;
     isDraftComplete: boolean;
     canUndo: boolean;
 
