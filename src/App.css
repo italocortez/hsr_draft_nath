@@ -64,8 +64,8 @@
     right: 3rem;
     z-index: 1000;
     
-    width: clamp(2.75rem, 5vw, 3.5rem);
-    height: clamp(2.75rem, 5vw, 3.5rem);
+    width: 3.5rem;
+    height: 3.5rem;
     
     display: flex;
     align-items: center;

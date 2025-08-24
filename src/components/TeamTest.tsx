@@ -5,13 +5,14 @@ import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
 import LightconeSelector from "./LightconeSelector";
 import { Character, CharacterRank, Eidolons, Element, Lightcone, LightconeRank, Path, SuperImpositions, UniqueElements, UniquePaths } from "@/lib/utils";
-import LoadoutManager, { Loadout, teamSize } from "@/lib/LoadoutManager";
+import LoadoutManager, { Loadout, LoadoutCharacter, teamSize } from "@/lib/LoadoutManager";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Bar } from 'react-chartjs-2';
 import ScreenshotButton from "./ScreenshotButton";
+import { createPortal } from "react-dom";
 
 ChartJS.register(CategoryScale,LinearScale,BarElement,Title,Tooltip,Legend,ChartDataLabels);
 
@@ -136,12 +137,7 @@ interface PresetTeam {
 
 interface PresetTeamTemplate {
     name: string;
-    characters: Array<{
-        characterName: string;
-        rank: CharacterRank;
-        lightconeName?: string;
-        lightconeRank?: LightconeRank;
-    }>;
+    characters: Partial<LoadoutCharacter>[];
 }
 
 const presetTeamTemplates: PresetTeamTemplate[] = [
@@ -155,7 +151,7 @@ const presetTeamTemplates: PresetTeamTemplate[] = [
         ]
     },
     {
-        name: "Castorice Hypercarry",
+        name: "Castorice",
         characters: [
             { characterName: "Castorice", rank: "E0", lightconeName: "Make Farewells More Beautiful", lightconeRank: "S1" },
             { characterName: "Tribbie", rank: "E0", lightconeName: "If Time Were a Flower", lightconeRank: "S1" },
@@ -191,7 +187,7 @@ const presetTeamTemplates: PresetTeamTemplate[] = [
         ]
     },
     {
-        name: "Premium FuA",
+        name: "Feixiao",
         characters: [
             { characterName: "Feixiao", rank: "E0", lightconeName: "I Venture Forth to Hunt", lightconeRank: "S1" },
             { characterName: "Topaz", rank: "E0", lightconeName: "Worrisome, Blissful", lightconeRank: "S1" },
@@ -200,7 +196,7 @@ const presetTeamTemplates: PresetTeamTemplate[] = [
         ]
     },
     {
-        name: "Firefly Super Break",
+        name: "Firefly",
         characters: [
             { characterName: "Firefly", rank: "E0", lightconeName: "Whereabouts Should Dreams Rest", lightconeRank: "S1" },
             { characterName: "Fugue", rank: "E0", lightconeName: "Long Road Leads Home", lightconeRank: "S1" },
@@ -209,7 +205,7 @@ const presetTeamTemplates: PresetTeamTemplate[] = [
         ]
     },
     {
-        name: "DoT",
+        name: "DoT Kafka",
         characters: [
             { characterName: "Kafka", rank: "E0", lightconeName: "Patience Is All You Need", lightconeRank: "S1" },
             { characterName: "Hysilens", rank: "E0", lightconeName: "Why Does the Ocean Sing", lightconeRank: "S1" },
@@ -229,9 +225,9 @@ const presetTeamTemplates: PresetTeamTemplate[] = [
 ];
 
 // Helper function to convert template to actual preset team
-const convertTemplateToPresetTeam = (template: PresetTeamTemplate, characters: Character[], lightcones: Lightcone[]): PresetTeam => {
-    const convertedCharacters: DraftedCharacter[] = template.characters.map(templateChar => {
-        const character = characters.find(c => c.display_name === templateChar.characterName || c.name === templateChar.characterName);
+const convertTemplateToLoadoutTeam = (template: PresetTeamTemplate, characters: Character[], lightcones: Lightcone[]): LoadoutCharacter[] => {
+    const convertedCharacters: LoadoutCharacter[] = template.characters.map(templateChar => {
+        const character = characters.find(c => c.display_name === templateChar.characterName);
         if (!character) {
             console.warn(`Character not found: ${templateChar.characterName}`);
             return null;
@@ -239,7 +235,7 @@ const convertTemplateToPresetTeam = (template: PresetTeamTemplate, characters: C
 
         let lightconeId: Id<"lightcones"> | undefined;
         if (templateChar.lightconeName) {
-            const lightcone = lightcones.find(l => l.display_name === templateChar.lightconeName || l.name === templateChar.lightconeName);
+            const lightcone = lightcones.find(l => l.display_name === templateChar.lightconeName);
             if (lightcone) {
                 lightconeId = lightcone._id;
             } else {
@@ -249,20 +245,19 @@ const convertTemplateToPresetTeam = (template: PresetTeamTemplate, characters: C
 
         return {
             characterId: character._id,
+            characterName: character.name,
             rank: templateChar.rank,
-            lightconeId,
+            lightconeId: lightconeId,
+            lightconeName: templateChar.lightconeName,
             lightconeRank: templateChar.lightconeRank
         };
-    }).filter(Boolean) as DraftedCharacter[];
+    }).filter(Boolean) as LoadoutCharacter[];
 
-    return {
-        name: template.name,
-        characters: convertedCharacters
-    };
+    return convertedCharacters;
 };
 
 interface PresetTeamsDropdownProps {
-    onSelectTeam: (newTeam: DraftedCharacter[]) => void;
+    onSelectTeam: (newTeam: LoadoutCharacter[]) => void;
     characters: Character[];
     lightcones: Lightcone[];
 }
@@ -288,8 +283,8 @@ const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam,
 
     // Close dropdown when team is selected
     const handleTeamSelect = (template: PresetTeamTemplate) => {
-        const presetTeam = convertTemplateToPresetTeam(template, characters, lightcones);
-        onSelectTeam(presetTeam.characters);
+        const presetTeam: LoadoutCharacter[] = convertTemplateToLoadoutTeam(template, characters, lightcones);
+        onSelectTeam(presetTeam);
         closeDropdown();
     };
 
@@ -324,6 +319,123 @@ const PresetTeamsDropdown: React.FC<PresetTeamsDropdownProps> = ({ onSelectTeam,
     );
 };
 
+interface ConfirmationModalProps {
+    isOpen: boolean;
+    onConfirm: () => void;
+    onCancel: () => void;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDangerous?: boolean;
+}
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+    isOpen,
+    onConfirm,
+    onCancel,
+    title,
+    message,
+    confirmText = "Confirm",
+    cancelText = "Cancel",
+    isDangerous = false
+}) => {
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Create or get the portal container
+            let container = document.getElementById('confirmation-modal-portal');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'confirmation-modal-portal';
+                document.body.appendChild(container);
+            }
+            setPortalContainer(container);
+        }
+
+        // Cleanup: remove container when component unmounts
+        return () => {
+            if (!isOpen) {
+                const existingContainer = document.getElementById('confirmation-modal-portal');
+                if (existingContainer && existingContainer.children.length === 0) {
+                    document.body.removeChild(existingContainer);
+                }
+            }
+        };
+    }, [isOpen]);
+
+    // Handle escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onCancel();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [isOpen, onCancel]);
+
+    // Fix for preventing accidental modal closure when dragging text selection outside modal
+    const handleOverlayMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Only track mousedown if it's directly on the overlay (not on modal content)
+        if (e.target === e.currentTarget) {
+            (e.currentTarget as HTMLDivElement).dataset.mousedownOnOverlay = 'true';
+        }
+    };
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Only close if both mousedown and click happened on the overlay
+        if (e.target === e.currentTarget && 
+            (e.currentTarget as HTMLDivElement).dataset.mousedownOnOverlay === 'true') {
+            onCancel();
+        }
+        // Clear the flag
+        delete (e.currentTarget as HTMLDivElement).dataset.mousedownOnOverlay;
+    };
+
+    if (!isOpen || !portalContainer) {
+        return (<></>);
+    }
+    return createPortal(
+        <div 
+            className="confirmation-overlay"
+            onMouseDown={handleOverlayMouseDown}
+            onClick={handleOverlayClick} 
+        >
+            <div className="confirmation-modal Box">
+                <h2 className="confirmation-title">
+                    {title}
+                </h2>
+                
+                <p className="confirmation-message">
+                    {message}
+                </p>
+                
+                <div className="confirmation-actions">
+                    <button
+                        onClick={onCancel}
+                        className="button confirmation-cancel"
+                    >
+                        {cancelText}
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className={`button confirmation-confirm ${isDangerous ? 'dangerous' : ''}`}
+                    >
+                        {confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>,
+        portalContainer
+    );
+};
+
 interface TeamTestProps {
     characters: Character[];
     lightcones: Lightcone[];
@@ -331,31 +443,43 @@ interface TeamTestProps {
 
 export function TeamTest({ characters, lightcones }: TeamTestProps) {
     const icons = useQuery(api.icons.list) || [];
-    const [ruleSet, setRuleSet] = useState<RuleSet>("memoryofchaos");
-    
-    const [currentLoadoutIndex, setCurrentLoadoutIndex] = useState<number>(LoadoutManager.loadCurrentLoadoutIndex());
     const [loadouts, setLoadouts] = useState<Loadout[]>(LoadoutManager.loadLoadouts());
+    const [loadoutIndex, setLoadoutIndex] = useState<number>(LoadoutManager.loadCurrentLoadoutIndex());
+    const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.getLatestRulesetView());
     
-    const defaultTeamName: string = `Team ${(currentLoadoutIndex ?? 0) + 1}`;
-    const [editingName, setEditingName] = useState<boolean>(false);
-    const [tempName, setTempName] = useState<string>(loadouts[currentLoadoutIndex]?.name);
+    const defaultTeamName: string = `Team ${(loadoutIndex ?? 0) + 1}`;
+    const [editingName, setEditingName] = useState<boolean>(false); // Is User currently editing a Loadout's name
+    const [tempName, setTempName] = useState<string>(loadouts[loadoutIndex]?.name); // Temporary field for editing a Loadout's name
+    const [showCharacters, setShowCharacters] = useState<boolean>(true); // Show character names on the cost breakdown chart
+    const [showResetConfirmation, setShowResetConfirmation] = useState<boolean>(false); // Show overlay to confirm resetting Loadouts
 
-    const currentTeam: DraftedCharacter[] = loadouts[currentLoadoutIndex]?.team || [];
-    const currentName: string = loadouts[currentLoadoutIndex]?.name || defaultTeamName;
+    const currentTeam: LoadoutCharacter[] = loadouts[loadoutIndex]?.team || [];
+    const currentName: string = loadouts[loadoutIndex]?.name || defaultTeamName;
 
     // Initialize Loadouts and active loadout
     useEffect(() => {
-        const storedLoadouts = LoadoutManager.loadLoadouts();
-        const storedIndex = LoadoutManager.loadCurrentLoadoutIndex();
-        
-        setLoadouts(storedLoadouts);
-        setCurrentLoadoutIndex(storedIndex);
-    }, []);
+        if (characters && lightcones) {
+            LoadoutManager.refreshLoadoutIds(characters, lightcones); // Check all IDs are up to date with Database
+
+            const storedLoadouts: Loadout[] = LoadoutManager.loadLoadouts();
+            const storedIndex: number = LoadoutManager.loadCurrentLoadoutIndex();
+            const lastRuleSet: RuleSet = LoadoutManager.getLatestRulesetView();
+            
+            setLoadouts(storedLoadouts);
+            setLoadoutIndex(storedIndex);
+            setRuleSet(lastRuleSet);
+        }
+    }, [characters, lightcones]);
 
     // Save the index of last Loadout slot worked on 
     useEffect(() => {
-        LoadoutManager.saveCurrentLoadoutIndex(currentLoadoutIndex);
-    }, [currentLoadoutIndex]);
+        LoadoutManager.saveCurrentLoadoutIndex(loadoutIndex);
+    }, [loadoutIndex]);
+
+    // Save the Last Rule Set viewed
+    useEffect(() => {
+        LoadoutManager.setLatestRulesetView(ruleSet);
+    }, [ruleSet]);
 
     // Upon updating a team, sync changes with data stored in localStorage
     useEffect(() => {
@@ -394,23 +518,24 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         return map;
     }, [icons]);
 
-    const updateCurrentLoadout = (newTeam: DraftedCharacter[]) => {
+    const updateCurrentLoadout = (newTeam: LoadoutCharacter[]) => {
         setLoadouts(prev => {
             const newLoadouts = [...prev];
-            newLoadouts[currentLoadoutIndex] = {
-                ...newLoadouts[currentLoadoutIndex],
+            newLoadouts[loadoutIndex] = {
+                ...newLoadouts[loadoutIndex],
                 team: newTeam
             };
             return newLoadouts;
         });
     };
 
-    const handleCharacterSelect = (characterId: Id<"character">) => {
-        if (currentTeam.some(selected => selected.characterId === characterId) || currentTeam.length >= teamSize) return;
+    const handleCharacterSelect = (character: Character) => {
+        if (currentTeam.some(selected => selected.characterId === character._id) || currentTeam.length >= teamSize) return;
 
-        const newCharacter: DraftedCharacter = {
-            characterId,
-            rank: "E0",
+        const newCharacter: LoadoutCharacter = {
+            characterId: character._id,
+            characterName: character.name,
+            rank: getCharacterRank(character),
         };
 
         updateCurrentLoadout([...currentTeam, newCharacter]);
@@ -428,17 +553,20 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
     };
 
     const handleLoadoutChange = (newIndex: number) => {
-        setCurrentLoadoutIndex(newIndex);
+        setLoadoutIndex(newIndex);
     };
 
     const handleClearCurrentLoadout = () => {
         updateCurrentLoadout([]);
     };
-
-    const handleClearAllLoadouts = () => {
+    
+    const handleClearAllLoadouts = () => setShowResetConfirmation(true);
+    const handleCancelReset = () => setShowResetConfirmation(false);
+    const handleConfirmResetAll = () => {
         const clearedLoadouts = LoadoutManager.getDefaultLoadouts();
         setLoadouts(clearedLoadouts);
-        setCurrentLoadoutIndex(0);
+        setLoadoutIndex(0);
+        setShowResetConfirmation(false);
     };
 
     const getTotalCostForMode = (ruleSet: RuleSet): number => {
@@ -459,7 +587,11 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
         }, 0);
     };
 
-    const handleSwitchMode = () => setRuleSet(prev => (prev === "memoryofchaos") ? "apocalypticshadow" : "memoryofchaos");
+    const getCharacterRank = (character: Character): CharacterRank => {
+        if (character.rarity !== 5) return "E6"; // Default 4-star Characters to be E6
+        if (character.display_name.startsWith("MC ")) return "E6"; // Default Trailblazer variations are E6
+        return "E0";
+    }
     
     const getChartCharacterColor = (): string => {
         if (ruleSet === "memoryofchaos") return `#3b82f6`;
@@ -483,8 +615,8 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
         setLoadouts(prev => {
             const newLoadouts = [...prev];
-            newLoadouts[currentLoadoutIndex] = {
-                ...newLoadouts[currentLoadoutIndex],
+            newLoadouts[loadoutIndex] = {
+                ...newLoadouts[loadoutIndex],
                 name: finalName
             };
             return newLoadouts;
@@ -618,9 +750,9 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
                         {/* Switch to view MoC/AS cost */}
                         <button
-                            onClick={handleSwitchMode}
+                            onClick={_ => setRuleSet(prev => (prev === "memoryofchaos") ? "apocalypticshadow" : "memoryofchaos")}
                             className={`mode-switch ${ruleSet}`}
-                            title={`Switch to ${ruleSet === "memoryofchaos" ? `Apocalyptic Shadow` : `Memory of Chaos`} view`}
+                            title={`Switch to ${(ruleSet === "memoryofchaos") ? `Apocalyptic Shadow` : `Memory of Chaos`} rules`}
                         >
                             <div className="track-bar"/>
 
@@ -638,7 +770,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                 style={{ position: `absolute`, bottom: 0, left: 0, height: `100%`, width: `100%` }}
 
                                 data={{
-                                    labels: currentTeam.map(drafted => characters.find(c => c._id === drafted.characterId)?.display_name || "Unknown"),
+                                    labels: currentTeam.map(drafted => showCharacters ? (characters.find(c => c._id === drafted.characterId)?.display_name || "Unknown") : "■".repeat(Math.min(Math.ceil((characters.find(c => c._id === drafted.characterId)?.display_name.length || 3) / 3), 5)) ),
 
                                     datasets: [
                                         {
@@ -801,13 +933,13 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             {loadouts.map((loadout: Loadout, index: number) => (
                                 <button
                                     key={index}
-                                    disabled={index === currentLoadoutIndex}
+                                    disabled={index === loadoutIndex}
                                     onClick={_ => handleLoadoutChange(index)}
                                     className="team-option"
                                 >
                                     {/* Loadout Name */}
-                                    <h3 className="title" style={{ color: (index === currentLoadoutIndex) ? `rgb(229, 203, 148)` : `` }}>
-                                        {`${loadout.name}${(index === currentLoadoutIndex) ? ` (Selected)` : ``}`}
+                                    <h3 className="title" style={{ color: (index === loadoutIndex) ? `rgb(229, 203, 148)` : `` }}>
+                                        {`${loadout.name}${(index === loadoutIndex) ? ` (Selected)` : ``}`}
                                     </h3>
                                     
                                     {/* Loadout Roster */}
@@ -816,7 +948,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                             const drafted: DraftedCharacter = loadout.team[charIndex];
                                             if (!drafted) {
                                                 return (
-                                                    <div key={index} className="slot empty">
+                                                    <div key={charIndex} className="slot empty">
                                                         <h3>{`Empty`}</h3>
                                                     </div>
                                                 );
@@ -890,12 +1022,15 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                         {/* Download Clipboard */}
                         <ScreenshotButton action="download" targetElementId="loadout" />
 
-                        {/* Load Preset Roster */}
-                        <PresetTeamsDropdown 
-                            onSelectTeam={updateCurrentLoadout} 
-                            characters={characters}
-                            lightcones={lightcones}
-                        />
+                        {/* Toggle Character Names Visibility */}
+                        <button
+                            onClick={_ => setShowCharacters(prev => !prev)}
+                            className="button toggle-names"
+                            data-hidden={!showCharacters}
+                            title={showCharacters ? "Hide Character Names in Breakdown" : "Show Character Names in Breakdown"}
+                        >
+                            {showCharacters ? "Hide Names" : "Show Names"}
+                        </button>
                         
                         {/* Clear button */}
                         <button
@@ -905,12 +1040,30 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             {`Remove all`}
                         </button>
 
+                        {/* Reset All Loadouts Button + Confirmation Modal */}
                         <button
                             onClick={handleClearAllLoadouts}
                             className="button reset-all"
                         >
                             {`Reset All Loadouts`}
                         </button>
+                        <ConfirmationModal
+                            isOpen={showResetConfirmation}
+                            onConfirm={handleConfirmResetAll}
+                            onCancel={handleCancelReset}
+                            title="Reset All Loadouts"
+                            message="This action cannot be undone and will permanently delete all your saved loadouts"
+                            confirmText="Reset All"
+                            cancelText="Cancel"
+                            isDangerous
+                        />
+
+                        {/* Load Preset Roster */}
+                        <PresetTeamsDropdown 
+                            onSelectTeam={updateCurrentLoadout} 
+                            characters={characters}
+                            lightcones={lightcones}
+                        />
                     </div>
 
                 </div>
@@ -920,16 +1073,16 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                     <div className="notes-header">
                         <h3 className="text-white font-medium">Notes</h3>
                         <span className="text-gray-400 text-sm">
-                            {(loadouts[currentLoadoutIndex]?.notes || "").length}/1000
+                            {(loadouts[loadoutIndex]?.notes || "").length}/1000
                         </span>
                     </div>
                     <textarea
-                        value={loadouts[currentLoadoutIndex]?.notes || ""}
+                        value={loadouts[loadoutIndex]?.notes || ""}
                         onChange={(e) => {
                             if (e.target.value.length <= 1000) {
                                 const newLoadouts = [...loadouts];
-                                newLoadouts[currentLoadoutIndex] = {
-                                    ...newLoadouts[currentLoadoutIndex],
+                                newLoadouts[loadoutIndex] = {
+                                    ...newLoadouts[loadoutIndex],
                                     notes: e.target.value
                                 };
                                 setLoadouts(newLoadouts);

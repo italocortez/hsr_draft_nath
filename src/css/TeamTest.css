@@ -258,12 +258,12 @@
     
     transition: 400ms all ease;
 }
-.TeamTest > .main > .cost-breakdown > .header > .mode-switch.memoryofchaos > .thumb {
-    background-color: rgb(59, 130, 246);
-    transform: translateY(-50%) translateX(0);
-}
 .TeamTest > .main > .cost-breakdown > .header > .mode-switch.apocalypticshadow > .thumb {
     background-color: rgb(139, 92, 246);
+    transform: translateY(-50%) translateX(0);
+}
+.TeamTest > .main > .cost-breakdown > .header > .mode-switch.memoryofchaos > .thumb {
+    background-color: rgb(59, 130, 246);
     transform: translateY(-50%) translateX(2rem);
 }
 
@@ -482,7 +482,7 @@
     transition: all 300ms;
 }
 .TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option:not(:disabled):hover {
-    background-color: rgb(75, 85, 99);
+    background-color: rgba(75, 85, 99, 0.5);
     border-color: rgb(203, 206, 211);
     box-shadow: 0px 0px 4px 2px rgba(255, 255, 255, 0.66);
 }
@@ -582,8 +582,23 @@
     transition: all 200ms ease;
 }
 
+/* Hide Character Name Visibility Button */
+.TeamTest .controls .content .button.toggle-names {
+    background-color: rgb(22, 163, 74); 
+}
+.TeamTest .controls .content .button.toggle-names:hover {
+    background-color: rgb(21, 128, 61);
+}
+.TeamTest .controls .content .button.toggle-names[data-hidden="true"] {
+    background-color: rgb(107, 114, 128);
+}
+.TeamTest .controls .content .button.toggle-names[data-hidden="true"]:hover {
+    background-color: rgb(75, 85, 99);
+}
+
 /* Clear Current Roster Button */
 .TeamTest > .main > .controls > .content .button.clear {
+    min-width: 8rem;
     background-color: rgb(220, 38, 38);
 }
 .TeamTest > .main > .controls > .content .button.clear:hover:not(:disabled), .TeamTest > .main > .controls > .content .button.clear:active:not(:disabled) {
@@ -596,6 +611,86 @@
 }
 .TeamTest > .main > .controls > .content .button.reset-all:hover:not(:disabled), .TeamTest > .main > .controls > .content .button.reset-all:active:not(:disabled) {
     background-color: rgb(180, 83, 9);
+}
+
+/* Confirm Reset all Loadouts - Overlay */
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(0, 0, 0, 0.66);
+    backdrop-filter: blur(0.375rem);
+}
+
+/* Confirm Reset all Loadouts - Content */
+.confirmation-overlay > .confirmation-modal {
+    width: min(90%, 30rem);
+    max-height: 80vh;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    padding: 1.5rem;
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.5);
+    animation: grow-fade-in 300ms ease;
+}
+
+/* Confirm Reset all Loadouts - Header */
+.confirmation-overlay > .confirmation-modal > .confirmation-title {
+    font-size: 1.375rem;
+    font-weight: bold;
+}
+
+/* Confirm Reset all Loadouts - Body */
+.confirmation-overlay > .confirmation-modal > .confirmation-message {
+    color: rgb(209, 213, 219);
+}
+
+/* Confirm Reset all Loadouts - Footer */
+.confirmation-overlay > .confirmation-modal > .confirmation-actions {
+    display: flex;
+    gap: 0.75rem;
+    /* padding: 0 1.5rem 1.5rem 1.5rem; */
+    justify-content: flex-end;
+}
+
+/* Confirm Reset all Loadouts - Buttons */
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .button {
+    padding: 0.5rem 1rem;
+
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.16);
+
+    transition: all 200ms ease;
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-cancel {
+    background-color: rgb(60, 70, 86);
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-cancel:hover {
+    background-color: rgb(75, 85, 99);
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-confirm {
+    background-color: rgb(8, 145, 178);
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-confirm:hover {
+    background-color: rgb(6, 126, 154);
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-confirm.dangerous {
+    background-color: rgb(220, 38, 38);
+}
+.confirmation-overlay > .confirmation-modal > .confirmation-actions .confirmation-confirm.dangerous:hover {
+    background-color: rgb(185, 28, 28);
 }
 
 /* Select Preset Container */
@@ -616,8 +711,10 @@
 .TeamTest > .main > .controls > .content > .preset-teams > .preset-list {
     position: absolute;
     top: 3rem;
-    left: -3rem;
-    width: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 20rem;
     z-index: 100;
 
     display: flex;
@@ -634,7 +731,8 @@
     content: '';
     position: absolute;
     top: -1rem;
-    left: 8rem;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 101;
     
     width: 0;
@@ -653,7 +751,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    padding: 1rem;
+    padding: 1rem 0.5rem;
     text-align: start;
     font-size: 1.25rem;
     border: 2px solid transparent;

@@ -1,8 +1,20 @@
-import { DraftedCharacter } from "@/components/DraftingInterface";
+import { DraftedCharacter, RuleSet } from "@/components/DraftingInterface";
 import { toast } from "sonner";
+import { Character, CharacterRank, Lightcone, LightconeRank } from "./utils";
+import { Id } from "../../convex/_generated/dataModel";
+
+export interface LoadoutCharacter {
+    characterId: Id<"character">;
+    characterName: string;
+    rank: CharacterRank;
+
+    lightconeId?: Id<"lightcones">;
+    lightconeName?: string;
+    lightconeRank?: LightconeRank;
+}
 
 export interface Loadout {
-    team: DraftedCharacter[];
+    team: LoadoutCharacter[];
     name: string; // Slot name
     notes: string;
 }
@@ -13,6 +25,7 @@ export const loadoutSlots = 3; // 3 loadout slots
 class LoadoutManager {
     private static readonly STORAGE_KEY = 'honkai_team_loadouts';
     private static readonly LOADOUT_INDEX_KEY = 'honkai_current_loadout_index';
+    private static readonly RULESET_VIEW_KEY = 'honkai_ruleset_view';
 
     // Save all Loadouts state
     public static saveLoadouts(loadouts: Loadout[]): void {
@@ -93,6 +106,35 @@ class LoadoutManager {
         return loadouts[index] || null;
     }
 
+    public static refreshLoadoutIds(characters: Character[], lightcones: Lightcone[]): void {
+        if (!characters || !lightcones) {
+            toast.error(`Invalid characters/lightcones array`);
+            throw new Error();
+        }
+
+        const loadouts = this.loadLoadouts();
+        for (let i = 0; i < loadouts.length; i++) {
+            const currLoadout = loadouts[i];
+            for (let j = 0; j < currLoadout.team.length; j++) {
+                const currCharacter = currLoadout.team[j];
+
+                const characterDb: Character | undefined = characters.find(c => c.name === currCharacter.characterName);
+                if (characterDb && currCharacter.characterId !== characterDb?._id) {
+                    currLoadout.team = [ ...currLoadout.team, { ...currCharacter, characterId: characterDb?._id } ];
+                }
+
+                if (currCharacter.lightconeName) {
+                    const lightconeDb: Lightcone | undefined = lightcones.find(l => l.name === currCharacter.lightconeName);
+                    if (lightconeDb && currCharacter.lightconeId !== lightconeDb?._id) {
+                        currLoadout.team = [ ...currLoadout.team, { ...currCharacter, lightconeId: lightconeDb?._id } ];
+                    }
+                }
+            }
+        }
+        
+        this.saveLoadouts(loadouts);
+    }
+
     // Remember the last Loadout slot worked on
     // setLatestTeamIndex
     public static saveCurrentLoadoutIndex(index: number): void {
@@ -119,6 +161,32 @@ class LoadoutManager {
         } catch (error) {
             toast.error(`Failed to load current Loadout's index`);
             return 0;
+        }
+    }
+
+    // Load on startup the last viewed ruleset
+    public static getLatestRulesetView(): RuleSet {
+        try {
+            const stored = localStorage.getItem(this.RULESET_VIEW_KEY);
+            const ruleSet: RuleSet = (stored ? stored : "apocalypticshadow") as RuleSet;
+
+            return ruleSet;
+        } catch (error) {
+            toast.error(`Failed to load current RuleSet view`);
+            return ("apocalypticshadow" as RuleSet);
+        }
+    }
+
+    public static setLatestRulesetView(ruleSet: RuleSet): void {
+        if (!ruleSet) {
+            toast.error(`'${ruleSet}' Invalid RuleSet`);
+            return;
+        }
+
+        try {
+            localStorage.setItem(this.RULESET_VIEW_KEY, ruleSet);
+        } catch (error) {
+            toast.error(`Failed to save current RuleSet view`);
         }
     }
 }

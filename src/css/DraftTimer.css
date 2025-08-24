@@ -90,7 +90,7 @@
     color: rgb(250, 204, 21);
     font-weight: bold;
     line-height: 1.875rem;
-    transform: translateY(-0.625rem);
+    transform: translateY(-0.5rem);
 }
 .DraftTimer > .content > .draft-status > .draft-complete {
     text-align: center;
@@ -123,6 +123,6 @@
         align-self: center;
     }
     .DraftTimer > .content > .draft-status > .begin-draft, .DraftTimer > .content > .draft-status > .draft-complete {
-        transform: translateY(0.5rem);
+        transform: translateY(0.625rem);
     }
 }

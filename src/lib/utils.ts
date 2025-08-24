@@ -35,7 +35,8 @@ export type LightconeCost = { S1: number, S2: number, S3: number, S4: number, S5
 
 export interface Character {
     _id: Id<"character">;
-    display_name: string;
+    name: string; // ruanmei
+    display_name: string; // Ruan Mei
     aliases: string[];
     element: Element;
     path: Path;
@@ -46,8 +47,10 @@ export interface Character {
 }
 export interface Lightcone {
     _id: Id<"lightcones">;
-    display_name: string;
+    name: string; // agroundedascent
+    display_name: string; // A Grounded Ascent
     aliases: string[];
+    path: Path;
     cost: LightconeCost;
     rarity: Rarity;
     imageUrl?: string | undefined;
