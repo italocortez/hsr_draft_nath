@@ -104,7 +104,7 @@ const DownloadIcon: React.FC = () => (
         />
     </svg>
 );
-const LoadingSpinner: React.FC = () => (
+export const LoadingSpinner: React.FC = () => (
     <svg 
         width="1.375rem" 
         height="1.375rem" 
