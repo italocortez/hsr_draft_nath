@@ -67,7 +67,7 @@ function SortIcon({ direction, isActive }: { direction?: SortDirection; isActive
 
 export function CostTables({ characters, lightcones }: CostTablesProps) {
     const icons = useQuery(api.icons.list) || [];
-    const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.getLatestRulesetView()); // Last viewed RuleSet - Doesn't update on switch
+    const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.loadRulesetView()); // Last viewed RuleSet - Doesn't update on switch
 
     // Character sorting
     const [characterSelectedRoles, setCharacterSelectedRoles] = useState<Role[]>([]);
