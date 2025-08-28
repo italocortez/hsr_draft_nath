@@ -507,17 +507,19 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                         alt={character.display_name}
                                     />
 
+                                    <div className={`block-character-portrait ${!showCharacters ? `active` : ``}`} />
+
+                                    {/* Clear button */}
+                                    <button
+                                        onClick={_ => handleRemoveMember(index)}
+                                        className="clear-button"
+                                        title={`Remove ${character.display_name}`}
+                                    >
+                                        <ClearIcon />
+                                    </button>
+
                                     {/* Character info */}
                                     <div className="character">
-                                        {/* Clear button */}
-                                        <button
-                                            onClick={_ => handleRemoveMember(index)}
-                                            className="clear-button"
-                                            title={`Remove ${character.display_name}`}
-                                        >
-                                            <ClearIcon />
-                                        </button>
-
                                         {/* Element */}
                                         <img
                                             src={elementIconUrl}
@@ -862,7 +864,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             data-hidden={!showCharacters}
                             title={showCharacters ? "Hide Character Names in Breakdown" : "Show Character Names in Breakdown"}
                         >
-                            {showCharacters ? "Hide Names" : "Show Names"}
+                            {showCharacters ? "Hide Team" : "Show Team"}
                         </button>
                         
                         {/* Clear button */}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DraftedCharacter, RuleSet, DraftSettings, DraftMode, TeamState } from "./DraftingInterface";
+import { DraftedCharacter, RuleSet, DraftSettings, DraftMode, TeamState, DraftState } from "./DraftingInterface";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/TeamArea.css";
 import LightconeSelector from "./LightconeSelector";
@@ -20,6 +20,8 @@ interface TeamAreaProps {
     draftMode: DraftMode;
     isDraftStarted?: boolean;
     currentPhase?: Turn;
+    currentDraftOrder?: Turn[];
+    draftState: DraftState;
 }
 
 interface MoCResultData {
@@ -119,7 +121,9 @@ export function TeamArea({
     resetTrigger,
     draftMode,
     isDraftStarted = false,
-    currentPhase
+    currentPhase,
+    currentDraftOrder,
+    draftState
 }: TeamAreaProps) {
     const [editingName, setEditingName] = useState<boolean>(false);
     const [tempName, setTempName] = useState<string>(teamData.name);
@@ -431,6 +435,31 @@ export function TeamArea({
 
     const highlightRoster = (): boolean => ((currentPhase?.team === team) && isDraftStarted && !isDraftComplete) || false;
 
+    const getDraftStepNumbers = (actionType: Action): number[] => {
+        if (!currentDraftOrder || currentDraftOrder.length === 0) return [];
+        return currentDraftOrder
+            .map((turn, index) => ({ turn, step: index }))
+            .filter(({ turn }) => turn.team === team && turn.action === actionType)
+            .map(({ step }) => step + 1);
+    };
+    const pickStepNumbers: number[] = getDraftStepNumbers("pick" as Action);
+    const banStepNumbers: number[] = getDraftStepNumbers("ban" as Action);
+
+    const isNextInDraftOrder = (actionType: Action): boolean => {
+        if (!currentDraftOrder || currentDraftOrder.length === 0 || isDraftComplete) {
+            return false;
+        }
+        
+        // Calculate current step index based on total actions taken
+        const totalPicksAndBans = teamData.drafted.length + teamData.banned.length + (opponentTeamData?.drafted.length || 0) + (opponentTeamData?.banned.length || 0) + 1;
+        
+        const nextStepIndex = totalPicksAndBans;
+        if (nextStepIndex >= currentDraftOrder.length) return false;
+        
+        const nextStep = currentDraftOrder[nextStepIndex];
+        return nextStep.team === team && nextStep.action === actionType;
+    };
+
     const renderRosterTab = () => (
 		<div className="roster">
 			{/* Picked characters */}
@@ -444,11 +473,39 @@ export function TeamArea({
 				<div className="characters-container">
 					{Array.from({ length: 8 }).map((_, index) => {
 						const drafted: DraftedCharacter = teamData.drafted[index];
-                        const isNextSlot = highlightRoster() && (currentPhase?.action === "pick") && (index === teamData.drafted.length);
+                        const isCurrentSlot = highlightRoster() && (currentPhase?.action === "pick") && (index === teamData.drafted.length);
+
+                        // For next-up: if it's the same team doing consecutive picks, highlight the slot after current
+                        // If it's cross-team, highlight the first empty slot for this team
+                        const isNextSlot = isDraftStarted && isNextInDraftOrder("pick" as Action) && (
+                            
+                            // Ugly fix for consecutive picks
+                            (highlightRoster() && currentPhase?.action === "pick") 
+                                ? (index === teamData.drafted.length + 1) // Same team consecutive: next slot
+                                : (index === teamData.drafted.length)     // Cross team: first empty slot
+                        );
+
 						if (!drafted) {
 							return (
-								<div key={index} className={`slot empty ${isNextSlot ? `highlight` : ``}`}>
-									<h3>{`Empty`}</h3>
+								<div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
+                                    {isDraftStarted ? (
+                                        <h3>
+                                            {pickStepNumbers[index] ? (
+                                                <span 
+                                                    className="order-step"
+                                                    style={{ 
+                                                        paddingRight: `${String(pickStepNumbers[index]).length * 0.188}rem` // letterSpacing pushes text to the left. This fixes the issue }}
+                                                    }}
+                                                >
+                                                    {pickStepNumbers[index]}
+                                                </span>
+                                            ) : (
+                                                `Empty`
+                                            )}
+                                        </h3>
+                                    ) : (
+                                        <h3>{`Empty`}</h3>
+                                    )}
 								</div>
 							);
 						}
@@ -549,11 +606,39 @@ export function TeamArea({
 				<div className="characters-container">
                     {Array.from({ length: (draftMode === "4ban") ? 2 : (draftMode === "6ban") ? 3 : 0 }).map((_, index) => {
                         const bannedCharacterId: Id<"character"> = teamData.banned[index];
-                        const isNextSlot = highlightRoster() && (currentPhase?.action === "ban") && (index === teamData.banned.length);
+                        const isCurrentSlot = highlightRoster() && (currentPhase?.action === "ban") && (index === teamData.banned.length);
+
+                        // For next-up: if it's the same team doing consecutive bans, highlight the slot after current
+                        // If it's cross-team, highlight the first empty slot for this team
+                        const isNextSlot = isDraftStarted && isNextInDraftOrder("ban" as Action) && (
+
+                            // Ugly fix for consecutive picks
+                            (highlightRoster() && currentPhase?.action === "ban")
+                                ? (index === teamData.banned.length + 1) // Same team consecutive: next slot
+                                : (index === teamData.banned.length)     // Cross team: first empty slot
+                        );
+
                         if (!bannedCharacterId) {
                             return (
-                                <div key={index} className={`slot empty ${isNextSlot ? `highlight` : ``}`}>
-                                    <h3>{`Empty`}</h3>
+                                <div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
+                                    {isDraftStarted ? (
+                                        <h3>
+                                            {banStepNumbers[index] ? (
+                                                <span 
+                                                    className="order-step"
+                                                    style={{ 
+                                                        paddingRight: `${String(banStepNumbers[index]).length * 0.188}rem` // letterSpacing pushes text to the left. This fixes the issue
+                                                    }} 
+                                                >
+                                                    {banStepNumbers[index]}
+                                                </span>
+                                            ) : (
+                                                `Empty`
+                                            )}
+                                        </h3>
+                                    ) : (
+                                        <h3>{`Empty`}</h3>
+                                    )}
                                 </div>
                             );
                         }
@@ -745,7 +830,10 @@ export function TeamArea({
     };
 
     return (
-        <div className={`TeamArea Box ${team} ${highlightRoster() ? `active` : ``}`}>
+        <div 
+            className={`TeamArea Box ${team} ${highlightRoster() ? `active` : ``}`} 
+            style={{ animationDuration: (highlightRoster() && draftState.isTimerActive && draftState.phaseTimer <= 0) ? `450ms` : `` }} // Background pulses faster when Reserve Timer is active
+        >
             {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
             <div className="header">
                 {

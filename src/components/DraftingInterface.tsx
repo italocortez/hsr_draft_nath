@@ -651,6 +651,8 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}
                     currentPhase={currentPhase}
+                    currentDraftOrder={currentDraftOrder}
+                    draftState={draftState}
                 />
 
                 <TeamArea
@@ -668,6 +670,8 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}
                     currentPhase={currentPhase}
+                    currentDraftOrder={currentDraftOrder}
+                    draftState={draftState}
                 />
             </div>
 
