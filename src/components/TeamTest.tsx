@@ -846,6 +846,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                 placeholder={`Team ${loadoutIndex + 1}`}
                                 autoFocus
                                 maxLength={20}
+                                name="team-name"
                             />
                         )}
                     </div>

@@ -22,7 +22,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    padding: 1.25rem;
+    padding: 1rem;
 }
 .TeamArea > .results {
     padding: 1rem;
@@ -144,26 +144,32 @@
 .TeamArea > .roster > .picks > .characters-container > .slot.empty {
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
+    font-size: 1.188rem;
 
     color: rgb(107, 114, 128);
-    border: 2px dashed rgb(75, 85, 99);
+    border: 0.125rem dashed rgb(75, 85, 99);
     background-color: rgb(55, 65, 81);
     user-select: none;
 
     transition: border-color 300ms, background-color 300ms, color 300ms;
 }
 .TeamArea > .roster > .picks > .characters-container > .slot.empty .order-step {
-    font-size: 4rem;
-    letter-spacing: -0.188rem;
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+
+    color: rgb(209, 213, 219);
+    font-size: 1.875rem;
+    line-height: 1.625rem;
+    letter-spacing: -0.0625rem;
     /* padding-right: ~~ ; handled on .tsx side */
 }
 
 /* Character Slot(s) - Ban */
 .TeamArea > .roster > .bans > .characters-container > .slot {
     position: relative;
-    height: 4.8rem;
-    width: 4.8rem;
+    height: 5.5rem;
+    width: 5.5rem;
     overflow: hidden;
 
     border: 1px solid rgba(239, 34, 68, 0.66);
@@ -175,10 +181,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 1rem;
 
     color: rgb(107, 114, 128);
-    border: 2px dashed rgb(75, 85, 99);
+    border: 0.125rem dashed rgb(75, 85, 99);
     background-color: rgb(55, 65, 81);
     user-select: none;
     box-shadow: none; /* Override box-shadow of non-empty */
@@ -186,8 +192,14 @@
     transition: border-color 300ms, background-color 300ms, color 300ms;
 }
 .TeamArea > .roster > .bans > .characters-container > .slot.empty .order-step {
-    font-size: 2.75rem;
-    letter-spacing: -0.188rem;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+
+    color: rgb(209, 213, 219);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    letter-spacing: -0.0625rem;
     /* padding-right: ~~ ; handled on .tsx side */
 }
 
@@ -197,25 +209,31 @@
 }
 .TeamArea.blue > .roster .characters-container > .slot.current {
     color: white;
-    border-style: solid;
+    /* border-style: solid; */
+    border-width: 0.25rem;
     border-color: rgb(59, 130, 246);
 
-    background-color: color-mix(in srgb, rgb(107, 114, 128) 65%, rgb(59, 130, 246) 35%);
+    background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(59, 130, 246) 40%);
     box-shadow: 0px 0px 9px 3px rgb(59, 130, 246);
 }
 .TeamArea.red > .roster .characters-container > .slot.current {
     color: white;
-    border-style: solid;
+    /* border-style: solid; */
+    border-width: 0.25rem;
     border-color: rgb(239, 68, 68);
 
     background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(239, 68, 68) 40%);
     box-shadow: 0px 0px 9px 3px rgb(239, 68, 68);
 }
 .TeamArea.blue > .roster .characters-container > .slot.next-up {
+    border-width: 0.25rem;
     border-color: rgb(59, 130, 246);
+    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(59, 130, 246) 10%);
 }
 .TeamArea.red > .roster .characters-container > .slot.next-up {
+    border-width: 0.25rem;
     border-color: rgb(239, 68, 68);
+    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(239, 68, 68) 10%);
 }
 
 /* Character card (Picks) */

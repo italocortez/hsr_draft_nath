@@ -488,23 +488,17 @@ export function TeamArea({
 						if (!drafted) {
 							return (
 								<div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
-                                    {isDraftStarted ? (
-                                        <h3>
-                                            {pickStepNumbers[index] ? (
-                                                <span 
-                                                    className="order-step"
-                                                    style={{ 
-                                                        paddingRight: `${String(pickStepNumbers[index]).length * 0.188}rem` // letterSpacing pushes text to the left. This fixes the issue }}
-                                                    }}
-                                                >
-                                                    {pickStepNumbers[index]}
-                                                </span>
-                                            ) : (
-                                                `Empty`
-                                            )}
+                                    <h3>Empty</h3>
+
+                                    {(isDraftStarted && pickStepNumbers[index]) && (
+                                        <h3 
+                                            className="order-step"
+                                            style={{
+                                                paddingRight: `${String(pickStepNumbers[index]).padStart(2, "0").length * 0.0625}rem`, // letterSpacing pushes text to the left. This fixes the issue
+                                            }}
+                                        >
+                                            {String(pickStepNumbers[index]).padStart(2, "0")}
                                         </h3>
-                                    ) : (
-                                        <h3>{`Empty`}</h3>
                                     )}
 								</div>
 							);
@@ -621,23 +615,17 @@ export function TeamArea({
                         if (!bannedCharacterId) {
                             return (
                                 <div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
-                                    {isDraftStarted ? (
-                                        <h3>
-                                            {banStepNumbers[index] ? (
-                                                <span 
-                                                    className="order-step"
-                                                    style={{ 
-                                                        paddingRight: `${String(banStepNumbers[index]).length * 0.188}rem` // letterSpacing pushes text to the left. This fixes the issue
-                                                    }} 
-                                                >
-                                                    {banStepNumbers[index]}
-                                                </span>
-                                            ) : (
-                                                `Empty`
-                                            )}
+                                    <h3>Empty</h3>
+
+                                    {(isDraftStarted && banStepNumbers[index]) && (
+                                        <h3 
+                                            className="order-step"
+                                            style={{
+                                                paddingRight: `${String(banStepNumbers[index]).padStart(2, "0").length * 0.0625}rem`, // letterSpacing pushes text to the left. This fixes the issue
+                                            }}
+                                        >
+                                            {String(banStepNumbers[index]).padStart(2, "0")}
                                         </h3>
-                                    ) : (
-                                        <h3>{`Empty`}</h3>
                                     )}
                                 </div>
                             );
@@ -832,7 +820,7 @@ export function TeamArea({
     return (
         <div 
             className={`TeamArea Box ${team} ${highlightRoster() ? `active` : ``}`} 
-            style={{ animationDuration: (highlightRoster() && draftState.isTimerActive && draftState.phaseTimer <= 0) ? `450ms` : `` }} // Background pulses faster when Reserve Timer is active
+            style={{ animationDuration: (highlightRoster() && draftState.isTimerActive && draftState.phaseTimer <= 0) ? `400ms` : `` }} // Background pulses faster when Reserve Timer is active
         >
             {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
             <div className="header">
@@ -858,6 +846,7 @@ export function TeamArea({
                             placeholder={defaultTeamName}
                             autoFocus
                             maxLength={30}
+                            name="team-name"
                         />
                     </>
                 }
