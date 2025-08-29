@@ -22,7 +22,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    padding: 1.5rem;
+    padding: 1rem;
 }
 .TeamArea > .results {
     padding: 1rem;
@@ -131,7 +131,7 @@
     gap: 0.5rem;
 }
 
-/* Character Slot(s) */
+/* Character Slot(s) - Pick */
 .TeamArea > .roster > .picks > .characters-container > .slot {
     position: relative;
     height: clamp(10rem, 14vw, 12rem);
@@ -144,22 +144,36 @@
 .TeamArea > .roster > .picks > .characters-container > .slot.empty {
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
+    font-size: 1.188rem;
 
     color: rgb(107, 114, 128);
-    border: 2px dashed rgb(75, 85, 99);
+    border: 0.125rem dashed rgb(75, 85, 99);
     background-color: rgb(55, 65, 81);
     user-select: none;
 
-    transition: border-color 300ms, box-shadow 300ms;
+    transition: border-color 300ms, background-color 300ms, color 300ms;
 }
+.TeamArea > .roster > .picks > .characters-container > .slot.empty .order-step {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+
+    color: rgb(209, 213, 219);
+    font-size: 1.875rem;
+    line-height: 1.625rem;
+    letter-spacing: -0.0625rem;
+    /* padding-right: ~~ ; handled on .tsx side */
+}
+
+/* Character Slot(s) - Ban */
 .TeamArea > .roster > .bans > .characters-container > .slot {
     position: relative;
-    height: 4.8rem;
-    width: 4.8rem;
+    height: 5.5rem;
+    width: 5.5rem;
     overflow: hidden;
 
     border: 1px solid rgba(239, 34, 68, 0.66);
+    border-radius: 0.25rem;
     /* border-radius: 50%; circular icon */
     box-shadow: 2px 2px 4px 3px rgba(0, 0, 0, 0.16);
 }
@@ -167,28 +181,59 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 1rem;
 
-    color: rgba(239, 34, 68, 0.7);
-    border: 2px dashed rgb(239, 34, 68, 0.5);
+    color: rgb(107, 114, 128);
+    border: 0.125rem dashed rgb(75, 85, 99);
     background-color: rgb(55, 65, 81);
     user-select: none;
     box-shadow: none; /* Override box-shadow of non-empty */
     
-    transition: border-color 300ms, box-shadow 300ms;
+    transition: border-color 300ms, background-color 300ms, color 300ms;
 }
-.TeamArea.active > .roster .slot.empty:not(.highlight) {
+.TeamArea > .roster > .bans > .characters-container > .slot.empty .order-step {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+
+    color: rgb(209, 213, 219);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    letter-spacing: -0.0625rem;
+    /* padding-right: ~~ ; handled on .tsx side */
+}
+
+/* Character Slot(s) - Misc/Both */
+.TeamArea.active > .roster .slot.empty:not(.current) {
     box-shadow: 1px 1px 5px 2px rgb(0, 0, 0, 0.5);
 }
-.TeamArea.blue > .roster .characters-container > .slot.highlight {
-    border-style: solid;
+.TeamArea.blue > .roster .characters-container > .slot.current {
+    color: white;
+    /* border-style: solid; */
+    border-width: 0.25rem;
     border-color: rgb(59, 130, 246);
-    box-shadow: 0px 0px 12px 4px rgb(59, 130, 246);
+
+    background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(59, 130, 246) 40%);
+    box-shadow: 0px 0px 9px 3px rgb(59, 130, 246);
 }
-.TeamArea.red > .roster .characters-container > .slot.highlight {
-    border-style: solid;
+.TeamArea.red > .roster .characters-container > .slot.current {
+    color: white;
+    /* border-style: solid; */
+    border-width: 0.25rem;
     border-color: rgb(239, 68, 68);
-    box-shadow: 0px 0px 12px 4px rgb(239, 68, 68);
+
+    background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(239, 68, 68) 40%);
+    box-shadow: 0px 0px 9px 3px rgb(239, 68, 68);
+}
+.TeamArea.blue > .roster .characters-container > .slot.next-up {
+    border-width: 0.25rem;
+    border-color: rgb(59, 130, 246);
+    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(59, 130, 246) 10%);
+}
+.TeamArea.red > .roster .characters-container > .slot.next-up {
+    border-width: 0.25rem;
+    border-color: rgb(239, 68, 68);
+    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(239, 68, 68) 10%);
 }
 
 /* Character card (Picks) */

@@ -74,17 +74,37 @@
     position: absolute;
     height: 100%;
     width: 100%;
+    z-index: 10;
     
     object-fit: cover;
     border-radius: 0.5rem;
 }
 
+/* Block Character's portrait */
+.TeamTest > .main > .roster > .characters-container > .slot > .block-character-portrait {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 30;
+
+    background-color: rgb(55, 65, 81);
+    border-radius: 0.5rem;
+    
+    opacity: 0;
+    pointer-events: none; /* Don't block mouse from adding LC, verticals etc. */
+    transition: all 200ms;
+}
+.TeamTest > .main > .roster > .characters-container > .slot > .block-character-portrait.active {
+    opacity: 1;
+    pointer-events: all; /* Block mouse clicks while portrait blocker is active */
+}
+
 /* Character - Clear Button */
-.TeamTest > .main > .roster > .characters-container > .slot > .character > .clear-button {
+.TeamTest > .main > .roster > .characters-container > .slot > .clear-button {
     position: absolute;
     left: 0.5rem;
     top: 0.5rem;
-    z-index: 20;
+    z-index: 40;
 
     padding: 0.125rem;
     background-color: rgba(55, 65, 81, 0.3);
@@ -92,7 +112,7 @@
 
     transition: all 300ms ease-out;
 }
-.TeamTest > .main > .roster > .characters-container > .slot > .character > .clear-button:hover {
+.TeamTest > .main > .roster > .characters-container > .slot > .clear-button:hover {
     background-color: rgba(105, 115, 129, 0.6);
 }
 
@@ -421,9 +441,10 @@
 .TeamTest > .main > .controls > .header > .rosters > .rosters-list {
     position: absolute;
     top: 4rem;
-    left: 0.5rem;
+    left: 0;
     z-index: 100;
-    width: 90%;
+    width: 100%;
+    max-width: 36rem;
 
     display: flex;
     flex-direction: column;
@@ -439,7 +460,7 @@
     content: '';
     position: absolute;
     top: -1rem;
-    left: 0.75rem;
+    left: 1.25rem;
     z-index: 101;
     
     width: 0;
@@ -476,7 +497,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    padding: 1rem;
+    padding: 0.75rem;
     border: 3px solid rgba(155, 159, 170, 0.8);
 
     transition: all 300ms;
@@ -550,8 +571,8 @@
     left: 0.125rem;
     z-index: 10;
 
-    height: 1.75rem;
-    width: 1.75rem;
+    height: clamp(1.375rem, 2.4vw, 1.75rem);
+    width: clamp(1.375rem, 2.4vw, 1.75rem);
     filter: drop-shadow(1px 1px 2px black);
 }
 

@@ -20,7 +20,7 @@ const backgroundColor: string = `transparent`;
 
 // Target dimensions that copy a 1920x1080 screen layout
 const fixedWidth: number = 1440;
-const fixedHeight: number = 677;
+const fixedHeight: number = 672;
 
 // Threshold to determine when screen is too small (could be viewport or div size)
 const minViewportWidth: number = 1080;

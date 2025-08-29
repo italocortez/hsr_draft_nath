@@ -1,4 +1,4 @@
-import { DraftedCharacter, RuleSet } from "@/components/DraftingInterface";
+import { RuleSet } from "@/components/DraftingInterface";
 import { toast } from "sonner";
 import { Character, CharacterRank, Lightcone, LightconeRank } from "./utils";
 import { Id } from "../../convex/_generated/dataModel";
@@ -47,7 +47,7 @@ const presetTeamTemplates: PresetOption[] = [
             { characterName: "castorice", rank: "E0", lightconeName: "makefarewellsmorebeautiful", lightconeRank: "S1" },
             { characterName: "tribbie", rank: "E0", lightconeName: "iftimewereaflower", lightconeRank: "S1" },
             { characterName: "hyacine", rank: "E0", lightconeName: "longmayrainbowsadornthesky", lightconeRank: "S1" },
-            { characterName: "traiblaizerremembrance", rank: "E6", lightconeName: "sailingtowardsasecondlife", lightconeRank: "S5" },
+            { characterName: "trailblaizerremembrance", rank: "E6", lightconeName: "memoryscurtainneverfalls", lightconeRank: "S5" },
         ]
     },
     {
