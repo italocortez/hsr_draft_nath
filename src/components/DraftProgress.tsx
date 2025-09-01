@@ -109,7 +109,7 @@ export function DraftProgress({
         <div className="DraftProgress Box">
             {/* Header */}
             <div className="roadmap-header">
-                <h3 className="roadmap-title">Draft Roadmap</h3>
+                <h3 className="roadmap-title">Draft Order</h3>
                 
                 {/* <div className="roadmap-status">
                     {isDraftStarted && !isDraftComplete && currentPhase && (
@@ -166,6 +166,7 @@ export function DraftProgress({
                                     title={`${turn.team === "blue" ? "Blue" : "Red"} team is ${turn.action === "pick" ? "picking" : "banning"}`}
                                     
                                     style={{ 
+                                        animation: (!isDraftStarted ? `slideFromTop 400ms both cubic-bezier(0.22, 0.61, 0.36, 1)` : ``),
                                         animationDelay: (!isDraftStarted ? `${index * 50}ms` : ``),
                                     }}
                                 >
