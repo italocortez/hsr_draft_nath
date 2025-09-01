@@ -255,17 +255,8 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                 const pickedOrBanned = selectedCharacters.some(selected => selected.characterId === char._id);
                 if (pickedOrBanned) return false;
 
-                if (currentPhase.action === "ban" && draftState.settings.banRestriction !== "none") {
-                    switch (draftState.settings.banRestriction) {
-                        case "onePerRole":
-                            return checkBanRestriction(char, bannedCharacters, "onePerRole");
-                        case "oneDPS":
-                            return checkBanRestriction(char, bannedCharacters, "oneDPS");
-                        case "oneSupport":
-                            return checkBanRestriction(char, bannedCharacters, "oneSupport");
-                        case "oneSustain":
-                            return checkBanRestriction(char, bannedCharacters, "oneSustain");
-                    }
+                if (currentPhase.action === "ban") {
+                    return checkBanRestriction(char, bannedCharacters, draftState.settings.banRestriction);
                 }
 
                 return true;
