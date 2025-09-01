@@ -243,11 +243,33 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 	useEffect(() => {
 		if (!draftState.isDraftStarted || isDraftComplete || !currentPhase) return;
 
-		const currentTeam = (currentPhase.team === "blue") ? draftState.blueTeam : draftState.redTeam;
+		const currentTeam: TeamState = (currentPhase.team === "blue") ? draftState.blueTeam : draftState.redTeam;
 
 		if (currentTeam.reserveTime === 0 && draftState.phaseTimer <= 0) {
 			const selectedCharacters = getAllSelectedCharacters();
-			const availableCharacters = characters.filter(char => !selectedCharacters.some(selected => selected.characterId === char._id));
+            const bannedCharacters = currentTeam.banned
+                .map((id: Id<"character">) => characters.find((c) => c._id === id))
+                .filter((character): character is Character => character !== undefined); // Filter out undefined values
+			
+            const availableCharacters = characters.filter(char => {
+                const pickedOrBanned = selectedCharacters.some(selected => selected.characterId === char._id);
+                if (pickedOrBanned) return false;
+
+                if (currentPhase.action === "ban" && draftState.settings.banRestriction !== "none") {
+                    switch (draftState.settings.banRestriction) {
+                        case "onePerRole":
+                            return checkBanRestriction(char, bannedCharacters, "onePerRole");
+                        case "oneDPS":
+                            return checkBanRestriction(char, bannedCharacters, "oneDPS");
+                        case "oneSupport":
+                            return checkBanRestriction(char, bannedCharacters, "oneSupport");
+                        case "oneSustain":
+                            return checkBanRestriction(char, bannedCharacters, "oneSustain");
+                    }
+                }
+
+                return true;
+            });
 
 			if (availableCharacters.length > 0) {
 				const randomCharacter =
@@ -568,6 +590,8 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                 <DraftProgress
                     currentDraftOrder={currentDraftOrder}
                     currentStep={draftState.currentStep}
+                    isDraftStarted={draftState.isDraftStarted}
+                    isDraftComplete={isDraftComplete}
                 />
                 <DraftTimer
                     draftState={draftState}
