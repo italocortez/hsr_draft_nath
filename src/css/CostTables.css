@@ -43,9 +43,29 @@
     justify-content: space-between;
     gap: 1rem;
 }
-.CostTables > .table > .header > .top > .title {
-    font-size: 1.375rem;
+.CostTables > .table > .header > .top > .left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.CostTables > .table > .header > .top > .left > .title {
+    font-size: 1.25rem;
     font-weight: bold;
+}
+/* Table Header - Collapse Button */
+.CostTables > .table > .header > .top > .left > .collapse-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0.5rem;
+    margin: -0.5rem;
+    border-radius: 0.25rem;
+
+    transition: all 300ms;
+}
+.CostTables > .table > .header > .top > .left > .collapse-button:hover {
+    background-color: rgb(75, 85, 99);
 }
 /* Table Header - Mode Switch */
 .CostTables > .table > .header > .top > .mode-switch {
