@@ -64,6 +64,24 @@ function SortIcon({ direction, isActive }: { direction?: SortDirection; isActive
     </div>
   );
 }
+const DropdownIcon = ({ isOpen = false }) => (
+    <svg 
+        width="1.5rem" 
+        height="1.5rem" 
+        viewBox="0 0 16 16" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        className={`transition-transform duration-200 ${isOpen ? '-rotate-90' : ''}`}
+    >
+        <path 
+            d="M4 6L8 10L12 6" 
+            stroke="currentColor"
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+    </svg>
+);
 
 export function CostTables({ characters, lightcones }: CostTablesProps) {
     const icons = useQuery(api.icons.list) || [];
@@ -75,11 +93,13 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     const [characterSelectedElements, setCharacterSelectedElements] = useState<Element[]>([]);
     const [characterSearchTerm, setCharacterSearchTerm] = useState<string>("");
     const [characterSort, setCharacterSort] = useState<CharacterSortState>({ field: "name", direction: "asc" });
+    const [showCharacterTable, setShowCharacterTable] = useState<boolean>(true);
 
     // Lightcone sorting
     const [lightconeSelectedPaths, setLightconeSelectedPaths] = useState<Path[]>([]);
     const [lightconeSearchTerm, setLightconeSearchTerm] = useState<string>("");
     const [lightconeSort, setLightconeSort] = useState<LightconeSortState>({ field: "name", direction: "asc" });
+    const [showLightconeTable, setShowLightconeTable] = useState<boolean>(true);
 
     // Create Role Icon mappings
     const roleIconMap = useMemo(() => {
@@ -318,10 +338,21 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                 <div className="header">
                     {/* Top Section */}
                     <div className="top">
-                        {/* Title */}
-                        <h2 className="title">
-                            {`Character Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}
-                        </h2>
+                        <div className="left">
+                            {/* Collapse Table */}
+                            <button
+                                onClick={_ => setShowCharacterTable(prev => !prev)}
+                                className="collapse-button"
+                                title="Collapse Table"
+                            >
+                                <DropdownIcon isOpen={!showCharacterTable} />
+                            </button>
+
+                            {/* Title */}
+                            <h2 className="title">
+                                {`Character Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}
+                            </h2>
+                        </div>
 
                         {/* Switch to view MoC/AS cost */}
                         <button
@@ -442,49 +473,51 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                 
                 {/* Table Head + Entries */}
                 <div className="content">
-                    <table className="w-full text-white">
-                        <thead>
-                            <tr className="border-b border-gray-600">
-                                {renderSortableHeader("Character", "name", characterSort, handleCharacterSort, "text-left py-3 px-4 font-medium")}
-                                {renderSortableHeader("Rarity", "rarity", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E0", "E0", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E1", "E1", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E2", "E2", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E3", "E3", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E4", "E4", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E5", "E5", characterSort, handleCharacterSort)}
-                                {renderSortableHeader("E6", "E6", characterSort, handleCharacterSort)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedAndFilteredCharacters.map((character) => (
-                                <tr key={character._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
-                                    <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>{character.display_name}</td>
-                                    <td className="py-3 px-4 text-center">
-                                        <div 
-                                            data-rarity={character.rarity}
-                                            className="w-6 h-6 flex justify-center"
-                                            style={{ margin: `0 auto`, backgroundColor: `var(--lc-${character.rarity}star)`, borderRadius: `0.25rem` }}
-                                        >
-                                            <span 
-                                                className={`text-sm font-bold flex items-center`}
-                                                style={{ filter: `drop-shadow(0px 1px 2px black)` }}    
-                                            >
-                                                {character.rarity}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E0}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E1}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E2}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E3}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E4}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E5}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E6}</td>
+                    {showCharacterTable && (
+                        <table className="w-full text-white">
+                            <thead>
+                                <tr className="border-b border-gray-600">
+                                    {renderSortableHeader("Character", "name", characterSort, handleCharacterSort, "text-left py-3 px-4 font-medium")}
+                                    {renderSortableHeader("Rarity", "rarity", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E0", "E0", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E1", "E1", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E2", "E2", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E3", "E3", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E4", "E4", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E5", "E5", characterSort, handleCharacterSort)}
+                                    {renderSortableHeader("E6", "E6", characterSort, handleCharacterSort)}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {sortedAndFilteredCharacters.map((character) => (
+                                    <tr key={character._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
+                                        <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>{character.display_name}</td>
+                                        <td className="py-3 px-4 text-center">
+                                            <div 
+                                                data-rarity={character.rarity}
+                                                className="w-6 h-6 flex justify-center"
+                                                style={{ margin: `0 auto`, backgroundColor: `var(--lc-${character.rarity}star)`, borderRadius: `0.25rem` }}
+                                            >
+                                                <span 
+                                                    className={`text-sm font-bold flex items-center`}
+                                                    style={{ filter: `drop-shadow(0px 1px 2px black)` }}    
+                                                >
+                                                    {character.rarity}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E0}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E1}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E2}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E3}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E4}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E5}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E6}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Information */}
@@ -506,8 +539,19 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                 <div className="header">
                     {/* Top Section */}
                     <div className="top">
-                        {/* Title */}
-                        <h2 className="title">{`Lightcone Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}</h2>
+                        <div className="left">
+                            {/* Collapse Table */}
+                            <button
+                                onClick={_ => setShowLightconeTable(prev => !prev)}
+                                className="collapse-button"
+                                title="Collapse Table"
+                            >
+                                <DropdownIcon isOpen={!showLightconeTable} />
+                            </button>
+
+                            {/* Title */}
+                            <h2 className="title">{`Lightcone Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}</h2>
+                        </div>
 
                         {/* Switch to view MoC/AS cost */}
                         <button
@@ -575,45 +619,47 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                 </div>
 
                 <div className="content">
-                    <table className="w-full text-white">
-                        <thead>
-                            <tr className="border-b border-gray-600">
-                                {renderSortableHeader("Lightcone", "name", lightconeSort, handleLightconeSort, "text-left py-3 px-4 font-medium")}
-                                {renderSortableHeader("Rarity", "rarity", lightconeSort, handleLightconeSort)}
-                                {renderSortableHeader("S1", "S1", lightconeSort, handleLightconeSort)}
-                                {renderSortableHeader("S2", "S2", lightconeSort, handleLightconeSort)}
-                                {renderSortableHeader("S3", "S3", lightconeSort, handleLightconeSort)}
-                                {renderSortableHeader("S4", "S4", lightconeSort, handleLightconeSort)}
-                                {renderSortableHeader("S5", "S5", lightconeSort, handleLightconeSort)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedAndFilteredLightcones.map((lightcone) => (
-                                <tr key={lightcone._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
-                                    <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>{lightcone.display_name}</td>
-                                    <td className="py-3 px-4 text-center">
-                                        <div 
-                                            data-rarity={lightcone.rarity}
-                                            className="w-6 h-6 flex justify-center"
-                                            style={{ margin: `0 auto`, backgroundColor: `var(--lc-${lightcone.rarity}star)`, borderRadius: `0.25rem` }}
-                                        >
-                                            <span 
-                                                className={`text-sm font-bold flex items-center`}
-                                                style={{ filter: `drop-shadow(0px 1px 2px black)` }}    
-                                            >
-                                                {lightcone.rarity}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S1}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S2}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S3}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S4}</td>
-                                    <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S5}</td>
+                    {showLightconeTable && (
+                        <table className="w-full text-white">
+                            <thead>
+                                <tr className="border-b border-gray-600">
+                                    {renderSortableHeader("Lightcone", "name", lightconeSort, handleLightconeSort, "text-left py-3 px-4 font-medium")}
+                                    {renderSortableHeader("Rarity", "rarity", lightconeSort, handleLightconeSort)}
+                                    {renderSortableHeader("S1", "S1", lightconeSort, handleLightconeSort)}
+                                    {renderSortableHeader("S2", "S2", lightconeSort, handleLightconeSort)}
+                                    {renderSortableHeader("S3", "S3", lightconeSort, handleLightconeSort)}
+                                    {renderSortableHeader("S4", "S4", lightconeSort, handleLightconeSort)}
+                                    {renderSortableHeader("S5", "S5", lightconeSort, handleLightconeSort)}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {sortedAndFilteredLightcones.map((lightcone) => (
+                                    <tr key={lightcone._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
+                                        <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>{lightcone.display_name}</td>
+                                        <td className="py-3 px-4 text-center">
+                                            <div 
+                                                data-rarity={lightcone.rarity}
+                                                className="w-6 h-6 flex justify-center"
+                                                style={{ margin: `0 auto`, backgroundColor: `var(--lc-${lightcone.rarity}star)`, borderRadius: `0.25rem` }}
+                                            >
+                                                <span 
+                                                    className={`text-sm font-bold flex items-center`}
+                                                    style={{ filter: `drop-shadow(0px 1px 2px black)` }}    
+                                                >
+                                                    {lightcone.rarity}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S1}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S2}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S3}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S4}</td>
+                                        <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{lightcone.cost.S5}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Information */}
