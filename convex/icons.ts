@@ -17,3 +17,13 @@ export const getByName = query({
       .unique();
   },
 });
+
+export const getUIElements = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("icons")
+      .filter((q) => q.eq(q.field("type"), "ui_element"))
+      .collect();
+  },
+});
