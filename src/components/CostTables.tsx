@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { RuleSet } from "./DraftingInterface";
@@ -100,6 +100,11 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     const [lightconeSearchTerm, setLightconeSearchTerm] = useState<string>("");
     const [lightconeSort, setLightconeSort] = useState<LightconeSortState>({ field: "name", direction: "asc" });
     const [showLightconeTable, setShowLightconeTable] = useState<boolean>(true);
+
+    // Save changes made by the User
+    useEffect(() => {
+        LoadoutManager.saveRulesetView(ruleSet);
+    }, [ruleSet]);
 
     // Create Role Icon mappings
     const roleIconMap = useMemo(() => {
@@ -346,12 +351,12 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                                 title="Collapse Table"
                             >
                                 <DropdownIcon isOpen={!showCharacterTable} />
-                            </button>
 
-                            {/* Title */}
-                            <h2 className="title">
-                                {`Character Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}
-                            </h2>
+                                {/* Title */}
+                                <h2 className="title">
+                                    {`Characters — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}
+                                </h2>
+                            </button>
                         </div>
 
                         {/* Switch to view MoC/AS cost */}
@@ -547,10 +552,10 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                                 title="Collapse Table"
                             >
                                 <DropdownIcon isOpen={!showLightconeTable} />
-                            </button>
 
-                            {/* Title */}
-                            <h2 className="title">{`Lightcone Costs — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}</h2>
+                                {/* Title */}
+                                <h2 className="title">{`Lightcones — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}</h2>
+                            </button>
                         </div>
 
                         {/* Switch to view MoC/AS cost */}

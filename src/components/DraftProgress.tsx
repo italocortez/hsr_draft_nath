@@ -32,8 +32,7 @@ export function DraftProgress({
     isDraftComplete = false 
 }: DraftProgressProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
+    const [showScrollButton, setShowScrollButton] = useState<boolean[]>([ false, false ]); // [ left arrow , right arrow ]
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 }); // Manual dragging
 
@@ -42,8 +41,7 @@ export function DraftProgress({
         if (!scrollContainerRef.current) return;
         
         const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-        setCanScrollLeft(scrollLeft > 0);
-        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+        setShowScrollButton([(scrollLeft > 0), (scrollLeft < scrollWidth - clientWidth - 1)]);
     };
 
     // Auto-scroll to current step (container-only, no page scroll)
@@ -61,8 +59,8 @@ export function DraftProgress({
             const boxWidth = currentBoxRect.width;
             const containerWidth = containerRect.width;
             
-            // Position current turn at 1/6 from left to show more upcoming turns
-            const targetScrollLeft = boxLeft - (containerWidth / 6) + (boxWidth / 2);
+            // Position current turn at 1/8 from left to show more upcoming turns
+            const targetScrollLeft = boxLeft - (containerWidth / 8) + (boxWidth / 2);
             
             // Smooth scroll only within the container
             container.scrollTo({
@@ -97,13 +95,32 @@ export function DraftProgress({
         });
     };
 
-    const handleMouseMove = (e: React.MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
         if (!isDragging || !scrollContainerRef.current) return;
         
         e.preventDefault();
         const walk = (e.pageX - dragStart.x) * 2; // Multiply for faster scrolling
         scrollContainerRef.current.scrollLeft = dragStart.scrollLeft - walk;
     };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    // Drag progress track as long as LMB is held
+    useEffect(() => {
+        if (isDragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'grabbing';
+            
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.body.style.cursor = '';
+            };
+        }
+    }, [isDragging, dragStart]);
 
     return (
         <div className="DraftProgress Box">
@@ -129,17 +146,14 @@ export function DraftProgress({
             {/* Roadmap Container */}
             <div className={`roadmap-container ${isDragging ? 'dragging' : ''} ${!isDraftComplete ? `ongoing` : ``}`}>
                 {/* Overlay Arrows - positioned relative to container */}
-                <ScrollArrow direction="left" disabled={!canScrollLeft} />
-                <ScrollArrow direction="right" disabled={!canScrollRight} />
+                <ScrollArrow direction="left" disabled={!showScrollButton[0]} />
+                <ScrollArrow direction="right" disabled={!showScrollButton[1]} />
                 
                 {/* Progress Track */}
                 <div 
                     className="roadmap-track"
                     ref={scrollContainerRef}
                     onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={_ => setIsDragging(false)}
-                    onMouseLeave={_ => setIsDragging(false)}
                 >
                     {/* Draft Steps */}
                     <div className="steps-container">

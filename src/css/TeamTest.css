@@ -12,6 +12,7 @@
 /* Roster container */
 .TeamTest > .main > .roster {
     flex: 1 calc(60% - 1rem); /* sync with .graphics */
+    min-width: min(100%, 34rem); /* stops before character slot height gets fucked */
 
     display: flex;
     flex-direction: column;
@@ -370,9 +371,9 @@
 
 /* Controls Container */
 .TeamTest > .main > .controls {
-    flex: 1 1 calc(50% - 1rem); /* Sync with .notes */
+    flex: 1; /* Sync with .notes */
     position: relative; /* For Loadout's dropdown */
-    min-width: 21rem;
+    min-width: min(100%, 24rem);
 
     display: flex;
     flex-direction: column;
@@ -422,29 +423,23 @@
 }
 
 /* Select Loadout - Select Button */
-.TeamTest > .main > .controls > .header > .rosters > .select-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    padding: 0.5rem;
-    margin: -0.5rem;
-    border-radius: 0.25rem;
-
-    transition: all 300ms;
+.TeamTest > .main > .controls > .content > .rosters > .select-button {
+    width: 100%;
+    background-color: rgb(60, 70, 86);
 }
-.TeamTest > .main > .controls > .header > .rosters > .select-button:hover {
+.TeamTest > .main > .controls > .content > .rosters > .select-button:hover {
     background-color: rgb(75, 85, 99);
 }
 
 /* Select Loadout - Teams List */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list {
     position: absolute;
-    top: 4rem;
+    top: auto;
     left: 0;
     z-index: 100;
     width: 100%;
     max-width: 36rem;
+    margin-top: 0.5rem;
 
     display: flex;
     flex-direction: column;
@@ -455,12 +450,12 @@
     backdrop-filter: blur(0.375rem);
     box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.33);
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list::before {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list::before {
     /* Small triangle above the list */
     content: '';
     position: absolute;
     top: -1rem;
-    left: 1.25rem;
+    left: 5rem;
     z-index: 101;
     
     width: 0;
@@ -471,25 +466,25 @@
 }
 
 /* Select Loaudout - Dropdown Header */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .dropdown-header {
     display: flex;
     align-items: center;
     padding: 1rem 2rem 0.5rem 2rem;
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header::before, .TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header::after {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .dropdown-header::before, .TeamTest > .main > .controls > .content > .rosters > .rosters-list > .dropdown-header::after {
     content: '';
     flex: 1;
     height: 2px;
     background-color: rgb(75, 85, 99);
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .dropdown-header > .title {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .dropdown-header > .title {
     padding-inline: 1rem;
     color: rgb(209, 213, 219);
     font-size: 1.125rem;
 }
 
 /* Select Loadout - Loadout */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option {
     position: relative;
     width: 100%;
 
@@ -502,17 +497,17 @@
 
     transition: all 300ms;
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option:not(:disabled):hover {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option:not(:disabled):hover {
     background-color: rgba(75, 85, 99, 0.5);
     border-color: rgb(203, 206, 211);
     box-shadow: 0px 0px 4px 2px rgba(255, 255, 255, 0.66);
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option:disabled {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option:disabled {
     filter: opacity(0.66) brightness(0.9);
 }
 
 /* Select Loadout - Team Name */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .title {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .title {
     padding-inline: 0.25rem;
     margin-bottom: 0.5rem;
     text-align: start;
@@ -524,21 +519,21 @@
 }
 
 /* Select Loadout - Character Container */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .characters-container {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .characters-container {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.5rem;
 }
 
 /* Select Loadout - Character Slot(s) */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .characters-container > .slot {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .characters-container > .slot {
     position: relative;
     aspect-ratio: 1 / 1;
     overflow: hidden;
 
     border-radius: 0.5rem;
 }
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .characters-container > .slot.empty {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .characters-container > .slot.empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -552,7 +547,7 @@
 }
 
 /* Select Loadout - Portrait */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .characters-container > .slot > .portrait {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .characters-container > .slot > .portrait {
     position: absolute;
     top: 0;
     left: 0;
@@ -565,7 +560,7 @@
 }
 
 /* Select Loadout - Character's Element */
-.TeamTest > .main > .controls > .header > .rosters > .rosters-list > .team-option > .characters-container > .slot > .element {
+.TeamTest > .main > .controls > .content > .rosters > .rosters-list > .team-option > .characters-container > .slot > .element {
     position: absolute;
     top: 0.125rem;
     left: 0.125rem;
@@ -619,7 +614,7 @@
 
 /* Clear Current Roster Button */
 .TeamTest > .main > .controls > .content .button.clear {
-    min-width: 8rem;
+    min-width: 7rem;
     background-color: rgb(220, 38, 38);
 }
 .TeamTest > .main > .controls > .content .button.clear:hover:not(:disabled), .TeamTest > .main > .controls > .content .button.clear:active:not(:disabled) {
@@ -810,7 +805,7 @@
 
 /* Notes Container */
 .TeamTest > .main > .notes-box {
-    flex: 1 1 calc(50% - 1rem); /* Sync with .controls */
+    flex: 1 1 calc(55% - 1rem); /* Sync with .controls */
 
     padding: 1rem;
     display: flex;
