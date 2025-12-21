@@ -139,6 +139,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                     onFocus={handleFocusInput}
                     placeholder={selectedLightcone?.display_name || "Select Lightcone"}
                     name="lightcone"
+                    autoComplete="off"
 
                     style={{ color: (selectedLightcone && !isSearching) ? `var(--lc-${selectedLightcone.rarity}star)` : `` }}
                 />

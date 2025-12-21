@@ -108,10 +108,12 @@ const RightDropdown: React.FC<RightDropdownProps> = ({ children }) => {
             <button
                 ref={triggerRef}
                 onClick={_ => setIsOpen(!isOpen)}
-                className="select-button"
+                className="select-button button"
                 title="Select Team"
             >
                 <DropdownIcon isOpen={isOpen} />
+
+                <span>{`Select Loadout`}</span>
             </button>
 
             {/* Dropdown Menu */}
@@ -585,7 +587,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                 <div className="cost-breakdown Box">
                     {/* Header */}
                     <div className="header">
-                        <h3 className="title">Cost Breakdown</h3>
+                        <h3 className="title">{`Cost Breakdown — ${(ruleSet === "memoryofchaos") ? `MoC` : `AS`}`}</h3>
 
                         {/* Switch to view MoC/AS cost */}
                         <button
@@ -758,8 +760,40 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
                 {/* Roster Controls */}
                 <div className="controls Box">
-                    {/* Roster select + Name/Edit */}
+                    {/* Name/Edit */}
                     <div className="header">
+                        {!editingName ? <>
+                            <h1 
+                                className="title name" 
+                                onClick={handleStartEditing}
+                                title="Click to Edit"
+                            >
+                                {currentLoadout.name}
+
+                                <EditIcon />
+                                
+                                { (currentLoadout.name !== `Team ${loadoutIndex + 1}`) && <span className="helper-text">{`Team ${loadoutIndex + 1}`}</span> }
+                            </h1>
+
+                        </> : (
+                            <input
+                                className="title editor focus:outline-none"
+                                
+                                value={tempName}
+                                onChange={(e) => setTempName(e.target.value as string)}
+                                onBlur={handleNameSubmit}
+                                onKeyDown={(e) => (e.key === "Enter") && handleNameSubmit()}
+                                
+                                placeholder={`Team ${loadoutIndex + 1}`}
+                                autoFocus
+                                maxLength={20}
+                                name="team-name"
+                            />
+                        )}
+                    </div>
+
+                    <div className="content">
+                        {/* Select Loadout Button */}
                         <RightDropdown>
                             <div className="dropdown-header">
                                 <h2 className="title">Loadout Overview</h2>
@@ -821,69 +855,50 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             ))}
                         </RightDropdown>
 
-                        {!editingName ? <>
-                            <h1 
-                                className="title name" 
-                                onClick={handleStartEditing}
-                                title="Click to Edit"
-                            >
-                                {currentLoadout.name}
+                        {/* Clear button */}
+                        <button
+                            onClick={_ => updateCurrentLoadout([])}
+                            className="button clear"
+                            title="Clear Loadout"
+                        >
+                            <ClearIcon />
+                            
+                            <span>{`Clear`}</span>
+                        </button>
 
-                                <EditIcon />
-                                
-                                { (currentLoadout.name !== `Team ${loadoutIndex + 1}`) && <span className="helper-text">{`Team ${loadoutIndex + 1}`}</span> }
-                            </h1>
-
-                        </> : (
-                            <input
-                                className="title editor focus:outline-none"
-                                
-                                value={tempName}
-                                onChange={(e) => setTempName(e.target.value as string)}
-                                onBlur={handleNameSubmit}
-                                onKeyDown={(e) => (e.key === "Enter") && handleNameSubmit()}
-                                
-                                placeholder={`Team ${loadoutIndex + 1}`}
-                                autoFocus
-                                maxLength={20}
-                                name="team-name"
-                            />
-                        )}
-                    </div>
-
-                    <div className="content">
                         {/* Copy Loadout to Clipboard */}
                         <ScreenshotButton action="clipboard" targetElementId="loadout" />
 
                         {/* Download Clipboard */}
                         <ScreenshotButton action="download" targetElementId="loadout" />
+                        
+                        {/* Loadout Menu */}
+                        <button
+                            onClick={_ => setShowResetConfirmation(true)}
+                            className="button menu"
+                            title="Open Menu"
+                        >
+                            <span>{`Loadout Menu (WIP)`}</span>
+                        </button>
 
                         {/* Toggle Character Names Visibility */}
-                        <button
+                        {/* <button
                             onClick={_ => setShowCharacters(prev => !prev)}
                             className="button toggle-names"
                             data-hidden={!showCharacters}
                             title={showCharacters ? "Hide Character Names in Breakdown" : "Show Character Names in Breakdown"}
                         >
                             {showCharacters ? "Hide Team" : "Show Team"}
-                        </button>
+                        </button> */}
                         
-                        {/* Clear button */}
-                        <button
-                            onClick={_ => updateCurrentLoadout([])}
-                            className="button clear"
-                        >
-                            {`Remove all`}
-                        </button>
-
                         {/* Reset All Loadouts Button + Confirmation Modal */}
-                        <button
+                        {/* <button
                             onClick={_ => setShowResetConfirmation(true)}
                             className="button reset-all"
                         >
                             {`Reset All Loadouts`}
-                        </button>
-                        <ConfirmationModal
+                        </button> */}
+                        {/* <ConfirmationModal
                             isOpen={showResetConfirmation}
                             onConfirm={handleConfirmResetAll}
                             onCancel={handleCancelResetAll}
@@ -891,14 +906,14 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             message="This action cannot be undone and will permanently delete all your saved loadouts"
                             confirmText="Reset All"
                             isDangerous
-                        />
+                        /> */}
 
                         {/* Load Preset Roster */}
-                        <PresetTeamsDropdown 
+                        {/* <PresetTeamsDropdown 
                             onSelectTeam={updateCurrentLoadout} 
                             characters={characters}
                             lightcones={lightcones}
-                        />
+                        /> */}
                     </div>
                 </div>
 
