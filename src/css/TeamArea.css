@@ -77,6 +77,9 @@
     cursor: not-allowed;
     color: rgb(107, 114, 128);
 }
+.TeamArea > .header > .navigation .tab-button:not(:last-child) {
+    border-top-right-radius: 0.5rem;
+}
 .TeamArea > .header > .navigation .tab-button.active {
     cursor: default;
     border-bottom: 2px solid white;
@@ -359,6 +362,137 @@
     left: unset;
 }
 
+/* Cost penalties */
+.TeamArea > .pairing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    padding: 1rem;
+}
+.TeamArea > .pairing > * {
+    user-select: none; /* For smoother dragging experience */
+}
+.TeamArea > .pairing > .info {
+    color: rgb(209, 213, 219);
+    font-size: 1.125rem;
+    font-weight: bold;
+}
+
+/* 1st/2nd Stage */
+.TeamArea > .pairing > .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Sub-header (Total picks/bans + Cost) */
+.TeamArea > .pairing > .stage .sub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.TeamArea > .pairing > .stage .sub-header .title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+.TeamArea > .pairing > .stage .sub-header .total-cost {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+
+    font-size: clamp(1.125rem, 2.1vw, 1.25rem);
+    font-weight: bold;
+    line-height: 1.5rem;
+    color: var(--color-cost);
+
+    background-color: rgba(0, 0, 0, 0.33);
+}
+
+/* Characters container */
+.TeamArea > .pairing .characters-container {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+.TeamArea > .pairing .characters-container:hover {
+    cursor: grab;
+}
+.TeamArea > .pairing .characters-container:active {
+    cursor: grabbing;
+}
+
+/* Character slot */
+.TeamArea > .pairing .characters-container > .slot {
+    position: relative;
+    height: clamp(10rem, 14vw, 12rem);
+
+    display: flex;
+    flex-direction: column;
+
+    outline: 0.1875rem dashed transparent; 
+    border-radius: 0.5rem;
+
+    transition: all 200ms ease;
+}
+.TeamArea > .pairing .characters-container > .slot:hover {
+    border-color: transparent;
+    outline-color: rgb(96, 195, 230);
+}
+.TeamArea > .pairing .characters-container > .slot.empty {
+    align-items: center;
+    justify-content: center;
+    font-size: 1.188rem;
+
+    color: rgb(107, 114, 128);
+    border: 0.125rem dashed rgb(75, 85, 99);
+    background-color: rgb(55, 65, 81);
+    user-select: none;
+
+    transition: border-color 300ms, background-color 300ms, color 300ms;
+}
+.TeamArea > .pairing .characters-container > .slot.dragging {
+    opacity: 0.4;
+    transform: rotate(5deg) scale(0.95);
+}
+.TeamArea > .pairing .characters-container > .slot.drop-target {
+    transform: scale(1.05);
+}
+
+/* Character attributes */
+.TeamArea > .pairing .characters-container > .slot .portrait {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+
+    pointer-events: none;
+    user-select: none;
+    
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+.TeamArea > .pairing .characters-container > .slot .name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+
+    text-align: center;
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    line-height: 1.75rem;
+    user-select: none;
+
+    padding-inline: 0.25rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+
 /* Apply on mobile screens only */
 @media screen and (max-width: 640px) {
     /* Limit width of team name input */
@@ -367,7 +501,7 @@
     }
 
     /* double grid column in smaller screens */
-    .TeamArea > .roster > .picks > .characters-container {
+    .TeamArea > .roster > .picks > .characters-container, .TeamArea > .pairing .characters-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -375,7 +509,7 @@
 /* Apply on mobile+tablet screens */
 @media screen and (max-width: 1070px) {
     /* More focus on character's faces */
-    .TeamArea > .roster > .picks > .characters-container > .slot > .portrait {
+    .TeamArea > .roster > .picks > .characters-container > .slot > .portrait, .TeamArea > .pairing .characters-container > .slot .portrait {
         object-position: 50% 25%;
     }
 }

@@ -75,6 +75,40 @@ function InfoIcon() {
     </svg>
   );
 }
+function WrongTeamOverlay() {
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center"
+      style={{
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      }}
+    >
+      <svg
+        className="w-32 h-32 text-red-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle 
+          cx="12" 
+          cy="12" 
+          r="10" 
+          stroke="currentColor" 
+          strokeWidth="2"
+        />
+        <line 
+          x1="5" 
+          y1="5" 
+          x2="19" 
+          y2="19" 
+          stroke="currentColor" 
+          strokeWidth="2.5" 
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
 
 interface TooltipProps {
     text: string;
@@ -125,24 +159,31 @@ export function TeamArea({
     currentDraftOrder,
     draftState
 }: TeamAreaProps) {
+    const [activeTab, setActiveTab] = useState<"roster" | "pairing" | "result">("roster");
+
     const [editingName, setEditingName] = useState<boolean>(false);
     const [tempName, setTempName] = useState<string>(teamData.name);
-    const [activeTab, setActiveTab] = useState<"roster" | "result">("roster");
-    const [finalScore, setFinalScore] = useState<number>(0);
+
+    // Used to arrange teams for 1st/2nd half - to seek cost pairings
+    const [teamslots, setTeamslots] = useState<Id<"character">[]>([]);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    
     const [resultData, setResultData] = useState<ResultData>({
         memoryofchaos: {
-        firstHalfCycles: 0,
-        secondHalfCycles: 0,
-        deadCharacters: 0,
-        additionalCycleModifier: 0,
+            firstHalfCycles: 0,
+            secondHalfCycles: 0,
+            deadCharacters: 0,
+            additionalCycleModifier: 0,
         },
         apocalypticshadow: {
-        firstHalfScore: 0,
-        secondHalfScore: 0,
-        deadCharacters: 0,
-        additionalScoreModifier: 0,
+            firstHalfScore: 0,
+            secondHalfScore: 0,
+            deadCharacters: 0,
+            additionalScoreModifier: 0,
         },
     });
+    const [finalScore, setFinalScore] = useState<number>(0);
 
     // Default team names
     const defaultTeamName = (team === "blue") ? "Blue Team" : "Red Team";
@@ -168,9 +209,19 @@ export function TeamArea({
                 },
             });
             setFinalScore(0);
+            setTeamslots([]);
             setActiveTab("roster");
         }
     }, [resetTrigger]);
+
+    // Create a copy of the Roster for cost pairings
+    useEffect(() => {
+        if (isDraftComplete) {
+            setTeamslots(teamData.drafted.map(char => char.characterId));
+        } else {
+            if (teamslots.length !== 0) setTeamslots([]); // Clear if a reset/backstep occurs,
+        }
+    }, [isDraftComplete]);
 
   const calculateTotalCost = () => {
     return teamData.drafted.reduce((total, drafted) => {
@@ -460,6 +511,116 @@ export function TeamArea({
         return nextStep.team === team && nextStep.action === actionType;
     };
 
+    // Teamslot handlers
+    const handleDragStart = (index: number, e: React.DragEvent) => {
+        setDraggedIndex(index);
+        // Store team info to prevent cross-team dragging
+        e.dataTransfer.setData('team', team);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault(); // Necessary to allow dropping
+        setDragOverIndex(index);
+    };
+    const handleDragLeave = () => {
+        // Only clear dragOverIndex if this is a same-team drag
+        // For cross-team drags (draggedIndex === null), keep the state
+        if (draggedIndex !== null) {
+            setDragOverIndex(null);
+        }
+    };
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+    const handleDrop = (targetIndex: number, e: React.DragEvent) => {
+        e.preventDefault();
+        
+        // Check if the dragged item is from the same team
+        const draggedTeam = e.dataTransfer.getData('team');
+        if (draggedTeam !== team) {
+            // Cross-team drop attempted - reject it and clear all state
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+
+        if (draggedIndex === null || draggedIndex === targetIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+        
+        // Swaps the characters
+        const newTeamslots = [...teamslots];
+        [newTeamslots[draggedIndex], newTeamslots[targetIndex]] = [newTeamslots[targetIndex], newTeamslots[draggedIndex]];
+        
+        setTeamslots(newTeamslots);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+    // Detect if a cross-team drag is happening over this TeamArea
+    const isCrossTeamDragActive = dragOverIndex !== null && draggedIndex === null;
+    // Handle drag over the entire TeamArea (fires continuously)
+    const handleTeamAreaDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        // If there's no local drag (draggedIndex === null), it must be cross-team
+        if (draggedIndex === null && dragOverIndex === null) {
+            setDragOverIndex(-1); // Use -1 to indicate TeamArea-level hover
+        }
+    };
+    const handleTeamAreaDragLeave = (e: React.DragEvent) => {
+        // Check if we're actually leaving the TeamArea (not just moving to a child)
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+            setDragOverIndex(null);
+        }
+    };
+
+    const calculateFirstHalfCost = (): number => {
+        const firstHalfTeam: Id<"character">[] = teamslots.slice(0, 4);
+        let cost: number = 0;
+
+        for (const characterId of firstHalfTeam) {
+            const drafted = teamData.drafted.find(c => c.characterId === characterId);
+            const character = characters.find(c => c._id === characterId);
+            if (!drafted || !character) continue;
+
+            cost += character.cost[ruleSet][drafted.rank];
+
+            if (drafted.lightconeId && drafted.lightconeRank) {
+                const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+                if (lightcone) cost += lightcone.cost[drafted.lightconeRank];
+            }
+
+            // Check for cost pairing penalty/synergies
+        }
+        return cost;
+    }
+    const calculateSecondHalfCost = (): number => {
+        const firstHalfTeam: Id<"character">[] = teamslots.slice(4, 8);
+        let cost: number = 0;
+
+        for (const characterId of firstHalfTeam) {
+            const drafted = teamData.drafted.find(c => c.characterId === characterId);
+            const character = characters.find(c => c._id === characterId);
+            if (!drafted || !character) continue;
+
+            cost += character.cost[ruleSet][drafted.rank];
+
+            if (drafted.lightconeId && drafted.lightconeRank) {
+                const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+                if (lightcone) cost += lightcone.cost[drafted.lightconeRank];
+            }
+
+            // Check for cost pairing penalty/synergies
+        }
+        return cost;
+    }
+
     const renderRosterTab = () => (
 		<div className="roster">
 			{/* Picked characters */}
@@ -650,177 +811,322 @@ export function TeamArea({
 		</div>
 	);
 
-    const renderResultTab = () => {
-        if (ruleSet === "memoryofchaos") {
-        const mocData = resultData.memoryofchaos;
-        return (
-            <div className="results space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-white font-medium">Memory of Chaos Results</h3>
-                    <Tooltip text={getFormulaTooltip()}>
-                    <InfoIcon />
-                    </Tooltip>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {renderInputField(
-                    "1st Half Cycles",
-                    mocData.firstHalfCycles,
-                    (value) => handleMoCResultDataChange('firstHalfCycles', value),
-                    "0.0",
-                    "0.1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "2nd Half Cycles",
-                    mocData.secondHalfCycles,
-                    (value) => handleMoCResultDataChange('secondHalfCycles', value),
-                    "0.0",
-                    "0.1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "Dead Characters",
-                    mocData.deadCharacters,
-                    (value) => handleMoCResultDataChange('deadCharacters', value),
-                    "0",
-                    "1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "Additional Cycle Modifier",
-                    mocData.additionalCycleModifier,
-                    (value) => handleMoCResultDataChange('additionalCycleModifier', value),
-                    "0.0",
-                    "0.1",
-                    undefined,
-                    true
-                    )}
-                </div>
-                
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
-                    <button
-                        onClick={calculateResult}
-                        disabled={!settings || !opponentTeamData || hasEmptyFields()}
-                        className={`px-4 py-2 rounded font-medium transition-colors ${
-                            team === "blue" 
-                            ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
-                            : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
-                        } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                        style={{ alignSelf: "flex-end" }}
-                    >
-                        Calculate Result
-                    </button>
-                    
-                    {hasEmptyFields() && (
-                        <div className="flex items-center gap-2 text-amber-500 text-sm">
-                            <WarningIcon />
-                            <span>Fill all fields to calculate</span>
-                        </div>
-                    )}
-                    
-                    <div className="flex-1">
-                    <label className="block text-white text-sm font-medium mb-2">Final Score</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={finalScore}
-                        readOnly
-                        className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
-                        placeholder="0.00"
-                    />
-                    </div>
-                </div>
-            </div>
-        );
-        } else {
-        const apocData = resultData.apocalypticshadow;
-        return (
-            <div className="results space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
-                    <Tooltip text={getFormulaTooltip()}>
-                    <InfoIcon />
-                    </Tooltip>
+    const renderPairingTab = () => (
+        <div className="pairing">
+            <p className="info">Please drag each character to their respective position</p>
+
+            <div className="stage">
+                <div className="sub-header">
+					<h2 className="title">First Half</h2>
+
+					<h2 className="total-cost">{`Σ ${calculateFirstHalfCost().toFixed(1)}`}</h2>
+				</div>
+
+                <div className="characters-container">
+                    {Array.from({ length: 4 }).map((_, index) => {
+                        const characterId = teamslots[index];
+                        const isDragging = draggedIndex === index;
+                        const isValidDropTarget = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
+
+                        if (!characterId) {
+                            return (
+                                <div 
+                                    key={index}
+                                    className="slot empty"
+                                    
+                                    draggable={false}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(index, e)}
+                                >
+                                    <h3>Locked!</h3>
+                                </div>
+                            );
+                        }
+
+                        const character: Character | undefined = characters.find(c => c._id === characterId);
+                        if (!character) return null;
+
+                        return (
+                            <div
+                                key={index}
+                                className={`slot ${isDragging ? `dragging` : isValidDropTarget ? `drop-target` : ``}`}
+                                data-rarity={character.rarity}
+                                
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(index, e)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragLeave={handleDragLeave}
+                                onDragEnd={handleDragEnd}
+                                onDrop={(e) => handleDrop(index, e)}
+                            >
+                                {/* Character IMG */}
+                                <img
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    className="portrait"
+                                    alt={character.display_name}
+                                    title={`${character.display_name}`}
+                                    style={{ pointerEvents: 'none' }}
+                                />
+
+                                <h3 className="name">{character.display_name}</h3>
+                            </div>
+                        );
+                    })}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {renderInputField(
-                    "1st Half Score",
-                    apocData.firstHalfScore,
-                    (value) => handleApocResultDataChange('firstHalfScore', value),
-                    "0.0",
-                    "0.1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "2nd Half Score",
-                    apocData.secondHalfScore,
-                    (value) => handleApocResultDataChange('secondHalfScore', value),
-                    "0.0",
-                    "0.1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "Dead Characters",
-                    apocData.deadCharacters,
-                    (value) => handleApocResultDataChange('deadCharacters', value),
-                    "0",
-                    "1",
-                    "0"
-                    )}
-                    {renderInputField(
-                    "Additional Score Modifier",
-                    apocData.additionalScoreModifier,
-                    (value) => handleApocResultDataChange('additionalScoreModifier', value),
-                    "0.0",
-                    "0.1",
-                    undefined,
-                    true
-                    )}
-                </div>
-                
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
-                    <button
-                        onClick={calculateResult}
-                        disabled={!settings || !opponentTeamData || hasEmptyFields()}
-                        className={`px-4 py-2 rounded font-medium transition-colors ${
-                            team === "blue" 
-                            ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
-                            : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
-                        } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                        style={{ alignSelf: "flex-end" }}
-                    >
-                        Calculate Result
-                    </button>
-                    
-                    {hasEmptyFields() && (
-                        <div className="flex items-center gap-2 text-amber-500 text-sm">
-                            <WarningIcon />
-                            <span>Fill all fields to calculate</span>
-                        </div>
-                    )}
-                    
-                    <div className="flex-1">
-                    <label className="block text-white text-sm font-medium mb-2">Final Score</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={finalScore}
-                        readOnly
-                        className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
-                        placeholder="0.00"
-                    />
-                    </div>
+                <div className="synergies">
+                    <h3>Synergies: </h3>
                 </div>
             </div>
-        );
+
+            <div className="stage">
+                <div className="sub-header">
+					<h2 className="title">Second Half</h2>
+
+					<h2 className="total-cost">{`Σ ${calculateSecondHalfCost().toFixed(1)}`}</h2>
+				</div>
+
+                <div className="characters-container">
+                    {Array.from({ length: 4 }).map((_, index) => {
+                        const characterId = teamslots[4 + index];
+                        const relativeIndex = 4 + index;
+                        const isDragging = draggedIndex === relativeIndex;
+                        const isValidDropTarget = dragOverIndex === relativeIndex && draggedIndex !== null && draggedIndex !== relativeIndex;
+
+                        if (!characterId) {
+                            return (
+                                <div 
+                                    key={index}
+                                    className="slot empty"
+
+                                    draggable={false}
+                                    onDragOver={(e) => handleDragOver(e, relativeIndex)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(relativeIndex, e)}
+                                >
+                                    <h3>Locked!</h3>
+                                </div>
+                            );
+                        }
+
+                        const character: Character | undefined = characters.find(c => c._id === characterId);
+                        if (!character) return null;
+
+                        return (
+                            <div
+                                key={index}
+                                className={`slot ${isDragging ? `dragging` : isValidDropTarget ? `drop-target` : ``}`}
+                                data-rarity={character.rarity}
+
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(relativeIndex, e)}
+                                onDragOver={(e) => handleDragOver(e, relativeIndex)}
+                                onDragLeave={handleDragLeave}
+                                onDragEnd={handleDragEnd}
+                                onDrop={(e) => handleDrop(relativeIndex, e)}
+                            >
+                                {/* Character IMG */}
+                                <img
+                                    src={character.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${character.display_name.slice(0, 2)}</text></svg>`}
+                                    className="portrait"
+                                    alt={character.display_name}
+                                    title={`${character.display_name}`}
+                                    style={{ pointerEvents: 'none' }}
+                                />
+
+                                <h3 className="name">{character.display_name}</h3>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="synergies">
+                    <h3>Synergies: </h3>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderResultTab = () => {
+        if (ruleSet === "memoryofchaos") {
+            const mocData = resultData.memoryofchaos;
+            return (
+                <div className="results space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                        <h3 className="text-white font-medium">Memory of Chaos Results</h3>
+                        <Tooltip text={getFormulaTooltip()}>
+                        <InfoIcon />
+                        </Tooltip>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {renderInputField(
+                        "1st Half Cycles",
+                        mocData.firstHalfCycles,
+                        (value) => handleMoCResultDataChange('firstHalfCycles', value),
+                        "0.0",
+                        "0.1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "2nd Half Cycles",
+                        mocData.secondHalfCycles,
+                        (value) => handleMoCResultDataChange('secondHalfCycles', value),
+                        "0.0",
+                        "0.1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "Dead Characters",
+                        mocData.deadCharacters,
+                        (value) => handleMoCResultDataChange('deadCharacters', value),
+                        "0",
+                        "1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "Additional Cycle Modifier",
+                        mocData.additionalCycleModifier,
+                        (value) => handleMoCResultDataChange('additionalCycleModifier', value),
+                        "0.0",
+                        "0.1",
+                        undefined,
+                        true
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+                        <button
+                            onClick={calculateResult}
+                            disabled={!settings || !opponentTeamData || hasEmptyFields()}
+                            className={`px-4 py-2 rounded font-medium transition-colors ${
+                                team === "blue" 
+                                ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                                : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+                            } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                            style={{ alignSelf: "flex-end" }}
+                        >
+                            Calculate Result
+                        </button>
+                        
+                        {hasEmptyFields() && (
+                            <div className="flex items-center gap-2 text-amber-500 text-sm">
+                                <WarningIcon />
+                                <span>Fill all fields to calculate</span>
+                            </div>
+                        )}
+                        
+                        <div className="flex-1">
+                        <label className="block text-white text-sm font-medium mb-2">Final Score</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={finalScore}
+                            readOnly
+                            className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                            placeholder="0.00"
+                        />
+                        </div>
+                    </div>
+                </div>
+            );
+        } else {
+            const apocData = resultData.apocalypticshadow;
+            return (
+                <div className="results space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                        <h3 className="text-white font-medium">Apocalyptic Shadow Results</h3>
+                        <Tooltip text={getFormulaTooltip()}>
+                        <InfoIcon />
+                        </Tooltip>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {renderInputField(
+                        "1st Half Score",
+                        apocData.firstHalfScore,
+                        (value) => handleApocResultDataChange('firstHalfScore', value),
+                        "0.0",
+                        "0.1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "2nd Half Score",
+                        apocData.secondHalfScore,
+                        (value) => handleApocResultDataChange('secondHalfScore', value),
+                        "0.0",
+                        "0.1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "Dead Characters",
+                        apocData.deadCharacters,
+                        (value) => handleApocResultDataChange('deadCharacters', value),
+                        "0",
+                        "1",
+                        "0"
+                        )}
+                        {renderInputField(
+                        "Additional Score Modifier",
+                        apocData.additionalScoreModifier,
+                        (value) => handleApocResultDataChange('additionalScoreModifier', value),
+                        "0.0",
+                        "0.1",
+                        undefined,
+                        true
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
+                        <button
+                            onClick={calculateResult}
+                            disabled={!settings || !opponentTeamData || hasEmptyFields()}
+                            className={`px-4 py-2 rounded font-medium transition-colors ${
+                                team === "blue" 
+                                ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
+                                : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
+                            } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                            style={{ alignSelf: "flex-end" }}
+                        >
+                            Calculate Result
+                        </button>
+                        
+                        {hasEmptyFields() && (
+                            <div className="flex items-center gap-2 text-amber-500 text-sm">
+                                <WarningIcon />
+                                <span>Fill all fields to calculate</span>
+                            </div>
+                        )}
+                        
+                        <div className="flex-1">
+                        <label className="block text-white text-sm font-medium mb-2">Final Score</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={finalScore}
+                            readOnly
+                            className="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 cursor-not-allowed"
+                            placeholder="0.00"
+                        />
+                        </div>
+                    </div>
+                </div>
+            );
         }
     };
 
     return (
         <div 
             className={`TeamArea Box ${team} ${highlightRoster() ? `active` : ``}`} 
-            style={{ animationDuration: (highlightRoster() && draftState.isTimerActive && draftState.phaseTimer <= 0) ? `400ms` : `` }} // Background pulses faster when Reserve Timer is active
+            style={{ animationDuration: (highlightRoster() && draftState.isTimerActive && draftState.phaseTimer <= 0) ? `400ms` : `` }}
+            
+            onDragOver={handleTeamAreaDragOver}
+            onDragLeave={handleTeamAreaDragLeave}
+            onDrop={(e) => {
+                // Catch any drops that reach the TeamArea level
+                e.preventDefault();
+                setDragOverIndex(null);
+            }}
         >
             {/* Header - Team [Name/Editor] + Navigation [Draft/Results] */}
             <div className="header">
@@ -857,10 +1163,20 @@ export function TeamArea({
                     <button
                         className={`tab-button ${(activeTab === "roster") ? `active` : ``}`}
                         onClick={_ => setActiveTab("roster")}
-                        style={{ borderTopRightRadius: `0.5rem` }}
                     >
-                        {`Roster`}
+                        {`Draft`}
                     </button>
+
+                    {/* Synergies button */}
+                    <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
+                        <button
+                            className={`tab-button ${(activeTab === "pairing") ? `active` : ``}`}
+                            onClick={_ => isDraftComplete && setActiveTab("pairing")}
+                            disabled={!isDraftComplete}
+                        >
+                            {`Teams`}
+                        </button>
+                    </Tooltip>
 
                     {/* Results button */}
                     <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
@@ -877,7 +1193,11 @@ export function TeamArea({
 
             {/* Tab Content */}
             { (activeTab === "roster") && renderRosterTab() }
+            { (activeTab === "pairing") && renderPairingTab() }
             { (activeTab === "result") && renderResultTab() }
+
+            {/* Overlay if a character from the other team is being dragged */}
+            {isCrossTeamDragActive && <WrongTeamOverlay />}
         </div>
     );
 }
