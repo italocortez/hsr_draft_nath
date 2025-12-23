@@ -309,6 +309,7 @@ interface TeamTestProps {
 
 export function TeamTest({ characters, lightcones }: TeamTestProps) {
     const icons = useQuery(api.icons.list) || [];
+    const pairings = useQuery(api.characters.getPairings) || [];
     const [loadouts, setLoadouts] = useState<Loadout[]>(LoadoutManager.loadLoadouts());
     const [loadoutIndex, setLoadoutIndex] = useState<number>(LoadoutManager.loadCurrentLoadoutIndex());
     const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.loadRulesetView());
@@ -433,8 +434,27 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                 if (lightcone) cost += lightcone.cost[member.lightconeRank];
             }
             
+            // Add pairing costs
+            cost += getPairingCostForCharacter(character.name, ruleSet);
+            
             return total + cost;
         }, 0);
+    };
+
+    const getPairingCostForCharacter = (characterName: string, ruleSet: RuleSet): number => {
+        // Get all characters currently in the team
+        const teamCharacterNames = resolvedTeam.map(member => {
+            const character = characters.find(c => c._id === member.characterId);
+            return character ? character.name : null;
+        }).filter(name => name !== null);
+
+        // Calculate total pairing cost for this character
+        return pairings
+            .filter(pairing => 
+                pairing.source === characterName && 
+                teamCharacterNames.includes(pairing.pair_target)
+            )
+            .reduce((total, pairing) => total + pairing.cost[ruleSet], 0);
     };
 
     const getDefaultRank = (character: Character): CharacterRank => {
@@ -461,7 +481,8 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
 
     const getChartColors = () => ({
         character: (ruleSet === "memoryofchaos") ? "#3b82f6" : "#8b5cf6",
-        lightcone: (ruleSet === "memoryofchaos") ? "#60a5fa" : "#a78bfa"
+        lightcone: (ruleSet === "memoryofchaos") ? "#60a5fa" : "#a78bfa",
+        pairing: (ruleSet === "memoryofchaos") ? "#1d4ed8" : "#6d28d9"
     });
 
     return (
@@ -639,6 +660,15 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                             backgroundColor: getChartColors().lightcone,
                                             borderSkipped: true,
                                         },
+                                        {
+                                            label: "Pairing",
+                                            data: resolvedTeam.map(member => {
+                                                const character = characters.find(c => c._id === member.characterId);
+                                                return character ? getPairingCostForCharacter(character.name, ruleSet) : 0;
+                                            }),
+                                            backgroundColor: getChartColors().pairing,
+                                            borderSkipped: true,
+                                        },
                                     ],
                                 }}
 
@@ -664,6 +694,29 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                             position: `bottom`
                                         },
 
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context: any) {
+                                                    const label = context.dataset.label || '';
+                                                    const value = context.parsed.y;
+
+                                                    if (label !== 'Pairing' || value === 0) {
+                                                        return `${label}: ${value}`;
+                                                    }
+
+                                                    const member = resolvedTeam[context.dataIndex];
+                                                    const sourceChar = characters.find(c => c._id === member.characterId);
+                                                    if (!sourceChar) return `${label}: ${value}`;
+
+                                                    const teamNames = resolvedTeam.map(m => characters.find(c => c._id === m.characterId)?.name).filter(Boolean);
+                                                    const breakdown = pairings.filter(p => p.source === sourceChar.name && teamNames.includes(p.pair_target))
+                                                        .map(p => `${characters.find(c => c.name === p.pair_target)?.display_name}: ${p.cost[ruleSet]}`).join(', ');
+
+                                                    return `Pairing: ${value} (from ${breakdown})`;
+                                                }
+                                            }
+                                        },
+
                                         datalabels: {
                                             display: true,
                                             anchor: 'end',
@@ -675,7 +728,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                             font: { weight: 'bold', size: 16 },
 
                                             formatter: (value: number, ctx: any) => {
-                                                if (ctx.datasetIndex !== 1) return '';
+                                                if (ctx.datasetIndex !== 2) return '';
                                                 
                                                 const member = resolvedTeam[ctx.dataIndex];
                                                 const char = characters.find(c => c._id === member.characterId);
@@ -686,6 +739,7 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                                                     const lc = lightcones.find(l => l._id === member.lightconeId);
                                                     if (lc) total += lc.cost[member.lightconeRank];
                                                 }
+                                                total += getPairingCostForCharacter(char.name, ruleSet);
                                                 return `Σ ${total.toFixed(1)}`;
                                             },
                                         },
@@ -750,6 +804,10 @@ export function TeamTest({ characters, lightcones }: TeamTestProps) {
                             <div className="section">
                                 <div className="square" style={{ backgroundColor: getChartColors().lightcone }} />
                                 <h3 className="name">Lightcone</h3>
+                            </div>
+                            <div className="section">
+                                <div className="square" style={{ backgroundColor: getChartColors().pairing }} />
+                                <h3 className="name">Pairing</h3>
                             </div>
                         </div>
                         

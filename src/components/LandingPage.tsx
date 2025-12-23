@@ -10,14 +10,12 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [copied, setCopied] = useState(false);
   
-  // Fetch UI element icons from the database
-  const uiIcons = useQuery(api.icons.getUIElements) || [];
-  
-  // Create a map for easy icon lookup
-  const iconMap = uiIcons.reduce((acc, icon) => {
-    acc[icon.name] = icon.imageUrl;
-    return acc;
-  }, {} as Record<string, string>);
+  // Fetch UI element icons from Convex storage
+  const draftOfflineIcon = useQuery(api.storage.getStorageUrl, { storageId: "kg2dpd5er9xjeax98hccx85c517xq7c3" as any });
+  const loadoutsIcon = useQuery(api.storage.getStorageUrl, { storageId: "kg2fb0rb5vs97h4echmxgjm7697xqyh4" as any });
+  const costTablesIcon = useQuery(api.storage.getStorageUrl, { storageId: "kg23jsfm4xg0v9jeepb5sp8v8h7xq0sb" as any });
+  const tutorialIcon = useQuery(api.storage.getStorageUrl, { storageId: "kg2es8d2rq4v431a2efjr3emcs7xq541" as any });
+  const contactUsIcon = useQuery(api.storage.getStorageUrl, { storageId: "kg28gt9bafk74ma7eym0ytg2sx7xq4kn" as any });
 
   const handleCopyUsername = async () => {
     try {
@@ -60,7 +58,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('draft')}
             >
               <div className="nav-card-icon">
-                <img src={iconMap['draft_offline']} alt="Draft" className="nav-icon-img" />
+                {draftOfflineIcon && <img src={draftOfflineIcon} alt="Draft" className="nav-icon-img" />}
               </div>
               <h3>Draft - Offline</h3>
               <p>Start a draft session meant to be screenshare by one person</p>
@@ -71,7 +69,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('teamtest')}
             >
               <div className="nav-card-icon">
-                <img src={iconMap['loadouts']} alt="Loadouts" className="nav-icon-img" />
+                {loadoutsIcon && <img src={loadoutsIcon} alt="Loadouts" className="nav-icon-img" />}
               </div>
               <h3>Loadouts</h3>
               <p>Test team compositions</p>
@@ -82,7 +80,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('costs')}
             >
               <div className="nav-card-icon">
-                <img src={iconMap['cost_tables']} alt="Cost Tables" className="nav-icon-img" />
+                {costTablesIcon && <img src={costTablesIcon} alt="Cost Tables" className="nav-icon-img" />}
               </div>
               <h3>Cost Tables</h3>
               <p>View character and lightcone costs</p>
@@ -93,7 +91,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('tutorial')}
             >
               <div className="nav-card-icon">
-                <img src={iconMap['tutorial']} alt="Tutorial" className="nav-icon-img" />
+                {tutorialIcon && <img src={tutorialIcon} alt="Tutorial" className="nav-icon-img" />}
               </div>
               <h3>Tutorial</h3>
               <p>Learn how to use the website</p>
@@ -104,7 +102,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               onClick={scrollToContact}
             >
               <div className="nav-card-icon">
-                <img src={iconMap['contact_us']} alt="Contact Us" className="nav-icon-img" />
+                {contactUsIcon && <img src={contactUsIcon} alt="Contact Us" className="nav-icon-img" />}
               </div>
               <h3>Contact Us</h3>
               <p>Get in touch with us</p>

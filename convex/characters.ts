@@ -48,3 +48,11 @@ export const seedCharacters = mutation({
         return;
     },
 });
+
+export const getPairings = query({
+    args: {},
+    handler: async (ctx) => {
+        const pairings = await ctx.db.query("pairing").collect();
+        return pairings;
+    },
+});
