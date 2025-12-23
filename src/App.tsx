@@ -8,7 +8,7 @@ import { TeamTest } from "./components/TeamTest";
 import { CostTables } from "./components/CostTables";
 import { Tutorial } from "./components/Tutorial";
 import { LandingPage } from "./components/LandingPage";
-import { Character, Lightcone } from "./lib/utils";
+import { Character, Lightcone, Pairing } from "./lib/utils";
 
 type Tab = "landing" | "draft" | "teamtest" | "costs" | "tutorial";
 
@@ -34,6 +34,7 @@ export default function App() {
   const seedCharacters = useMutation(api.characters.seedCharacters);
   const seedLightcones = useMutation(api.lightcones.seedLightcones);
   const characters: Character[] = useQuery(api.characters.list) || [];
+  const pairings: Pairing[] = useQuery(api.characters.getPairings) || [];
   const lightcones: Lightcone[] = useQuery(api.lightcones.list) || [];
 
   const [activeTab, setActiveTab] = useState<Tab>("landing");
@@ -147,6 +148,7 @@ export default function App() {
             {/* NEVER UNMOUNT DraftingInteface - Wipes DraftState */}
             <DraftingInterface 
               characters={characters} 
+              pairings={pairings}
               lightcones={lightcones} 
               isVisible={activeTab === "draft"}
             />
@@ -154,6 +156,7 @@ export default function App() {
             {activeTab === "teamtest" && (
               <TeamTest 
                 characters={characters} 
+                pairings={pairings}
                 lightcones={lightcones} 
               />
             )}
@@ -161,6 +164,7 @@ export default function App() {
             {activeTab === "costs" && (
               <CostTables 
                 characters={characters} 
+                pairings={pairings}
                 lightcones={lightcones} 
               />
             )}

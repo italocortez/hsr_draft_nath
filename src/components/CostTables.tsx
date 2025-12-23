@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { RuleSet } from "./DraftingInterface";
-import { Character, CharacterRank, Element, Lightcone, LightconeRank, Path, Rarity, Role, UniqueElements, UniquePaths, UniqueRoles } from "@/lib/utils";
+import { Character, CharacterRank, Element, Lightcone, LightconeRank, Pairing, Path, Rarity, Role, UniqueElements, UniquePaths, UniqueRoles } from "@/lib/utils";
 import "../css/CostTables.css";
 import LoadoutManager from "@/lib/LoadoutManager";
 
@@ -20,6 +20,7 @@ const ClearIcon: React.FC = () => (
 
 interface CostTablesProps {
   characters: Character[];
+  pairings: Pairing[];
   lightcones: Lightcone[];
 }
 
@@ -83,7 +84,26 @@ const DropdownIcon = ({ isOpen = false }) => (
     </svg>
 );
 
-export function CostTables({ characters, lightcones }: CostTablesProps) {
+const ExpanderIcon = ({ isExpanded = false }) => (
+    <svg 
+        width="1rem" 
+        height="1rem" 
+        viewBox="0 0 16 16" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+    >
+        <path 
+            d="M6 4L10 8L6 12" 
+            stroke="currentColor"
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
+export function CostTables({ characters, pairings, lightcones }: CostTablesProps) {
     const icons = useQuery(api.icons.list) || [];
     const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.loadRulesetView()); // Last viewed RuleSet - Doesn't update on switch
 
@@ -94,6 +114,7 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
     const [characterSearchTerm, setCharacterSearchTerm] = useState<string>("");
     const [characterSort, setCharacterSort] = useState<CharacterSortState>({ field: "name", direction: "asc" });
     const [showCharacterTable, setShowCharacterTable] = useState<boolean>(true);
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
     // Lightcone sorting
     const [lightconeSelectedPaths, setLightconeSelectedPaths] = useState<Path[]>([]);
@@ -306,6 +327,29 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
         setLightconeSearchTerm("");
     };
 
+    // Helper function to check if a character has pairings
+    const characterHasPairings = (characterName: string): boolean => {
+        return pairings.some(pairing => pairing.source === characterName);
+    };
+
+    // Helper function to get pairings for a character
+    const getCharacterPairings = (characterName: string) => {
+        return pairings.filter(pairing => pairing.source === characterName);
+    };
+
+    // Helper function to toggle expanded state
+    const toggleRowExpansion = (characterName: string) => {
+        setExpandedRows(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(characterName)) {
+                newSet.delete(characterName);
+            } else {
+                newSet.add(characterName);
+            }
+            return newSet;
+        });
+    };
+
     const renderSortableHeader = (
         label: string,
         field: string,
@@ -482,6 +526,7 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                         <table className="w-full text-white">
                             <thead>
                                 <tr className="border-b border-gray-600">
+                                    <th className="text-center py-3 px-2 font-medium w-8"></th>
                                     {renderSortableHeader("Character", "name", characterSort, handleCharacterSort, "text-left py-3 px-4 font-medium")}
                                     {renderSortableHeader("Rarity", "rarity", characterSort, handleCharacterSort)}
                                     {renderSortableHeader("E0", "E0", characterSort, handleCharacterSort)}
@@ -494,9 +539,34 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {sortedAndFilteredCharacters.map((character) => (
-                                    <tr key={character._id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
-                                        <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>{character.display_name}</td>
+                                {sortedAndFilteredCharacters.map((character) => {
+                                    const hasPairings = characterHasPairings(character.name);
+                                    const isExpanded = expandedRows.has(character.name);
+                                    const characterPairings = getCharacterPairings(character.name);
+                                    
+                                    return (
+                                        <Fragment key={character._id}>
+                                            <tr className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-150">
+                                                <td className="py-3 px-2 text-center">
+                                                    {hasPairings && (
+                                                        <button
+                                                            onClick={() => toggleRowExpansion(character.name)}
+                                                            className="text-gray-400 hover:text-white transition-colors duration-200 p-1"
+                                                        >
+                                                            <ExpanderIcon isExpanded={isExpanded} />
+                                                        </button>
+                                                    )}
+                                                </td>
+                                        <td className="py-3 px-4" style={{ fontSize: `1.125rem` }}>
+                                            <div className="flex items-center gap-2">
+                                                <span>{character.display_name}</span>
+                                                {characterHasPairings(character.name) && (
+                                                    <span className="text-cyan-400 text-sm font-medium">
+                                                        {getCharacterPairings(character.name).length} synergies
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="py-3 px-4 text-center">
                                             <div 
                                                 data-rarity={character.rarity}
@@ -519,7 +589,35 @@ export function CostTables({ characters, lightcones }: CostTablesProps) {
                                         <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E5}</td>
                                         <td className="py-3 px-4 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>{character.cost[ruleSet].E6}</td>
                                     </tr>
-                                ))}
+                                            {isExpanded && hasPairings && (
+                                                <tr className="border-b border-gray-700">
+                                                    <td colSpan={10} className="py-2 px-4 bg-gray-800">
+                                                        <div className="ml-6">
+                                                            <table className="w-full text-sm">
+                                                                <thead>
+                                                                    <tr className="border-b border-gray-600">
+                                                                        <th className="text-left py-2 px-3 font-medium text-gray-300">Paired Unit</th>
+                                                                        <th className="text-center py-2 px-3 font-medium text-gray-300">Additional Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {characterPairings.map((pairing, index) => (
+                                                                        <tr key={index} className="border-b border-gray-700 last:border-b-0">
+                                                                            <td className="py-2 px-3 text-gray-200">{characters.find(c => c.name === pairing.pair_target)?.display_name || pairing.pair_target}</td>
+                                                                            <td className="py-2 px-3 text-center" style={{ color: `var(--color-cost)`, fontWeight: 500 }}>
+                                                                                {pairing.cost[ruleSet]}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}

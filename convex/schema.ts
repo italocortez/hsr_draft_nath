@@ -66,6 +66,17 @@ const applicationTables = {
     step_explanation: v.array(v.string()),
     reference_img: v.optional(v.union(v.id("_storage"), v.string())),
   }).index("by_step_order", ["step_order"]),
+
+  pairing: defineTable({
+    source: v.string(),
+    pair_target: v.string(),
+    cost: v.object({
+      memoryofchaos: v.number(),
+      apocalypticshadow: v.number(),
+    }),
+  }).index("by_source", ["source"])
+    .index("by_pair_target", ["pair_target"])
+    .index("by_source_and_target", ["source", "pair_target"]),
 };
 
 export default defineSchema({

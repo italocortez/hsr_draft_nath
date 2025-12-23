@@ -1,4 +1,4 @@
-import { Character, CharacterCost, Element, Path, Rarity, Role, LightconeRank, SuperImpositions } from "../src/lib/utils";
+import { Character, CharacterCost, Element, Path, Rarity, Role, LightconeRank, SuperImpositions, Pairing, PairingCost } from "../src/lib/utils";
 import { Id } from "./_generated/dataModel";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
@@ -46,5 +46,19 @@ export const seedCharacters = mutation({
     handler: async (ctx) => {
         // Data already exists, no need to seed
         return;
+    },
+});
+
+const mapToPairing = (pairing: any): Pairing => ({
+    source: (pairing.source as string),
+    pair_target: (pairing.pair_target as string),
+    cost: (pairing.cost as PairingCost),
+});
+
+export const getPairings = query({
+    args: {},
+    handler: async (ctx) => {
+        const pairings = await ctx.db.query("pairing").collect();
+        return pairings.map(mapToPairing);
     },
 });
