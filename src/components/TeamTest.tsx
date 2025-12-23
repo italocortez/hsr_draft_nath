@@ -3,7 +3,7 @@ import { RuleSet, SelectedCharacter } from "./DraftingInterface";
 import { CharacterPool } from "./CharacterPool";
 import "../css/TeamTest.css";
 import LightconeSelector from "./LightconeSelector";
-import { Character, CharacterRank, Eidolons, Element, Lightcone, LightconeRank, Path, SuperImpositions, UniqueElements, UniquePaths } from "@/lib/utils";
+import { Character, CharacterRank, Eidolons, Element, Lightcone, LightconeRank, Pairing, Path, SuperImpositions, UniqueElements, UniquePaths } from "@/lib/utils";
 import LoadoutManager, { Loadout, PresetOption, ResolvedTeamMember, TeamMember, teamSize } from "@/lib/LoadoutManager";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -304,12 +304,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
 interface TeamTestProps {
     characters: Character[];
+    pairings: Pairing[];
     lightcones: Lightcone[];
 }
 
-export function TeamTest({ characters, lightcones }: TeamTestProps) {
+export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
     const icons = useQuery(api.icons.list) || [];
-    const pairings = useQuery(api.characters.getPairings) || [];
     const [loadouts, setLoadouts] = useState<Loadout[]>(LoadoutManager.loadLoadouts());
     const [loadoutIndex, setLoadoutIndex] = useState<number>(LoadoutManager.loadCurrentLoadoutIndex());
     const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.loadRulesetView());

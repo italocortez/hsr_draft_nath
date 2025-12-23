@@ -3,19 +3,22 @@ import { DraftedCharacter, RuleSet, DraftSettings, DraftMode, TeamState, DraftSt
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/TeamArea.css";
 import LightconeSelector from "./LightconeSelector";
-import { Character, CharacterRank, Eidolons, SuperImpositions, Lightcone, LightconeRank, Team, Turn, Action } from "@/lib/utils";
+import { Character, CharacterRank, Eidolons, SuperImpositions, Lightcone, LightconeRank, Team, Turn, Action, Pairing } from "@/lib/utils";
 
 interface TeamAreaProps {
     team: Team;
     teamData: TeamState;
     characters: Character[];
+    pairings: Pairing[];
     lightcones: Lightcone[];
     ruleSet: RuleSet;
     onTeamNameChange: (team: Team, name: string) => void;
     onCharacterUpdate: (team: Team, index: number, updates: Partial<DraftedCharacter>) => void;
+    onTeamslotsChange?: (team: Team, teamslots: string[]) => void;
     isDraftComplete?: boolean;
     settings?: DraftSettings;
     opponentTeamData?: TeamState;
+    opponentTeamslots?: string[];
     resetTrigger?: number;
     draftMode: DraftMode;
     isDraftStarted?: boolean;
@@ -145,13 +148,16 @@ export function TeamArea({
     team,
     teamData,
     characters,
+    pairings,
     lightcones,
     ruleSet,
     onTeamNameChange,
     onCharacterUpdate,
+    onTeamslotsChange,
     isDraftComplete = false,
     settings,
     opponentTeamData,
+    opponentTeamslots = [],
     resetTrigger,
     draftMode,
     isDraftStarted = false,
@@ -165,7 +171,7 @@ export function TeamArea({
     const [tempName, setTempName] = useState<string>(teamData.name);
 
     // Used to arrange teams for 1st/2nd half - to seek cost pairings
-    const [teamslots, setTeamslots] = useState<Id<"character">[]>([]);
+    const [teamslots, setTeamslots] = useState<string[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     
@@ -217,48 +223,91 @@ export function TeamArea({
     // Create a copy of the Roster for cost pairings
     useEffect(() => {
         if (isDraftComplete) {
-            setTeamslots(teamData.drafted.map(char => char.characterId));
+            const draftedNames: string[] = teamData.drafted.map(char => {
+                const character = characters.find(c => c._id === char.characterId);
+
+                if (!character) return null;
+                return character.name;
+            }).filter(name => name !== null);
+            
+            setTeamslots(draftedNames);
         } else {
             if (teamslots.length !== 0) setTeamslots([]); // Clear if a reset/backstep occurs,
         }
     }, [isDraftComplete]);
 
-  const calculateTotalCost = () => {
-    return teamData.drafted.reduce((total, drafted) => {
-      const character = characters.find(c => c._id === drafted.characterId);
-      if (!character) return total;
-
-      let cost = character.cost[ruleSet][drafted.rank];
-      
-      if (drafted.lightconeId && drafted.lightconeRank) {
-        const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
-        if (lightcone) {
-          cost += lightcone.cost[drafted.lightconeRank];
+    // Notify parent when teamslots changes
+    useEffect(() => {
+        if (onTeamslotsChange && teamslots.length > 0) {
+            onTeamslotsChange(team, teamslots);
         }
-      }
-      
-      return total + cost;
-    }, 0);
-  };
+    }, [teamslots, team, onTeamslotsChange]);
 
-  const calculateOpponentTotalCost = () => {
-    if (!opponentTeamData) return 0;
-    return opponentTeamData.drafted.reduce((total, drafted) => {
-      const character = characters.find(c => c._id === drafted.characterId);
-      if (!character) return total;
+    const getPairingCostForCharacter = (characterName: string, teamNames: string[]): number => {
+        return pairings
+            .filter(pairing => 
+                pairing.source === characterName && 
+                teamNames.includes(pairing.pair_target)
+            )
+            .reduce((total, pairing) => total + pairing.cost[ruleSet], 0);
+    };
 
-      let cost = character.cost[ruleSet][drafted.rank];
-      
-      if (drafted.lightconeId && drafted.lightconeRank) {
-        const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
-        if (lightcone) {
-          cost += lightcone.cost[drafted.lightconeRank];
-        }
-      }
-      
-      return total + cost;
-    }, 0);
-  };
+    const calculateTotalCost = (): number => {
+        return teamData.drafted.reduce((total, drafted, draftedIndex) => {
+            const character = characters.find(c => c._id === drafted.characterId);
+            if (!character) return total;
+
+            let cost = character.cost[ruleSet][drafted.rank];
+            
+            if (drafted.lightconeId && drafted.lightconeRank) {
+                const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+                if (lightcone) {
+                    cost += lightcone.cost[drafted.lightconeRank];
+                }
+            }
+
+            // Add pairing costs
+            if (teamslots.length > 0) {
+                const teamslotIndex = teamslots.findIndex(name => name === character.name);
+                
+                if (teamslotIndex !== -1) {
+                    const teammates = (teamslotIndex < 4) ? teamslots.slice(0, 4) : teamslots.slice(4, 8);
+                    cost += getPairingCostForCharacter(character.name, teammates);
+                }
+            }
+            
+            return total + cost;
+        }, 0);
+    };
+
+    const calculateOpponentTotalCost = () => {
+        if (!opponentTeamData) return 0;
+        return opponentTeamData.drafted.reduce((total, drafted) => {
+            const character = characters.find(c => c._id === drafted.characterId);
+            if (!character) return total;
+
+            let cost = character.cost[ruleSet][drafted.rank];
+            
+            if (drafted.lightconeId && drafted.lightconeRank) {
+                const lightcone = lightcones.find(l => l._id === drafted.lightconeId);
+                if (lightcone) {
+                    cost += lightcone.cost[drafted.lightconeRank];
+                }
+            }
+
+            // Add pairing costs
+            if (opponentTeamslots && opponentTeamslots.length > 0) {
+                const teamslotIndex = opponentTeamslots.findIndex(name => name === character.name);
+                
+                if (teamslotIndex !== -1) {
+                    const teammates = (teamslotIndex < 4) ? opponentTeamslots.slice(0, 4) : opponentTeamslots.slice(4, 8);
+                    cost += getPairingCostForCharacter(character.name, teammates);
+                }
+            }
+            
+            return total + cost;
+        }, 0);
+    };
 
   const handleNameSubmit = () => {
     // If tempName is empty or just whitespace, use the default name
@@ -559,8 +608,8 @@ export function TeamArea({
         setDraggedIndex(null);
         setDragOverIndex(null);
     };
-    // Detect if a cross-team drag is happening over this TeamArea
-    const isCrossTeamDragActive = dragOverIndex !== null && draggedIndex === null;
+    // Detect if a cross-team drag is happening over this TeamArea (only in pairing tab)
+    const isCrossTeamDragActive = activeTab === "pairing" && dragOverIndex !== null && draggedIndex === null;
     // Handle drag over the entire TeamArea (fires continuously)
     const handleTeamAreaDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -581,13 +630,14 @@ export function TeamArea({
     };
 
     const calculateFirstHalfCost = (): number => {
-        const firstHalfTeam: Id<"character">[] = teamslots.slice(0, 4);
+        const firstHalfTeam: string[] = teamslots.slice(0, 4);
         let cost: number = 0;
 
-        for (const characterId of firstHalfTeam) {
-            const drafted = teamData.drafted.find(c => c.characterId === characterId);
-            const character = characters.find(c => c._id === characterId);
-            if (!drafted || !character) continue;
+        for (const characterName of firstHalfTeam) {
+            const character = characters.find(c => c.name === characterName);
+            if (!character) continue;
+            const drafted = teamData.drafted.find(c => c.characterId === character._id);
+            if (!drafted) continue;
 
             cost += character.cost[ruleSet][drafted.rank];
 
@@ -596,18 +646,20 @@ export function TeamArea({
                 if (lightcone) cost += lightcone.cost[drafted.lightconeRank];
             }
 
-            // Check for cost pairing penalty/synergies
+            // Add pairing costs
+            cost += getPairingCostForCharacter(character.name, firstHalfTeam);
         }
         return cost;
     }
     const calculateSecondHalfCost = (): number => {
-        const firstHalfTeam: Id<"character">[] = teamslots.slice(4, 8);
+        const secondHalfTeam: string[] = teamslots.slice(4, 8);
         let cost: number = 0;
 
-        for (const characterId of firstHalfTeam) {
-            const drafted = teamData.drafted.find(c => c.characterId === characterId);
-            const character = characters.find(c => c._id === characterId);
-            if (!drafted || !character) continue;
+        for (const characterName of secondHalfTeam) {
+            const character = characters.find(c => c.name === characterName);
+            if (!character) continue;
+            const drafted = teamData.drafted.find(c => c.characterId === character._id);
+            if (!drafted) continue;
 
             cost += character.cost[ruleSet][drafted.rank];
 
@@ -616,10 +668,33 @@ export function TeamArea({
                 if (lightcone) cost += lightcone.cost[drafted.lightconeRank];
             }
 
-            // Check for cost pairing penalty/synergies
+            // Add pairing costs
+            cost += getPairingCostForCharacter(character.name, secondHalfTeam);
         }
         return cost;
     }
+
+    const renderSynergies = (teamMembers: string[]) => {
+        const teamPairings = pairings.filter(pairing => 
+            teamMembers.includes(pairing.source) && 
+            teamMembers.includes(pairing.pair_target)
+        );
+
+        if (teamPairings.length === 0) {
+            return <h3 className="empty-message">none</h3>
+        }
+
+        return teamPairings.map(pairing => {
+            const sourceChar: string = characters.find(c => c.name === pairing.source)?.display_name || pairing.source;
+            const targetChar: string = characters.find(c => c.name === pairing.pair_target)?.display_name || pairing.pair_target;
+            
+            return (
+                <h3 className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
+                    {`+${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
+                </h3>
+            );
+        });
+    };
 
     const renderRosterTab = () => (
 		<div className="roster">
@@ -824,11 +899,11 @@ export function TeamArea({
 
                 <div className="characters-container">
                     {Array.from({ length: 4 }).map((_, index) => {
-                        const characterId = teamslots[index];
+                        const characterName = teamslots[index];
                         const isDragging = draggedIndex === index;
                         const isValidDropTarget = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
 
-                        if (!characterId) {
+                        if (!characterName) {
                             return (
                                 <div 
                                     key={index}
@@ -844,7 +919,7 @@ export function TeamArea({
                             );
                         }
 
-                        const character: Character | undefined = characters.find(c => c._id === characterId);
+                        const character: Character | undefined = characters.find(c => c.name === characterName);
                         if (!character) return null;
 
                         return (
@@ -876,9 +951,12 @@ export function TeamArea({
                 </div>
 
                 <div className="synergies">
-                    <h3>Synergies: </h3>
+                    <h2>Synergies:</h2>
+                    { renderSynergies(teamslots.slice(0, 4)) }
                 </div>
             </div>
+            
+            <div style={{ borderBottom: `1px solid rgb(55, 65, 81)` }} /> {/* gap between top/bottom half */}
 
             <div className="stage">
                 <div className="sub-header">
@@ -889,12 +967,12 @@ export function TeamArea({
 
                 <div className="characters-container">
                     {Array.from({ length: 4 }).map((_, index) => {
-                        const characterId = teamslots[4 + index];
+                        const characterName = teamslots[4 + index];
                         const relativeIndex = 4 + index;
                         const isDragging = draggedIndex === relativeIndex;
                         const isValidDropTarget = dragOverIndex === relativeIndex && draggedIndex !== null && draggedIndex !== relativeIndex;
 
-                        if (!characterId) {
+                        if (!characterName) {
                             return (
                                 <div 
                                     key={index}
@@ -910,7 +988,7 @@ export function TeamArea({
                             );
                         }
 
-                        const character: Character | undefined = characters.find(c => c._id === characterId);
+                        const character: Character | undefined = characters.find(c => c.name === characterName);
                         if (!character) return null;
 
                         return (
@@ -942,7 +1020,8 @@ export function TeamArea({
                 </div>
 
                 <div className="synergies">
-                    <h3>Synergies: </h3>
+                    <h2>Synergies:</h2>
+                    { renderSynergies(teamslots.slice(4, 8)) }
                 </div>
             </div>
         </div>

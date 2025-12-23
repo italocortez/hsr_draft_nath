@@ -9,7 +9,7 @@ import { CurrentActiveSettings } from "./CurrentActiveSettings";
 import { Id } from "../../convex/_generated/dataModel";
 import "../css/DraftingInterface.css";
 import { createPortal } from "react-dom";
-import { Action, Character, CharacterRank, Lightcone, LightconeRank, Team, Turn } from "@/lib/utils";
+import { Action, Character, CharacterRank, Lightcone, LightconeRank, Pairing, Team, Turn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export type RuleSet = "memoryofchaos" | "apocalypticshadow";
@@ -156,11 +156,12 @@ const checkBanRestriction = (
 
 interface DraftingInterfaceProps {
     characters: Character[];
+    pairings: Pairing[];
     lightcones: Lightcone[];
     isVisible?: boolean
 }
 
-export function DraftingInterface({ characters, lightcones, isVisible }: DraftingInterfaceProps) {
+export function DraftingInterface({ characters, pairings, lightcones, isVisible }: DraftingInterfaceProps) {
 	const [draftState, setDraftState] = useState<DraftState>({
 		blueTeam: {
 			name: "Blue Team",
@@ -189,6 +190,10 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 			apocSettings: DEFAULT_APOC_SETTINGS,
 		},
 	});
+
+	// Track teamslots for both teams to enable pairing cost calculations
+	const [blueTeamslots, setBlueTeamslots] = useState<string[]>([]);
+	const [redTeamslots, setRedTeamslots] = useState<string[]>([]);
 
 	const toolbarRef = useRef<HTMLDivElement>(null);
     const [showToolbarOverlay, setShowToolbarOverlay] = useState<boolean>(false);
@@ -461,6 +466,9 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 			isDraftStarted: false,
 			settings: { ...draftState.settings }, // Preserve current settings
 		});
+		// Clear teamslots
+		setBlueTeamslots([]);
+		setRedTeamslots([]);
 		// Trigger reset for TeamArea components
 		setResetTrigger((prev) => prev + 1);
 	};
@@ -507,6 +515,14 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
 				[teamKey]: newTeam,
 			};
 		});
+	};
+
+	const handleTeamslotsChange = (team: Team, teamslots: string[]) => {
+		if (team === "blue") {
+			setBlueTeamslots(teamslots);
+		} else {
+			setRedTeamslots(teamslots);
+		}
 	};
 
 	const handleSettingsChange = (newSettings: DraftSettings) => {
@@ -655,13 +671,16 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     team="blue"
                     teamData={draftState.blueTeam}
                     characters={characters}
+                    pairings={pairings}
                     lightcones={lightcones}
                     ruleSet={draftState.ruleSet}
                     onTeamNameChange={handleTeamNameChange}
                     onCharacterUpdate={handleCharacterUpdate}
+                    onTeamslotsChange={handleTeamslotsChange}
                     isDraftComplete={isDraftComplete}
                     settings={draftState.settings}
                     opponentTeamData={draftState.redTeam}
+                    opponentTeamslots={redTeamslots}
                     resetTrigger={resetTrigger}
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}
@@ -674,13 +693,16 @@ export function DraftingInterface({ characters, lightcones, isVisible }: Draftin
                     team="red"
                     teamData={draftState.redTeam}
                     characters={characters}
+                    pairings={pairings}
                     lightcones={lightcones}
                     ruleSet={draftState.ruleSet}
                     onTeamNameChange={handleTeamNameChange}
                     onCharacterUpdate={handleCharacterUpdate}
+                    onTeamslotsChange={handleTeamslotsChange}
                     isDraftComplete={isDraftComplete}
                     settings={draftState.settings}
                     opponentTeamData={draftState.blueTeam}
+                    opponentTeamslots={blueTeamslots}
                     resetTrigger={resetTrigger}
                     draftMode={draftState.draftMode}
                     isDraftStarted={draftState.isDraftStarted}

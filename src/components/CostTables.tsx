@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, Fragment } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { RuleSet } from "./DraftingInterface";
-import { Character, CharacterRank, Element, Lightcone, LightconeRank, Path, Rarity, Role, UniqueElements, UniquePaths, UniqueRoles } from "@/lib/utils";
+import { Character, CharacterRank, Element, Lightcone, LightconeRank, Pairing, Path, Rarity, Role, UniqueElements, UniquePaths, UniqueRoles } from "@/lib/utils";
 import "../css/CostTables.css";
 import LoadoutManager from "@/lib/LoadoutManager";
 
@@ -20,6 +20,7 @@ const ClearIcon: React.FC = () => (
 
 interface CostTablesProps {
   characters: Character[];
+  pairings: Pairing[];
   lightcones: Lightcone[];
 }
 
@@ -102,9 +103,8 @@ const ExpanderIcon = ({ isExpanded = false }) => (
     </svg>
 );
 
-export function CostTables({ characters, lightcones }: CostTablesProps) {
+export function CostTables({ characters, pairings, lightcones }: CostTablesProps) {
     const icons = useQuery(api.icons.list) || [];
-    const pairings = useQuery(api.characters.getPairings) || [];
     const [ruleSet, setRuleSet] = useState<RuleSet>(LoadoutManager.loadRulesetView()); // Last viewed RuleSet - Doesn't update on switch
 
     // Character sorting

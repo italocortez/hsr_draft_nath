@@ -31,6 +31,7 @@ export type CharacterCost = {
     memoryofchaos: { E0: number, E1: number, E2: number, E3: number, E4: number, E5: number, E6: number },
     apocalypticshadow: { E0: number, E1: number, E2: number, E3: number, E4: number, E5: number, E6: number },
 }
+export type PairingCost = { memoryofchaos: number, apocalypticshadow: number };
 export type LightconeCost = { S1: number, S2: number, S3: number, S4: number, S5: number };
 
 export interface Character {
@@ -45,6 +46,12 @@ export interface Character {
     cost: CharacterCost;
     imageUrl?: string | undefined;
 }
+export interface Pairing {
+    source: string; // ruanmei
+    pair_target: string; // ruanmei
+    cost: PairingCost;
+}
+
 export interface Lightcone {
     _id: Id<"lightcones">;
     name: string; // agroundedascent
