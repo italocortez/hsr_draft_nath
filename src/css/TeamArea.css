@@ -373,7 +373,28 @@
 .TeamArea > .pairing > * {
     user-select: none; /* For smoother dragging experience */
 }
+
 .TeamArea > .pairing > .info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    text-align: center;
+    color: rgb(209, 213, 219);
+    font-size: 1.125rem;
+    font-weight: bold;
+}
+.TeamArea > .pairing > .info .total-cost {
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.25rem;
+    font-size: clamp(1.25rem, 2.1vw, 1.5rem);
+    font-weight: bold;
+    line-height: 1.5rem;
+    color: var(--color-cost);
+    background-color: rgba(0, 0, 0, 0.33);
+}
+.TeamArea > .pairing > .info > p {
     text-align: center;
     color: rgb(209, 213, 219);
     font-size: 1.125rem;
@@ -397,8 +418,8 @@
     font-size: 1.25rem;
     font-weight: bold;
 }
-.TeamArea > .pairing > .stage .sub-header .total-cost {
-    padding: 0.5rem 0.75rem;
+.TeamArea > .pairing > .stage .sub-header .half-cost {
+    padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
 
     font-size: clamp(1.125rem, 2.1vw, 1.25rem);
@@ -470,6 +491,16 @@
     
     object-fit: cover;
     border-radius: 0.5rem;
+}
+.TeamArea > .pairing .characters-container > .slot .synergy-icon {
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+    z-index: 20;
+
+    height: clamp(1.75rem, 3.2vw, 2.125rem);
+    width: clamp(1.75rem, 3.2vw, 2.125rem);
+    filter: drop-shadow(#000080 2px 1px 0px);
 }
 .TeamArea > .pairing .characters-container > .slot .name {
     position: absolute;

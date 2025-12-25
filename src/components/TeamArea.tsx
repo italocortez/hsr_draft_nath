@@ -112,6 +112,18 @@ function WrongTeamOverlay() {
     </div>
   );
 }
+const SynergyIcon: React.FC = () => (
+    <svg 
+        className="synergy-icon"
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="#b800b8ff" 
+        viewBox="0 0 24 24"
+    >
+        <title>Synergizes greatly with a teammate</title>
+        <path d="M10.962 15.867a2.469 2.469 0 0 1-.69 1.377l-1.029 1.028a2.5 2.5 0 0 1-3.536-3.536l1.029-1.029a2.464 2.464 0 0 1 1.423-.694l1.781-1.781a4.425 4.425 0 0 0-4.619 1.062l-1.028 1.028a4.5 4.5 0 0 0 6.364 6.364l1.029-1.029a4.489 4.489 0 0 0 1.073-4.587zM19.686 4.293a4.511 4.511 0 0 0-6.364 0l-1.029 1.029a4.49 4.49 0 0 0-1.063 4.62l1.779-1.779a2.476 2.476 0 0 1 .7-1.427l1.029-1.029a2.5 2.5 0 0 1 3.536 3.536l-1.029 1.029a2.484 2.484 0 0 1-1.379.693l-1.796 1.794a4.409 4.409 0 0 0 4.587-1.072l1.029-1.029a4.5 4.5 0 0 0 0-6.365z"/>
+        <path d="M9 16a1 1 0 0 1-.707-1.707l6-6a1 1 0 0 1 1.414 1.414l-6 6A1 1 0 0 1 9 16z"/>
+    </svg>
+);
 
 interface TooltipProps {
     text: string;
@@ -674,6 +686,8 @@ export function TeamArea({
         return cost;
     }
 
+    const getTeamPairings = (teamMembers: string[]) => pairings.filter(pairing => teamMembers.includes(pairing.source) && teamMembers.includes(pairing.pair_target));
+    
     const renderSynergies = (teamMembers: string[]) => {
         const teamPairings = pairings.filter(pairing => 
             teamMembers.includes(pairing.source) && 
@@ -689,12 +703,19 @@ export function TeamArea({
             const targetChar: string = characters.find(c => c.name === pairing.pair_target)?.display_name || pairing.pair_target;
             
             return (
-                <h3 className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
-                    {`+${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
+                <h3 key={`${sourceChar}-${targetChar}`} className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
+                    {`${pairing.cost[ruleSet] > 0 ? `+` : ``}${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
                 </h3>
             );
         });
     };
+
+    const hasActivatedPairing = (characterName: string, teamMembers: string[]): boolean => {
+        return pairings.some(pairing => 
+            (pairing.source === characterName && teamMembers.includes(pairing.pair_target)) ||
+            (pairing.pair_target === characterName && teamMembers.includes(pairing.source))
+        );
+    }
 
     const renderRosterTab = () => (
 		<div className="roster">
@@ -888,13 +909,17 @@ export function TeamArea({
 
     const renderPairingTab = () => (
         <div className="pairing">
-            <p className="info">Please drag each character to their respective position</p>
+            <div className="info">
+                <h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
+
+                <p>Please drag each character to their respective position</p>
+            </div>
 
             <div className="stage">
                 <div className="sub-header">
 					<h2 className="title">First Half</h2>
 
-					<h2 className="total-cost">{`Σ ${calculateFirstHalfCost().toFixed(1)}`}</h2>
+					<h2 className="half-cost">{`${`↑ `.repeat(Math.min(3, getTeamPairings(teamslots.slice(0, 4)).length))} ${calculateFirstHalfCost().toFixed(1)}`}</h2>
 				</div>
 
                 <div className="characters-container">
@@ -944,6 +969,8 @@ export function TeamArea({
                                     style={{ pointerEvents: 'none' }}
                                 />
 
+                                { hasActivatedPairing(characterName, teamslots.slice(0, 4)) && <SynergyIcon /> }
+
                                 <h3 className="name">{character.display_name}</h3>
                             </div>
                         );
@@ -962,7 +989,7 @@ export function TeamArea({
                 <div className="sub-header">
 					<h2 className="title">Second Half</h2>
 
-					<h2 className="total-cost">{`Σ ${calculateSecondHalfCost().toFixed(1)}`}</h2>
+					<h2 className="half-cost">{`${`↑ `.repeat(Math.min(3, getTeamPairings(teamslots.slice(4, 8)).length))} ${calculateSecondHalfCost().toFixed(1)}`}</h2>
 				</div>
 
                 <div className="characters-container">
@@ -1012,6 +1039,8 @@ export function TeamArea({
                                     title={`${character.display_name}`}
                                     style={{ pointerEvents: 'none' }}
                                 />
+
+                                { hasActivatedPairing(characterName, teamslots.slice(4, 8)) && <SynergyIcon /> }
 
                                 <h3 className="name">{character.display_name}</h3>
                             </div>

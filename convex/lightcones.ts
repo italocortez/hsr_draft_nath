@@ -11,7 +11,7 @@ const mapToLightcone = (lightcone: any): Lightcone => ({
     path: (lightcone.path as Path),
     cost: (lightcone.cost as LightconeCost),
     rarity: (lightcone.rarity as Rarity),
-    // imageUrl: (lightcone.imageUrl as string | undefined),
+    imageUrl: (lightcone.imageUrl as string | undefined),
 });
 
 export const list = query({
