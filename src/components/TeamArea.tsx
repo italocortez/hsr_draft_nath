@@ -790,7 +790,7 @@ export function TeamArea({
 										title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
 									>
 										{lightcone
-											? `Σ ${characterCost + lightconeCost}`
+											? `${characterCost + lightconeCost}`
 											: characterCost}
 									</h3>
 
@@ -799,7 +799,14 @@ export function TeamArea({
 										{/* Eidolon */}
 										<select
 											value={drafted.rank as CharacterRank}
-											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
+											onChange={e => {
+                                                onCharacterUpdate(
+                                                    team, 
+                                                    index, 
+                                                    { rank: e.target.value as CharacterRank }
+                                                );
+                                                e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                            }}
 											className="eidolon focus:outline-none"
                                             name="eidolon"
 											style={{
@@ -819,7 +826,17 @@ export function TeamArea({
 											<>
 												<select
 													value={(drafted.lightconeRank || "S1") as LightconeRank}
-													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
+													onChange={e => {
+                                                        onCharacterUpdate(
+                                                            team, 
+                                                            index, 
+                                                            { 
+                                                                lightconeId: drafted.lightconeId, 
+                                                                lightconeRank: e.target.value as LightconeRank 
+                                                            }
+                                                        );
+                                                        e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                    }}
 													className="imposition focus:outline-none"
                                                     name="imposition"
 												>

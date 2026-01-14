@@ -1,0 +1,137 @@
+.Header {
+    width: min(94%, 85rem);
+    place-self: center;
+    padding-inline: 0.75rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Logo */
+.Header > .logo {
+    padding-bottom: 1rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    font-size: 1.375rem;
+    font-weight: bold;
+
+    transition: all 300ms;
+}
+.Header > .logo:hover {
+    color: rgb(209, 213, 219);
+}
+
+/* Tabs Navigation */
+.Header > .tabs {
+    display: flex;
+    justify-content: center;
+    overflow: hidden; /* don't remove. */
+}
+.Header > .tabs > button {
+    width: 9.5rem;
+    padding-block: 0.75rem;
+    overflow: hidden;
+
+    font-size: 1.25rem;
+    font-weight: bold;
+    letter-spacing: -0.25px;
+
+    color: rgb(209, 213, 219);
+    background-color: rgb(55, 65, 81);
+
+    transition: all 300ms;
+}
+.Header > .tabs > button.active {
+    cursor: default;
+    color: white;
+    background-color: rgb(8, 145, 178);
+}
+.Header > .tabs > button:not(.active):hover {
+    background-color: rgb(75, 85, 99);
+}
+.Header > .tabs > button:first-child {
+    border-top-left-radius: 0.5rem;
+}
+.Header > .tabs > button:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+/* Mobile Tabs navigation */
+.Header > .mobile-tabs {
+    display: none; /* Hidden by default */
+}
+.Header > .mobile-tabs > .menu {
+    position: absolute;
+    top: auto;
+    right: 0.875rem;
+    z-index: 100;
+    width: 100%;
+    max-width: 12rem;
+    margin-top: 0.5rem;
+
+    display: flex;
+    flex-direction: column;
+
+    border-radius: 0.5rem;
+    backdrop-filter: blur(0.375rem);
+    box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.5);
+}
+.Header > .mobile-tabs > .menu::before {
+    /* Small triangle above the list */
+    content: '';
+    position: absolute;
+    top: -1rem;
+    right: 1rem;
+    z-index: 101;
+    
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-bottom: 16px solid rgb(55, 65, 81);
+}
+.Header > .mobile-tabs > .menu > button {
+    padding-block: 0.75rem;
+    overflow: hidden;
+
+    font-size: 1.25rem;
+    font-weight: bold;
+    letter-spacing: -0.25px;
+
+    color: rgb(209, 213, 219);
+    background-color: rgb(55, 65, 81);
+
+    transition: all 300ms;
+}
+.Header > .mobile-tabs > .menu > button.active {
+    cursor: default;
+    color: white;
+    background-color: rgb(8, 145, 178);
+}
+.Header > .mobile-tabs > .menu > button:not(.active):hover {
+    background-color: rgb(75, 85, 99);
+}
+.Header > .mobile-tabs > .menu > button:first-child {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+
+}
+.Header > .mobile-tabs > .menu > button:last-child {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+
+/* Apply on mobile+tablet screens */
+@media screen and (max-width: 1070px) {
+    .Header > .tabs {
+        display: none; /* hide Desktop tabs */
+    }
+    .Header > .mobile-tabs {
+        display: block; /* Display mobile+tablet tabs menu */
+    }
+}

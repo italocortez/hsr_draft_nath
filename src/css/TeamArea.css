@@ -357,9 +357,35 @@
     filter: grayscale(100%) brightness(1);
 }
 
-/* Fix to LC Search results going out-of-bounds! */
+/* Custom configuration of LightconeSelector */
 .TeamArea > .roster > .picks > .characters-container > .slot:nth-child(2n) > .LightconeSelector > .result-set {
-    left: unset;
+    left: unset; /* Fix to LC Search results going out-of-bounds! */
+}
+.TeamArea > .roster > .picks > .characters-container > .slot > .LightconeSelector > .lightcone-slot {
+    bottom: 0.5rem;
+    clip-path: polygon(100% 0, 100% 100%, 45% 100%, 45% 50%);
+}
+.TeamArea > .roster > .picks > .characters-container > .slot > .LightconeSelector > .lightcone-slot.divider {
+    clip-path: polygon(100% 0, 100% 100%, 43.5% 100%, 43.5% 48.5%, 98.5% 0);
+}
+.TeamArea > .roster > .picks > .characters-container > .slot > .LightconeSelector > .lightcone-slot > .lc-empty {
+    height: clamp(4.5rem, 6vw, 5rem);
+    width: clamp(4.5rem, 6vw, 5rem);
+
+    /* Empty icon is bigger in TeamArea, takes up overall less space */
+    padding: 1.25rem;
+    padding-left: 0.875rem;
+    margin-right: -0.25rem;
+    margin-bottom: -0.375rem;
+}
+.TeamArea > .roster > .picks > .characters-container > .slot > .LightconeSelector > .input-wrapper {
+    padding-block: 0.25rem;
+}
+.TeamArea > .roster > .picks > .characters-container > .slot:hover > .LightconeSelector > .input-wrapper > .search-bar,
+.TeamArea > .roster > .picks > .characters-container > .slot > .LightconeSelector > .input-wrapper:focus-within > .search-bar,
+.TeamArea > .roster > .picks > .characters-container > .slot:has(.verticals:focus-within) > .LightconeSelector > .input-wrapper > .search-bar {
+    /* Show the LC searchbar when hovering over the character slot, or when focused. Slightly adjusted for size in TeamArea */
+    max-height: 1.875rem !important;
 }
 
 /* Cost penalties */
