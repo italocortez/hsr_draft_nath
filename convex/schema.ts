@@ -10,7 +10,7 @@ const applicationTables = {
     element: v.string(),
     path: v.string(),
     rarity: v.number(),
-		role: v.string(),
+    role: v.string(),
     cost: v.object({
       memoryofchaos: v.object({
         E0: v.number(),
@@ -35,7 +35,7 @@ const applicationTables = {
   }).searchIndex("search_aliases", {
     searchField: "aliases",
   }),
-  
+
   lightcones: defineTable({
     display_name: v.string(),
     name: v.string(),
@@ -50,6 +50,11 @@ const applicationTables = {
       S5: v.number(),
     }),
     imageUrl: v.optional(v.string()),
+    positioning: v.optional(v.object({
+      width: v.optional(v.string()),
+      bottom: v.optional(v.string()),
+      left: v.optional(v.string()),
+    })),
   }).searchIndex("search_display_name", {
     searchField: "display_name",
   }),

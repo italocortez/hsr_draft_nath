@@ -54,18 +54,13 @@ const EmptyLightconeIcon: React.FC = () => (
 
 // Lightcone positioning adjustments
 const lightconeDimensions: Record<string, { width: string; bottom: string; left: string }> = {
-    // 5* Limited
-    // 5* Standard
-    // 4*
-    // 3*
-    'scentalonestaystrue': { width: '120%', bottom: '0.5rem', left: '0.25rem' },
-    'adreamscentedinwheat': { width: '', bottom: '', left: '' },
-    'agroundedascent': { width: '', bottom: '', left: '' },
-    'asecretvow': { width: '', bottom: '', left: '' },
-    'athanklesscoronation': { width: '', bottom: '', left: '' },
-    'atrailofbygoneblood': { width: '', bottom: '', left: '' },
-    'adversarial': { width: '', bottom: '', left: '' },
-    'afterthecharmonyfall': { width: '', bottom: '', left: '' },
+    'adreamscentedinwheat': { width: '120%', bottom: '0.4rem', left: '3.3rem' },
+    'agroundedascent': { width: '90%', bottom: '0rem', left: '3.0rem' },
+    'asecretvow': { width: '90%', bottom: '0rem', left: '4rem' },
+    'athanklesscoronation': { width: '125%', bottom: '0rem', left: '3.2rem' },
+    'atrailofbygoneblood': { width: '150%', bottom: '0rem', left: '3.3rem' },
+    'adversarial': { width: '120%', bottom: '-2rem', left: '3rem' },
+    'afterthecharmonyfall': { width: '80%', bottom: '0.2rem', left: '4.0rem' },
     'alongthepassingshore': { width: '', bottom: '', left: '' },
     'amber': { width: '', bottom: '', left: '' },
     'aninstantbeforeagaze': { width: '', bottom: '', left: '' },
@@ -162,6 +157,7 @@ const lightconeDimensions: Record<string, { width: string; bottom: string; left:
     'riverflowsinspring': { width: '', bottom: '', left: '' },
     'sagacity': { width: '', bottom: '', left: '' },
     'sailingtowardsasecondlife': { width: '', bottom: '', left: '' },
+    'scentalonestaystrue': { width: '120%', bottom: '0.5rem', left: '0.25rem' },
     'seeyouattheend': { width: '', bottom: '', left: '' },
     'shadowburn': { width: '', bottom: '', left: '' },
     'shadowedbynight': { width: '', bottom: '', left: '' },
@@ -211,7 +207,7 @@ const lightconeDimensions: Record<string, { width: string; bottom: string; left:
 };
 
 interface LightconeSelectorProps {
-	lightcones: Lightcone[];
+    lightcones: Lightcone[];
     selectedLightconeId?: Id<"lightcones">;
     selectedRank?: LightconeRank;
     onLightconeChange: (lightconeId?: Id<"lightcones">, rank?: LightconeRank) => void;
@@ -222,7 +218,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
     const { lightcones, selectedLightconeId, selectedRank, onLightconeChange, equippingCharacter } = props;
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isLightconeImageLoaded, setIsLightconeImageLoaded] = useState<boolean>(false);
-    
+
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [character, setCharacter] = useState<Character | undefined>(equippingCharacter);
@@ -249,7 +245,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
             setFilteredLightcones([]);
             return undefined;
         }
-        
+
         filterOutLightcones(searchTerm);
     }, [searchTerm]);
 
@@ -261,8 +257,8 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
             // Check if they're is limited banner (has Signature)
             if (equippingCharacter.rarity === 5) {
                 const characterName = equippingCharacter.display_name.toLowerCase().replace(/\s/g, "");
-                const sigLC: Lightcone | undefined = lightcones.find(lightcone => 
-                    lightcone.aliases.some(alias => 
+                const sigLC: Lightcone | undefined = lightcones.find(lightcone =>
+                    lightcone.aliases.some(alias =>
                         alias.toLowerCase() === characterName // LC alias matches Character's name
                         || equippingCharacter.aliases.some(charAlias => alias.toLowerCase() === charAlias.toLowerCase()) // Character alias matches LC alias
                     )
@@ -273,7 +269,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                     setSignatureLightcone(sigLC);
                     return undefined;
                 }
-            } 
+            }
 
             // Character isn't a limited or no Signature was found
             setSignatureLightcone(undefined);
@@ -297,12 +293,12 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
     const filterOutLightcones = (term: string) => {
         term = term.toLowerCase().replace(/\s/g, ""); // Lowercase ~ Remove spaces
 
-        const newFiltered = [...lightcones].filter(lightcone => 
+        const newFiltered = [...lightcones].filter(lightcone =>
             lightcone._id !== selectedLightconeId // Avoid showing the currently equipped LC
             && (
                 lightcone.display_name.toLowerCase().includes(term) // Name matches with searchTerm
                 || lightcone.aliases.some(alias => alias.toLowerCase().includes(term)) // Alias matches with searchTerm
-            ) 
+            )
         );
 
         setFilteredLightcones(newFiltered);
@@ -367,7 +363,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                     </span>
                 </>} */}
             </div>
-            
+
             {/* "Border" for LC art - stops character and LC art from blending together. Also it has to be declared before the real lightcone-slot, to behave as a background */}
             {(selectedLightcone && isLightconeImageLoaded) && <div className="lightcone-slot divider" />}
 
@@ -380,7 +376,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                         src={selectedLightcone.imageUrl || `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'><rect width='100%' height='100%' fill='%23374151'/><text x='50%' y='50%' font-family='Arial' font-size='42' font-weight='bold' text-anchor='middle' fill='white'>${selectedLightcone.name.slice(0, 2)}</text></svg>`}
                         className="lc-art"
                         alt={selectedLightcone.name}
-                        
+
                         // LC divider/"border" won't appear until the Image loads 
                         // Always check if image is actually loaded (handles both fresh and cached)
                         ref={handleImageRef}
@@ -389,20 +385,20 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                         style={{
                             opacity: isLightconeImageLoaded ? 1 : 0, // When swapping Lightcones, hide the previous one until new one loads
 
-                            width: lightconeDimensions[selectedLightcone.name]?.width || `100%`,
-                            bottom: lightconeDimensions[selectedLightcone.name]?.bottom || `0.5rem`,
-                            left: lightconeDimensions[selectedLightcone.name]?.left || `0.5rem`,
+                            width: lightconeDimensions[selectedLightcone.name]?.width || '100%',
+                            bottom: lightconeDimensions[selectedLightcone.name]?.bottom || '0.5rem',
+                            left: lightconeDimensions[selectedLightcone.name]?.left || '0.5rem',
                         }}
                     />
                 </> : <>
                     <EmptyLightconeIcon />
                 </>}
             </div>
-           
+
             {/* Search Results */}
             {isOpen && <>
                 <div className="result-set">
-                    
+
                     {/* Unequip Lightcone Button */}
                     {selectedLightcone && <>
                         <button
@@ -412,7 +408,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                             {`Unequip Lightcone`}
                         </button>
                     </>}
-                    
+
                     {/* Search Results */}
                     {filteredLightcones.length > 0 ? (
                         filteredLightcones.slice(0, 12).map(lightcone => (
@@ -434,7 +430,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
 
                     {/* Signature Lightcone */}
                     {(!selectedLightcone && signatureLightcone && (searchTerm.trim() === "")) && (
-                        <button 
+                        <button
                             onClick={_ => handleSelectLightcone(signatureLightcone)}
                             className="sig-lc"
                             title={signatureLightcone.display_name}
