@@ -92,11 +92,17 @@
     background-color: rgba(46, 46, 46, 0.75);
 }
 .LightconeSelector > .lightcone-slot > .lc-art {
-    position: relative;
-    aspect-ratio: auto;
     max-width: unset; /* Important */
-}
+    aspect-ratio: auto;
 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+    /* Default values - Each lightcone has its own implementation  */
+    width: 100%;
+    transform: translate(-48%, -32%);
+}
 /* LC Cost */
 .LightconeSelector > .input-wrapper > .cost {
     padding-inline: 0.125rem;
