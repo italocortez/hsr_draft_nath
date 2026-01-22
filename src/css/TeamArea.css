@@ -254,14 +254,35 @@
     z-index: 20;
     
     cursor: help;
-    padding: 0.125rem 0.5rem;
+    padding: 0.375rem;
     border-radius: 0.5rem;
 
     font-size: clamp(1.25rem, 2.1vw, 1.375rem);
     font-weight: bold;
     color: var(--color-cost);
+    line-height: clamp(1.25rem, 2.1vw, 1.5rem);
 
     background-color: rgba(0, 0, 0, 0.66);
+}
+.TeamArea .characters-container > .slot > .character > .total-cost .expanded {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+}
+.TeamArea .characters-container > .slot > .character > .total-cost:hover .combined {
+    display: none;
+}
+.TeamArea .characters-container > .slot > .character > .total-cost:hover .expanded {
+    display: flex;
+}
+.TeamArea .characters-container > .slot > .character > .total-cost .divider {
+    height: stretch;
+    border-right: 1px solid rgb(209, 213, 219);
+
+    /* Crucial for tablet. (expands vertically) */
+    width: stretch; 
+    border-bottom: 1px solid rgb(209, 213, 219);
 }
 
 /* Character's Image */
@@ -527,7 +548,7 @@
 }
 .TeamArea > .pairing .characters-container > .slot .synergy-icon {
     position: absolute;
-    right: 0.25rem;
+    left: 0.25rem;
     top: 0.25rem;
     z-index: 20;
 
@@ -614,5 +635,10 @@
     .TeamArea .characters-container > .slot > .character > .verticals > .imposition {
         padding: 0 0.5rem 0.25rem 0.5rem !important;
         margin: 0 -0.5rem -0.25rem -0.5rem !important;
+    }
+
+    /* Synergy icons gets in the way unless we make cost expand vertically */
+    .TeamArea .characters-container > .slot > .character > .total-cost .expanded {
+        flex-direction: column;
     }
 }

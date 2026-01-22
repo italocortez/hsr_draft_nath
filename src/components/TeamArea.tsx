@@ -989,6 +989,9 @@ export function TeamArea({
                         const draftedIndex: number = teamData.drafted.indexOf(drafted);
 						const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
 
+                        const characterCost: number = character.cost[ruleSet][drafted.rank];
+						const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+
                         return (
                             <div
                                 key={index}
@@ -1015,6 +1018,26 @@ export function TeamArea({
 
                                 {/* Character info */}
 								<div className="character">
+                                    {/* Combined cost */}
+                                    <div 
+                                        className="total-cost"
+                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                    >
+                                        {/* Default view */}
+                                        <h3 className="combined">
+                                            {lightcone ? characterCost + lightconeCost : characterCost}
+                                        </h3>
+                                        
+                                        {/* Hover to show expanded view */}
+                                        <div className="expanded">
+                                            <h3>{characterCost}</h3>
+
+                                            <div className="divider" />
+                                            
+                                            <h3>{lightconeCost || 0}</h3>
+                                        </div>
+                                    </div>
+
 									{/* Verticals (Eidolon/SuperImposition) */}
 									<div className="verticals">
 										{/* Eidolon */}
@@ -1133,6 +1156,9 @@ export function TeamArea({
                         const draftedIndex: number = teamData.drafted.indexOf(drafted);
 						const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
 
+                        const characterCost: number = character.cost[ruleSet][drafted.rank];
+						const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
+
                         return (
                             <div
                                 key={index}
@@ -1159,6 +1185,26 @@ export function TeamArea({
 
                                 {/* Character info */}
 								<div className="character">
+                                    {/* Combined cost */}
+                                    <div 
+                                        className="total-cost"
+                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                    >
+                                        {/* Default view */}
+                                        <h3 className="combined">
+                                            {lightcone ? characterCost + lightconeCost : characterCost}
+                                        </h3>
+                                        
+                                        {/* Hover to show expanded view */}
+                                        <div className="expanded">
+                                            <h3>{characterCost}</h3>
+
+                                            <div className="divider" />
+                                            
+                                            <h3>{lightconeCost || 0}</h3>
+                                        </div>
+                                    </div>
+
 									{/* Verticals (Eidolon/SuperImposition) */}
 									<div className="verticals">
 										{/* Eidolon */}
