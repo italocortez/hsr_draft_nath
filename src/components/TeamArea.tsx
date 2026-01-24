@@ -1014,8 +1014,6 @@ export function TeamArea({
                                     style={{ pointerEvents: 'none' }}
                                 />
 
-                                { hasActivatedPairing(characterName, teamslots.slice(0, 4)) && <SynergyIcon /> }
-
                                 {/* Character info */}
 								<div className="character">
                                     {/* Combined cost */}
@@ -1036,6 +1034,12 @@ export function TeamArea({
                                             
                                             <h3>{lightconeCost || 0}</h3>
                                         </div>
+
+                                        {hasActivatedPairing(characterName, teamslots.slice(0, 4)) && <>
+                                            <div className="divider" style={{ width: `unset !important` }} /> {/* This divider is not meant to be affected on tablet screens. */}
+                                            
+                                            <SynergyIcon />
+                                        </>}
                                     </div>
 
 									{/* Verticals (Eidolon/SuperImposition) */}
@@ -1181,8 +1185,6 @@ export function TeamArea({
                                     style={{ pointerEvents: 'none' }}
                                 />
 
-                                { hasActivatedPairing(characterName, teamslots.slice(4, 8)) && <SynergyIcon /> }
-
                                 {/* Character info */}
 								<div className="character">
                                     {/* Combined cost */}
@@ -1203,6 +1205,12 @@ export function TeamArea({
                                             
                                             <h3>{lightconeCost || 0}</h3>
                                         </div>
+
+                                        {hasActivatedPairing(characterName, teamslots.slice(4, 8)) && <>
+                                            <div className="divider" style={{ width: `unset !important` }} /> {/* This divider is not meant to be affected on tablet screens. */}
+                                            
+                                            <SynergyIcon />
+                                        </>}
                                     </div>
 
 									{/* Verticals (Eidolon/SuperImposition) */}

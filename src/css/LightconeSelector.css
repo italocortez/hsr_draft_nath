@@ -140,7 +140,7 @@
     flex-direction: column;
 
     padding-block: 0.25rem;
-    background-color: color-mix(in srgb, rgb(0, 0, 0) 82.5%, var(--lc-5star) 17.5%);
+    background-color: color-mix(in srgb, rgb(0, 0, 0) 75%, rgb(8, 145, 178) 25%);
 
     transition: all 300ms;
 }
@@ -155,8 +155,9 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 
+    color: rgb(96, 195, 230);
     line-height: 1.375rem;
-    font-size: 1.125rem
+    font-size: 1.125rem;
 }
 .LightconeSelector > .result-set > .sig-lc > .info {
     width: 90%;
@@ -169,7 +170,7 @@
     font-size: 0.875rem;
     font-style: italic;
 
-    border-top: 1px solid rgba(251, 201, 66, 0.5);
+    border-top: 1px solid rgb(96, 195, 230, 0.66);
 }
 .LightconeSelector > .result-set > .sig-lc:hover {
     background-color: rgb(75, 85, 99);

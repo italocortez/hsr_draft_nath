@@ -45,7 +45,7 @@
     color: rgb(250, 204, 21);
 }
 .CharacterPool > .status-container > .draft-complete {
-    color: rgb(96, 195, 230);
+    color: white;
 }
 
 /* Filters container */

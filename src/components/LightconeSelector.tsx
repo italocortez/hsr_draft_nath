@@ -443,7 +443,7 @@ function LightconeSelector(props: LightconeSelectorProps): JSX.Element {
                             className="sig-lc"
                             title={signatureLightcone.display_name}
                         >
-                            <span className="name" style={{ color: `var(--lc-${signatureLightcone.rarity}star)` }}>{signatureLightcone.display_name}</span>
+                            <span className="name">{signatureLightcone.display_name}</span>
                             <span className="info">{`${character?.display_name}'s Signature`}</span>
                         </button>
                     )}
