@@ -44,6 +44,18 @@ const EditIcon: React.FC = () => (
         </g>
     </svg>
 );
+const SynergyIcon: React.FC = () => (
+    <svg 
+        className="synergy-icon"
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="#b800b8ff" 
+        viewBox="0 0 24 24"
+    >
+        <title>Synergizes greatly with a teammate</title>
+        <path d="M10.962 15.867a2.469 2.469 0 0 1-.69 1.377l-1.029 1.028a2.5 2.5 0 0 1-3.536-3.536l1.029-1.029a2.464 2.464 0 0 1 1.423-.694l1.781-1.781a4.425 4.425 0 0 0-4.619 1.062l-1.028 1.028a4.5 4.5 0 0 0 6.364 6.364l1.029-1.029a4.489 4.489 0 0 0 1.073-4.587zM19.686 4.293a4.511 4.511 0 0 0-6.364 0l-1.029 1.029a4.49 4.49 0 0 0-1.063 4.62l1.779-1.779a2.476 2.476 0 0 1 .7-1.427l1.029-1.029a2.5 2.5 0 0 1 3.536 3.536l-1.029 1.029a2.484 2.484 0 0 1-1.379.693l-1.796 1.794a4.409 4.409 0 0 0 4.587-1.072l1.029-1.029a4.5 4.5 0 0 0 0-6.365z"/>
+        <path d="M9 16a1 1 0 0 1-.707-1.707l6-6a1 1 0 0 1 1.414 1.414l-6 6A1 1 0 0 1 9 16z"/>
+    </svg>
+);
 const DropdownIcon = ({ isOpen = false }) => (
     <svg 
         width="1.5rem" 
@@ -318,6 +330,10 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
     const [tempName, setTempName] = useState<string>(""); // Temporary field for editing a Loadout's name
     const [showCharacters, setShowCharacters] = useState<boolean>(true); // Show character names on the cost breakdown chart
     const [showResetConfirmation, setShowResetConfirmation] = useState<boolean>(false); // Show overlay to confirm resetting Loadouts
+    
+    // Used to arrange teamslots
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const currentLoadout: Loadout = loadouts[loadoutIndex] || { name: `Team ${loadoutIndex + 1}`, team: [], notes: "" };
     const resolvedTeam: ResolvedTeamMember[] = useMemo(() => 
@@ -422,6 +438,40 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
         setShowResetConfirmation(false);
     };
 
+    // Teamslot handlers
+    const handleDragStart = (index: number, e: React.DragEvent) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDragOverIndex(index);
+    };
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+    const handleDrop = (targetIndex: number, e: React.DragEvent) => {
+        e.preventDefault();
+        
+        if (draggedIndex === null || draggedIndex === targetIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+        
+        // Swap the characters in the team array
+        const newTeam = [...currentLoadout.team];
+        [newTeam[draggedIndex], newTeam[targetIndex]] = [newTeam[targetIndex], newTeam[draggedIndex]];
+        
+        updateCurrentLoadout(newTeam);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
     const getTotalCost = (ruleSet: RuleSet): number => {
         return resolvedTeam.reduce((total, member) => {
             const character = characters.find(c => c._id === member.characterId);
@@ -435,13 +485,13 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
             }
             
             // Add pairing costs
-            cost += getPairingCostForCharacter(character.name, ruleSet);
+            cost += getPairingCostForCharacter(character.name);
             
             return total + cost;
         }, 0);
     };
 
-    const getPairingCostForCharacter = (characterName: string, ruleSet: RuleSet): number => {
+    const getPairingCostForCharacter = (characterName: string): number => {
         // Get all characters currently in the team
         const teamCharacterNames = resolvedTeam.map(member => {
             const character = characters.find(c => c._id === member.characterId);
@@ -485,12 +535,49 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
         pairing: (ruleSet === "memoryofchaos") ? "#1d4ed8" : "#6d28d9"
     });
 
+    const hasActivatedPairing = (characterName: string): boolean => {
+        const teamCharacterNames: string[] = resolvedTeam
+            .map(member => characters.find(c => c._id === member.characterId)?.name)
+            .filter(name => name !== undefined);
+
+        return pairings.some(pairing => 
+            (pairing.source === characterName && teamCharacterNames.includes(pairing.pair_target)) ||
+            (pairing.pair_target === characterName && teamCharacterNames.includes(pairing.source))
+        );
+    }
+
+    const renderSynergies = () => {
+        const teamCharacterNames: string[] = resolvedTeam
+            .map(member => characters.find(c => c._id === member.characterId)?.name)
+            .filter(name => name !== undefined);
+
+        const teamPairings = pairings.filter(pairing => 
+            teamCharacterNames.includes(pairing.source) && 
+            teamCharacterNames.includes(pairing.pair_target)
+        );
+
+        if (teamPairings.length === 0) {
+            return <h3 className="empty-message">none</h3>
+        }
+
+        return teamPairings.map(pairing => {
+            const sourceChar: string = characters.find(c => c.name === pairing.source)?.display_name || pairing.source;
+            const targetChar: string = characters.find(c => c.name === pairing.pair_target)?.display_name || pairing.pair_target;
+            
+            return (
+                <h3 key={`${sourceChar}-${targetChar}`} className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
+                    {`${pairing.cost[ruleSet] > 0 ? `+` : ``}${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
+                </h3>
+            );
+        });
+    };
+
     return (
         <div className="TeamTest">
             <div className="main" id="loadout">
                 {/* Team view */}
                 <div className="roster Box">
-                    <h2 className="sub-header">{`Team (${resolvedTeam.length}/${teamSize})`}</h2>
+                    {/* <h2 className="sub-header">{`Team (${resolvedTeam.length}/${teamSize})`}</h2> */}
 
                     <div className="characters-container">
                         {Array.from({ length: teamSize }).map((_, index) => {
@@ -508,13 +595,23 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                             
                             const elementIconUrl: string = elementIconMap[character.element];
                             const pathIconUrl: string = pathIconMap[character.path];
+                            
+                            const isDragging = draggedIndex === index;
+                            const isValidDropTarget = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
 
                             return (
                                 <div
                                     key={index}
-                                    className="slot"
+                                    className={`slot ${isDragging ? `dragging` : isValidDropTarget ? `drop-target` : ``}`}
                                     data-rarity={character.rarity}
                                     style={{ background: `var(--gradient-${character.rarity}star)` }} // Must be here for Path to appear behind portrait
+
+                                    draggable={true}
+                                    onDragStart={(e) => handleDragStart(index, e)}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDragLeave={handleDragLeave}
+                                    onDragEnd={handleDragEnd}
+                                    onDrop={(e) => handleDrop(index, e)}
                                 >
                                     {/* Path */}
                                     <img
@@ -543,19 +640,30 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
 
                                     {/* Character info */}
                                     <div className="character">
-                                        {/* Element */}
-                                        <img
-                                            src={elementIconUrl}
-                                            className="element"
-                                            alt={character.element}
-                                        />
+                                        <div className="icons">
+                                            {/* Element */}
+                                            <img
+                                                src={elementIconUrl}
+                                                className="element"
+                                                alt={character.element}
+                                            />
+
+                                            {/* Synergy Icon */}
+                                            { hasActivatedPairing(member.characterName) && <SynergyIcon /> }
+                                        </div>
 
                                         {/* Verticals (Eidolon/SuperImposition) */}
                                         <div className="verticals">
                                             {/* Eidolon */}
                                             <select
                                                 value={member.rank as CharacterRank}
-                                                onChange={e => handleMemberUpdate(index, { rank: e.target.value as CharacterRank })}
+                                                onChange={e => {
+                                                    handleMemberUpdate(
+                                                        index, 
+                                                        { rank: e.target.value as CharacterRank }
+                                                    );
+                                                    e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                }}
                                                 className="eidolon focus:outline-none"
                                                 name="eidolon"
                                                 style={{
@@ -575,7 +683,13 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                                 <>
                                                     <select
                                                         value={(member.lightconeRank || "S1") as LightconeRank}
-                                                        onChange={e => handleMemberUpdate(index, { lightconeRank: e.target.value as LightconeRank })}
+                                                        onChange={e => {
+                                                            handleMemberUpdate(
+                                                                index, 
+                                                                { lightconeRank: e.target.value as LightconeRank }
+                                                            );
+                                                            e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                        }}
                                                         className="imposition focus:outline-none"
                                                         name="imposition"
                                                     >
@@ -601,6 +715,11 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                 </div>
                             );
                         })}
+                    </div>
+
+                    <div className="synergies">
+                        <h2>Synergies:</h2>
+                        { renderSynergies() }
                     </div>
                 </div>
 
@@ -664,7 +783,7 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                             label: "Pairing",
                                             data: resolvedTeam.map(member => {
                                                 const character = characters.find(c => c._id === member.characterId);
-                                                return character ? getPairingCostForCharacter(character.name, ruleSet) : 0;
+                                                return character ? getPairingCostForCharacter(character.name) : 0;
                                             }),
                                             backgroundColor: getChartColors().pairing,
                                             borderSkipped: true,
@@ -739,7 +858,7 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                                     const lc = lightcones.find(l => l._id === member.lightconeId);
                                                     if (lc) total += lc.cost[member.lightconeRank];
                                                 }
-                                                total += getPairingCostForCharacter(char.name, ruleSet);
+                                                total += getPairingCostForCharacter(char.name);
                                                 return `Σ ${total.toFixed(1)}`;
                                             },
                                         },

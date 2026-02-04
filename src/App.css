@@ -9,6 +9,10 @@
 
 .App > header {
     width: 100%;
+    padding-top: 1rem;
+
+    background-color: rgb(31, 41, 55);
+    border-bottom: 1px solid rgb(55, 65, 81);
 }
 
 .App > main {

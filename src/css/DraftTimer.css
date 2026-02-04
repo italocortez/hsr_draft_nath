@@ -95,7 +95,6 @@
 .DraftTimer > .content > .draft-status > .draft-complete {
     text-align: center;
     font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-    color: rgb(96, 195, 230);
     font-weight: bold;
     line-height: 1.875rem;
     transform: translateY(-0.5rem);

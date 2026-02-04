@@ -9,6 +9,9 @@
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
     background-color: rgba(0, 0, 0, 0.75);
+
+    padding-block: 0.375rem; /* Leave a small bar when searchbar is collapsed */
+    transition: all 200ms ease;
 }
 
 /* Search Bar */
@@ -23,8 +26,83 @@
 
     font-size: 0.875rem;
     background-color: transparent;
+
+    max-height: 0; /* Using height doesn't have a smooth transition, some limitation in CSS */
+    transition: all 250ms ease;
 }
 
+/* Show the LC search bar when hovering over the character slot, when focused or configuring verticals */
+.slot:hover .LightconeSelector > .input-wrapper > .search-bar,
+.LightconeSelector > .input-wrapper:focus-within > .search-bar,
+.slot:has(.verticals:focus-within) .LightconeSelector > .input-wrapper > .search-bar {
+    /* SHOULD BE EXACTLY THE HEIGHT OF WHERE IT'S IMPLEMENTED. I'VE SET IT HERE AS DEFAULT, IF IT DOESN'T MATCH IT LOOKS JANK. TeamArea and TeamTest have custom implementations */
+    max-height: 2.5rem; /* if the value is too low the search-bar is affected, if too high the transition looks weird */
+}
+.slot:hover .LightconeSelector > .input-wrapper,
+.LightconeSelector > .input-wrapper:focus-within,
+.slot:has(.verticals:focus-within) .LightconeSelector > .input-wrapper {
+    padding-block: 0 !important; /* clear the small bar when searchbar is focused, while hovering or selecting verticals */
+}
+
+/* Hide the LC slot when searchbar when hovering over the character slot, or when focused */
+.slot:hover .LightconeSelector > .lightcone-slot,
+.LightconeSelector > .input-wrapper:focus-within ~ .lightcone-slot,
+.slot:has(.verticals:focus-within) .LightconeSelector > .lightcone-slot {
+    /* '~' is the sibling combinator. applies the styles only if .input-wrapper comes before .lightcone-slot in the DOM  */
+    filter: blur(0.25rem);
+    opacity: 0;
+}
+
+/* Lightcone illustration */
+.LightconeSelector > .lightcone-slot {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    z-index: 10;
+
+    overflow: hidden;
+    pointer-events: none; /* Removes weird jitter with mouse when swapping teamslots */
+
+    clip-path: polygon(100% 0, 100% 100%, 40% 100%, 40% 70%);
+    transition: all 250ms ease;
+}
+.LightconeSelector > .lightcone-slot > .loading {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 20;
+}
+.LightconeSelector > .lightcone-slot.divider {
+    background-color: rgb(42, 42, 42);
+    clip-path: polygon(100% 0, 100% 100%, 38.5% 100%, 38.5% 70%, 98.5% 0);
+}
+
+/* LC art or empty slot */
+.LightconeSelector > .lightcone-slot > .lc-empty {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: clamp(4.5rem, 7.3vw, 6.5rem);
+    width: clamp(4.5rem, 7.3vw, 6.5rem);
+    z-index: 20;
+
+    padding: clamp(1rem, 2.1vw, 1.75rem);
+    background-color: rgba(46, 46, 46, 0.75);
+}
+.LightconeSelector > .lightcone-slot > .lc-art {
+    max-width: unset; /* Important */
+    aspect-ratio: auto;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+    /* Default values - Each lightcone has its own implementation  */
+    width: 100%;
+    transform: translate(-48%, -32%);
+}
 /* LC Cost */
 .LightconeSelector > .input-wrapper > .cost {
     padding-inline: 0.125rem;
@@ -62,7 +140,7 @@
     flex-direction: column;
 
     padding-block: 0.25rem;
-    background-color: color-mix(in srgb, rgb(0, 0, 0) 82.5%, var(--lc-5star) 17.5%);
+    background-color: color-mix(in srgb, rgb(0, 0, 0) 75%, rgb(8, 145, 178) 25%);
 
     transition: all 300ms;
 }
@@ -77,8 +155,9 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 
+    color: rgb(96, 195, 230);
     line-height: 1.375rem;
-    font-size: 1.125rem
+    font-size: 1.125rem;
 }
 .LightconeSelector > .result-set > .sig-lc > .info {
     width: 90%;
@@ -91,7 +170,7 @@
     font-size: 0.875rem;
     font-style: italic;
 
-    border-top: 1px solid rgba(251, 201, 66, 0.5);
+    border-top: 1px solid rgb(96, 195, 230, 0.66);
 }
 .LightconeSelector > .result-set > .sig-lc:hover {
     background-color: rgb(75, 85, 99);
@@ -144,7 +223,6 @@
     color: rgb(209, 213, 219);
     font-size: 1.125rem;
     font-weight: 500;
-    font-style: italic;
     border: 1px solid rgba(75, 85, 99, 0.75);
     background-color: rgba(107, 114, 128, 0.25);
     border-top-left-radius: 0.5rem;

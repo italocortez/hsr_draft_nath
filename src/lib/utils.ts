@@ -3,26 +3,26 @@ import { twMerge } from "tailwind-merge";
 import { Id } from "../../convex/_generated/dataModel";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+    return twMerge(clsx(inputs));
 }
 
 export type Team = "blue" | "red" | "test"; // test used in TeamTest
 export type Action = "pick" | "ban" | "test"; // test used in TeamTest
 export type Turn = { team: Team, action: Action };
 
-export const Eidolons = [ "E0", "E1", "E2", "E3", "E4", "E5", "E6" ] as const;
+export const Eidolons = ["E0", "E1", "E2", "E3", "E4", "E5", "E6"] as const;
 export type CharacterRank = typeof Eidolons[number];
 
-export const SuperImpositions = [ "S1", "S2", "S3", "S4", "S5" ] as const;
+export const SuperImpositions = ["S1", "S2", "S3", "S4", "S5"] as const;
 export type LightconeRank = typeof SuperImpositions[number];
 
-export const UniqueElements = [ "fire", "ice", "imaginary", "lightning", "physical", "quantum", "wind" ] as const;
+export const UniqueElements = ["fire", "ice", "imaginary", "lightning", "physical", "quantum", "wind"] as const;
 export type Element = typeof UniqueElements[number];
 
-export const UniquePaths = [ "abundance", "destruction", "erudition", "harmony", "hunt", "nihility", "preservation", "remembrance" ] as const;
+export const UniquePaths = ["abundance", "destruction", "erudition", "harmony", "hunt", "nihility", "preservation", "remembrance"] as const;
 export type Path = typeof UniquePaths[number];
 
-export const UniqueRoles = [ "dps", "support", "sustain" ] as const;
+export const UniqueRoles = ["dps", "support", "sustain"] as const;
 export type Role = typeof UniqueRoles[number];
 
 export type Rarity = 3 | 4 | 5;
@@ -61,4 +61,9 @@ export interface Lightcone {
     cost: LightconeCost;
     rarity: Rarity;
     imageUrl?: string | undefined;
+    positioning?: {
+        width?: string;
+        bottom?: string;
+        left?: string;
+    } | undefined;
 }

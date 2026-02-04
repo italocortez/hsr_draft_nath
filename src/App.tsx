@@ -9,8 +9,7 @@ import { CostTables } from "./components/CostTables";
 import { Tutorial } from "./components/Tutorial";
 import { LandingPage } from "./components/LandingPage";
 import { Character, Lightcone, Pairing } from "./lib/utils";
-
-type Tab = "landing" | "draft" | "teamtest" | "costs" | "tutorial";
+import { Header, Tab } from "./components/Header";
 
 const ScrollToTopIcon: React.FC = () => (
   <svg 
@@ -61,142 +60,98 @@ export default function App() {
     }
   }, [faviconUrl]);
 
-  // Handle scroll to top button visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPercentage = 0.25; // % of Page
-      const maximumScrollDistance = 2400; // x maximum pixels required to scroll
-      
-      // Reveal button after scrolling down 30% of document height OR 2400px, whichever is smaller
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const percentageThreshold = totalHeight * scrollPercentage;
-      const scrollThreshold = Math.min(percentageThreshold, maximumScrollDistance);
-      
-      setShowScrollToTop(window.scrollY > scrollThreshold);
-    };
+    // Handle scroll to top button visibility
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPercentage = 0.25; // % of Page
+            const maximumScrollDistance = 2400; // x maximum pixels required to scroll
+            
+            // Reveal button after scrolling down 30% of document height OR 2400px, whichever is smaller
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const percentageThreshold = totalHeight * scrollPercentage;
+            const scrollThreshold = Math.min(percentageThreshold, maximumScrollDistance);
+            
+            setShowScrollToTop(window.scrollY > scrollThreshold);
+        };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to the top when changing tab
+    useEffect(() => {
+        scrollToTop();
+    }, [activeTab]);
 
-  const handleNavigate = (tab: string) => {
-    setActiveTab(tab as Tab);
-    scrollToTop();
-  };
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleNavigate = (tab: string) => setActiveTab(tab as Tab);
 
-  return (
-    <div className="App">
-      {activeTab === "landing" ? (
-        <LandingPage onNavigate={handleNavigate} />
-      ) : (
-        <>
-          <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
-            <div className="flex justify-between items-center max-w-7xl mx-auto">
-              <button 
-                onClick={() => handleNavigate("landing")}
-                className="flex items-center gap-2 text-xl font-bold text-white hover:text-gray-300 transition-colors"
-              >
-                <svg 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
+    return (
+        <div className="App">
+            {activeTab === "landing" ? (
+                <LandingPage onNavigate={handleNavigate} />
+            ) : (
+                <>
+                    <header>
+                        <Header 
+                            activeTab={activeTab}
+                            onTabChange={handleNavigate}
+                        />
+                    </header>
+
+                    <main>
+                        {/* NEVER UNMOUNT DraftingInteface - Wipes DraftState */}
+                        <DraftingInterface 
+                            characters={characters} 
+                            pairings={pairings}
+                            lightcones={lightcones} 
+                            isVisible={activeTab === "draft"}
+                        />
+
+                        {activeTab === "teamtest" && (
+                            <TeamTest 
+                                characters={characters} 
+                                pairings={pairings}
+                                lightcones={lightcones} 
+                            />
+                        )}
+
+                        {activeTab === "costs" && (
+                            <CostTables 
+                                characters={characters} 
+                                pairings={pairings}
+                                lightcones={lightcones} 
+                            />
+                        )}
+
+                        {activeTab === "tutorial" && (
+                            <Tutorial />
+                        )}
+                    </main>
+                </>
+            )}
+
+            {/* Scroll to Top Button - only show when not on landing page */}
+            {activeTab !== "landing" && (
+                <button
+                    onClick={scrollToTop}
+                    className={`scroll-button ${showScrollToTop ? `visible` : ``}`}
+                    title="Scroll to Start"
                 >
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9,22 9,12 15,12 15,22"/>
-                </svg>
-                PvP HSR - Draft
-              </button>
-            </div>
-          </header>
+                    <ScrollToTopIcon />
+                </button>
+            )}
 
-          <main>
-            {/* Tab Navigation */}
-            <div className="tabs Box">
-              <button
-                onClick={_ => setActiveTab("draft" as Tab)}
-                className={(activeTab === "draft") ? `active` : undefined}
-              >
-                {`Draft`}
-              </button>
-              <button
-                onClick={_ => setActiveTab("teamtest" as Tab)}
-                className={(activeTab === "teamtest") ? `active` : undefined}
-              >
-                {`Loadouts`}
-              </button>
-              <button
-                onClick={_ => setActiveTab("costs" as Tab)}
-                className={(activeTab === "costs") ? `active` : undefined}
-              >
-                {`Costs`}
-              </button>
-              <button
-                onClick={_ => setActiveTab("tutorial" as Tab)}
-                className={(activeTab === "tutorial") ? `active` : undefined}
-              >
-                {`Tutorial`}
-              </button>
-            </div>
-
-            {/* NEVER UNMOUNT DraftingInteface - Wipes DraftState */}
-            <DraftingInterface 
-              characters={characters} 
-              pairings={pairings}
-              lightcones={lightcones} 
-              isVisible={activeTab === "draft"}
+            {/* Notifications Enabler */}
+            <Toaster 
+                position="top-left" 
+                richColors
+                toastOptions={{
+                    style: {
+                        fontSize: `1rem`
+                    }
+                }}
             />
-
-            {activeTab === "teamtest" && (
-              <TeamTest 
-                characters={characters} 
-                pairings={pairings}
-                lightcones={lightcones} 
-              />
-            )}
-
-            {activeTab === "costs" && (
-              <CostTables 
-                characters={characters} 
-                pairings={pairings}
-                lightcones={lightcones} 
-              />
-            )}
-
-            {activeTab === "tutorial" && (
-              <Tutorial />
-            )}
-          </main>
-        </>
-      )}
-
-      {/* Scroll to Top Button - only show when not on landing page */}
-      {activeTab !== "landing" && (
-        <button
-          onClick={scrollToTop}
-          className={`scroll-button ${showScrollToTop ? `visible` : ``}`}
-          title="Scroll to Start"
-        >
-          <ScrollToTopIcon />
-        </button>
-      )}
-
-      {/* Notifications Enabler */}
-      <Toaster 
-        position="top-left" 
-        richColors
-        toastOptions={{
-          style: {
-            fontSize: `1rem`
-          }
-        }}
-      />
-    </div>
-  );
+        </div>
+    );
 }

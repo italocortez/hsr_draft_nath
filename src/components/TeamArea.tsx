@@ -46,6 +46,22 @@ interface ResultData {
     apocalypticshadow: ApocResultData;
 }
 
+function ViewIcon({ isDraftVisible = false }) {
+  return (
+    <svg 
+        className="eye-icon"
+        xmlns="http://www.w3.org/2000/svg" 
+        width="32" 
+        height="32" 
+        fill={isDraftVisible ? `white` : `rgb(55, 65, 81)`}
+        viewBox="0 0 24 24"
+    >
+        <path 
+            d="M15 12c0 1.654-1.346 3-3 3s-3-1.346-3-3 1.346-3 3-3 3 1.346 3 3zm9-.449s-4.252 8.449-11.985 8.449c-7.18 0-12.015-8.449-12.015-8.449s4.446-7.551 12.015-7.551c7.694 0 11.985 7.551 11.985 7.551zm-7 .449c0-2.757-2.243-5-5-5s-5 2.243-5 5 2.243 5 5 5 5-2.243 5-5z"
+        />
+    </svg>
+  );
+}
 function WarningIcon() {
   return (
     <svg
@@ -112,6 +128,18 @@ function WrongTeamOverlay() {
     </div>
   );
 }
+const SynergyIcon: React.FC = () => (
+    <svg 
+        className="synergy-icon"
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="#b800b8ff" 
+        viewBox="0 0 24 24"
+    >
+        <title>Synergizes greatly with a teammate</title>
+        <path d="M10.962 15.867a2.469 2.469 0 0 1-.69 1.377l-1.029 1.028a2.5 2.5 0 0 1-3.536-3.536l1.029-1.029a2.464 2.464 0 0 1 1.423-.694l1.781-1.781a4.425 4.425 0 0 0-4.619 1.062l-1.028 1.028a4.5 4.5 0 0 0 6.364 6.364l1.029-1.029a4.489 4.489 0 0 0 1.073-4.587zM19.686 4.293a4.511 4.511 0 0 0-6.364 0l-1.029 1.029a4.49 4.49 0 0 0-1.063 4.62l1.779-1.779a2.476 2.476 0 0 1 .7-1.427l1.029-1.029a2.5 2.5 0 0 1 3.536 3.536l-1.029 1.029a2.484 2.484 0 0 1-1.379.693l-1.796 1.794a4.409 4.409 0 0 0 4.587-1.072l1.029-1.029a4.5 4.5 0 0 0 0-6.365z"/>
+        <path d="M9 16a1 1 0 0 1-.707-1.707l6-6a1 1 0 0 1 1.414 1.414l-6 6A1 1 0 0 1 9 16z"/>
+    </svg>
+);
 
 interface TooltipProps {
     text: string;
@@ -223,6 +251,8 @@ export function TeamArea({
     // Create a copy of the Roster for cost pairings
     useEffect(() => {
         if (isDraftComplete) {
+            setActiveTab("pairing"); // Proceed to Team configuration tab automatically
+
             const draftedNames: string[] = teamData.drafted.map(char => {
                 const character = characters.find(c => c._id === char.characterId);
 
@@ -232,6 +262,8 @@ export function TeamArea({
             
             setTeamslots(draftedNames);
         } else {
+            setActiveTab("roster"); // Revert to drafting tab automatically
+
             if (teamslots.length !== 0) setTeamslots([]); // Clear if a reset/backstep occurs,
         }
     }, [isDraftComplete]);
@@ -674,6 +706,8 @@ export function TeamArea({
         return cost;
     }
 
+    const getTeamPairings = (teamMembers: string[]) => pairings.filter(pairing => teamMembers.includes(pairing.source) && teamMembers.includes(pairing.pair_target));
+    
     const renderSynergies = (teamMembers: string[]) => {
         const teamPairings = pairings.filter(pairing => 
             teamMembers.includes(pairing.source) && 
@@ -689,12 +723,19 @@ export function TeamArea({
             const targetChar: string = characters.find(c => c.name === pairing.pair_target)?.display_name || pairing.pair_target;
             
             return (
-                <h3 className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
-                    {`+${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
+                <h3 key={`${sourceChar}-${targetChar}`} className="pair" title={`Additional cost due to strong synergy between ${sourceChar} and ${targetChar}`}>
+                    {`${pairing.cost[ruleSet] > 0 ? `+` : ``}${pairing.cost[ruleSet]} ${sourceChar} - ${targetChar}`}
                 </h3>
             );
         });
     };
+
+    const hasActivatedPairing = (characterName: string, teamMembers: string[]): boolean => {
+        return pairings.some(pairing => 
+            (pairing.source === characterName && teamMembers.includes(pairing.pair_target)) ||
+            (pairing.pair_target === characterName && teamMembers.includes(pairing.source))
+        );
+    }
 
     const renderRosterTab = () => (
 		<div className="roster">
@@ -769,7 +810,7 @@ export function TeamArea({
 										title={`Character: ${characterCost || `-`} cost — LC: ${lightconeCost || `-`} cost`}
 									>
 										{lightcone
-											? `Σ ${characterCost + lightconeCost}`
+											? `${characterCost + lightconeCost}`
 											: characterCost}
 									</h3>
 
@@ -778,7 +819,14 @@ export function TeamArea({
 										{/* Eidolon */}
 										<select
 											value={drafted.rank as CharacterRank}
-											onChange={e => onCharacterUpdate(team, index, { rank: e.target.value as CharacterRank })}
+											onChange={e => {
+                                                onCharacterUpdate(
+                                                    team, 
+                                                    index, 
+                                                    { rank: e.target.value as CharacterRank }
+                                                );
+                                                e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                            }}
 											className="eidolon focus:outline-none"
                                             name="eidolon"
 											style={{
@@ -798,7 +846,17 @@ export function TeamArea({
 											<>
 												<select
 													value={(drafted.lightconeRank || "S1") as LightconeRank}
-													onChange={e => onCharacterUpdate(team, index, { lightconeId: drafted.lightconeId, lightconeRank: e.target.value as LightconeRank })}
+													onChange={e => {
+                                                        onCharacterUpdate(
+                                                            team, 
+                                                            index, 
+                                                            { 
+                                                                lightconeId: drafted.lightconeId, 
+                                                                lightconeRank: e.target.value as LightconeRank 
+                                                            }
+                                                        );
+                                                        e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                    }}
 													className="imposition focus:outline-none"
                                                     name="imposition"
 												>
@@ -888,13 +946,17 @@ export function TeamArea({
 
     const renderPairingTab = () => (
         <div className="pairing">
-            <p className="info">Please drag each character to their respective position</p>
+            <div className="info">
+                <h2 className="total-cost">{`Σ ${calculateTotalCost().toFixed(1)}`}</h2>
+
+                <p>Please drag each character to their respective position</p>
+            </div>
 
             <div className="stage">
                 <div className="sub-header">
 					<h2 className="title">First Half</h2>
 
-					<h2 className="total-cost">{`Σ ${calculateFirstHalfCost().toFixed(1)}`}</h2>
+					<h2 className="half-cost">{`${calculateFirstHalfCost().toFixed(1)} ${`↑ `.repeat(Math.min(3, getTeamPairings(teamslots.slice(0, 4)).length))}`}</h2>
 				</div>
 
                 <div className="characters-container">
@@ -921,6 +983,14 @@ export function TeamArea({
 
                         const character: Character | undefined = characters.find(c => c.name === characterName);
                         if (!character) return null;
+                        const drafted: DraftedCharacter | undefined = teamData.drafted.find(char => char.characterId === character._id);
+                        if (!drafted) return null;
+
+                        const draftedIndex: number = teamData.drafted.indexOf(drafted);
+						const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
+
+                        const characterCost: number = character.cost[ruleSet][drafted.rank];
+						const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 
                         return (
                             <div
@@ -944,7 +1014,101 @@ export function TeamArea({
                                     style={{ pointerEvents: 'none' }}
                                 />
 
-                                <h3 className="name">{character.display_name}</h3>
+                                {/* Character info */}
+								<div className="character">
+                                    {/* Combined cost */}
+                                    <div 
+                                        className="total-cost"
+                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                    >
+                                        {/* Default view */}
+                                        <h3 className="combined">
+                                            {lightcone ? characterCost + lightconeCost : characterCost}
+                                        </h3>
+                                        
+                                        {/* Hover to show expanded view */}
+                                        <div className="expanded">
+                                            <h3>{characterCost}</h3>
+
+                                            <div className="divider" />
+                                            
+                                            <h3>{lightconeCost || 0}</h3>
+                                        </div>
+
+                                        {hasActivatedPairing(characterName, teamslots.slice(0, 4)) && <>
+                                            <div className="divider" style={{ width: `unset !important` }} /> {/* This divider is not meant to be affected on tablet screens. */}
+                                            
+                                            <SynergyIcon />
+                                        </>}
+                                    </div>
+
+									{/* Verticals (Eidolon/SuperImposition) */}
+									<div className="verticals">
+										{/* Eidolon */}
+										<select
+											value={drafted.rank as CharacterRank}
+											onChange={e => {
+                                                onCharacterUpdate(
+                                                    team, 
+                                                    draftedIndex, 
+                                                    { rank: e.target.value as CharacterRank }
+                                                );
+                                                e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                            }}
+											className="eidolon focus:outline-none"
+                                            name="eidolon"
+											style={{
+												paddingRight: `${lightcone ? `0` : ``}`,
+												marginRight: `${lightcone ? `0` : ``}`,
+											}}
+										>
+											{[...Eidolons].map((rank) => (
+												<option key={rank} value={rank}>
+													{rank}
+												</option>
+											))}
+										</select>
+
+										{/* Imposition */}
+										{drafted.lightconeId && (
+											<>
+												<select
+													value={(drafted.lightconeRank || "S1") as LightconeRank}
+													onChange={e => {
+                                                        onCharacterUpdate(
+                                                            team, 
+                                                            draftedIndex, 
+                                                            { 
+                                                                lightconeId: drafted.lightconeId, 
+                                                                lightconeRank: e.target.value as LightconeRank 
+                                                            }
+                                                        );
+                                                        e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                    }}
+													className="imposition focus:outline-none"
+                                                    name="imposition"
+												>
+													{[...SuperImpositions].map((rank) => (
+														<option key={rank} value={rank}>
+															{rank}
+														</option>
+													))}
+												</select>
+											</>
+										)}
+									</div>
+								</div>
+
+                                {/* Lightcone */}
+								<LightconeSelector
+									lightcones={lightcones}
+									selectedLightconeId={drafted.lightconeId}
+									selectedRank={drafted.lightconeRank}
+									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, draftedIndex, { lightconeId, lightconeRank: rank })}
+                                    equippingCharacter={character}
+								/>
+
+                                {/* <h3 className="display-name">{character.display_name}</h3> */}
                             </div>
                         );
                     })}
@@ -962,7 +1126,7 @@ export function TeamArea({
                 <div className="sub-header">
 					<h2 className="title">Second Half</h2>
 
-					<h2 className="total-cost">{`Σ ${calculateSecondHalfCost().toFixed(1)}`}</h2>
+					<h2 className="half-cost">{`${calculateSecondHalfCost().toFixed(1)} ${`↑ `.repeat(Math.min(3, getTeamPairings(teamslots.slice(4, 8)).length))}`}</h2>
 				</div>
 
                 <div className="characters-container">
@@ -990,6 +1154,14 @@ export function TeamArea({
 
                         const character: Character | undefined = characters.find(c => c.name === characterName);
                         if (!character) return null;
+                        const drafted: DraftedCharacter | undefined = teamData.drafted.find(char => char.characterId === character._id);
+                        if (!drafted) return null;
+
+                        const draftedIndex: number = teamData.drafted.indexOf(drafted);
+						const lightcone: Lightcone | undefined = (drafted.lightconeId) ? lightcones.find((l) => l._id === drafted.lightconeId) ?? undefined : undefined;
+
+                        const characterCost: number = character.cost[ruleSet][drafted.rank];
+						const lightconeCost: number = (lightcone && drafted.lightconeRank) ? lightcone.cost[drafted.lightconeRank] : 0;
 
                         return (
                             <div
@@ -1013,7 +1185,101 @@ export function TeamArea({
                                     style={{ pointerEvents: 'none' }}
                                 />
 
-                                <h3 className="name">{character.display_name}</h3>
+                                {/* Character info */}
+								<div className="character">
+                                    {/* Combined cost */}
+                                    <div 
+                                        className="total-cost"
+                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                    >
+                                        {/* Default view */}
+                                        <h3 className="combined">
+                                            {lightcone ? characterCost + lightconeCost : characterCost}
+                                        </h3>
+                                        
+                                        {/* Hover to show expanded view */}
+                                        <div className="expanded">
+                                            <h3>{characterCost}</h3>
+
+                                            <div className="divider" />
+                                            
+                                            <h3>{lightconeCost || 0}</h3>
+                                        </div>
+
+                                        {hasActivatedPairing(characterName, teamslots.slice(4, 8)) && <>
+                                            <div className="divider" style={{ width: `unset !important` }} /> {/* This divider is not meant to be affected on tablet screens. */}
+                                            
+                                            <SynergyIcon />
+                                        </>}
+                                    </div>
+
+									{/* Verticals (Eidolon/SuperImposition) */}
+									<div className="verticals">
+										{/* Eidolon */}
+										<select
+											value={drafted.rank as CharacterRank}
+											onChange={e => {
+                                                onCharacterUpdate(
+                                                    team, 
+                                                    draftedIndex, 
+                                                    { rank: e.target.value as CharacterRank }
+                                                );
+                                                e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                            }}
+											className="eidolon focus:outline-none"
+                                            name="eidolon"
+											style={{
+												paddingRight: `${lightcone ? `0` : ``}`,
+												marginRight: `${lightcone ? `0` : ``}`,
+											}}
+										>
+											{[...Eidolons].map((rank) => (
+												<option key={rank} value={rank}>
+													{rank}
+												</option>
+											))}
+										</select>
+
+										{/* Imposition */}
+										{drafted.lightconeId && (
+											<>
+												<select
+													value={(drafted.lightconeRank || "S1") as LightconeRank}
+													onChange={e => {
+                                                        onCharacterUpdate(
+                                                            team, 
+                                                            draftedIndex, 
+                                                            { 
+                                                                lightconeId: drafted.lightconeId, 
+                                                                lightconeRank: e.target.value as LightconeRank 
+                                                            }
+                                                        );
+                                                        e.currentTarget.blur(); // unfocus after selecting - LC search bar returns to collapsed height
+                                                    }}
+													className="imposition focus:outline-none"
+                                                    name="imposition"
+												>
+													{[...SuperImpositions].map((rank) => (
+														<option key={rank} value={rank}>
+															{rank}
+														</option>
+													))}
+												</select>
+											</>
+										)}
+									</div>
+								</div>
+
+                                {/* Lightcone */}
+								<LightconeSelector
+									lightcones={lightcones}
+									selectedLightconeId={drafted.lightconeId}
+									selectedRank={drafted.lightconeRank}
+									onLightconeChange={(lightconeId, rank) => onCharacterUpdate(team, draftedIndex, { lightconeId, lightconeRank: rank })}
+                                    equippingCharacter={character}
+								/>
+
+                                {/* <h3 className="display-name">{character.display_name}</h3> */}
                             </div>
                         );
                     })}
@@ -1238,16 +1504,30 @@ export function TeamArea({
 
                 {/* Navigation */}
                 <div className="navigation">
+                    {/* Show Draft Button */}
+                    {isDraftComplete && (
+                        <button
+                            onClick={_ => setActiveTab((activeTab === "roster") ? "pairing" : "roster")}
+                            title={`${(activeTab === "pairing") ? `View` : `Hide`} draft`}
+                            style={{ 
+                                marginTop: `0.375rem`,
+                                marginRight: `0.75rem`
+                            }}
+                        >
+                            <ViewIcon isDraftVisible={activeTab === "roster"} />
+                        </button>
+                    )}
+
                     {/* Roster button */}
                     <button
-                        className={`tab-button ${(activeTab === "roster") ? `active` : ``}`}
-                        onClick={_ => setActiveTab("roster")}
+                        className={`tab-button ${(activeTab === "roster" || activeTab === "pairing") ? `active` : ``}`}
+                        onClick={_ => setActiveTab(!isDraftComplete ? "roster" : "pairing")} // Team configuration tab takes priority after draft is over
                     >
                         {`Draft`}
                     </button>
 
                     {/* Synergies button */}
-                    <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
+                    {/* <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
                         <button
                             className={`tab-button ${(activeTab === "pairing") ? `active` : ``}`}
                             onClick={_ => isDraftComplete && setActiveTab("pairing")}
@@ -1255,7 +1535,7 @@ export function TeamArea({
                         >
                             {`Teams`}
                         </button>
-                    </Tooltip>
+                    </Tooltip> */}
 
                     {/* Results button */}
                     <Tooltip text="Draft must be completed first!" disabled={isDraftComplete}>
