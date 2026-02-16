@@ -19,7 +19,7 @@ export type LightconeRank = typeof SuperImpositions[number];
 export const UniqueElements = ["fire", "ice", "imaginary", "lightning", "physical", "quantum", "wind"] as const;
 export type Element = typeof UniqueElements[number];
 
-export const UniquePaths = ["abundance", "destruction", "erudition", "harmony", "hunt", "nihility", "preservation", "remembrance"] as const;
+export const UniquePaths = ["abundance", "destruction", "erudition", "harmony", "hunt", "nihility", "preservation", "remembrance", "elation"] as const;
 export type Path = typeof UniquePaths[number];
 
 export const UniqueRoles = ["dps", "support", "sustain"] as const;
