@@ -209,6 +209,11 @@ const lightconeAnchors: Record<string, {
     'woofwalktime': { width: 127, x: -38, y: -28 },
     'worrisomeblissful': { width: 146, x: -36, y: -24 },
     'yethopeispriceless': { width: 143, x: -26, y: -27},
+    'sneerin': { width: 80, x: -26, y: -45},
+    'lingeringtear': { width: 130, x: -25, y: -27},
+    'todaysgoodluck': { width: 110, x: -23, y: -32},
+    'mushyshroomysadventures': { width: 90, x: -23, y: -38},
+    'whenshedecidedtosee': { width: 100, x: -25, y: -35},
 };
 
 interface LightconeSelectorProps {
