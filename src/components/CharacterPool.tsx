@@ -102,6 +102,9 @@ export function CharacterPool({
             filtered = filtered.filter(char => selectedPaths.includes(char.path));
         }
 
+        // Sort alphabetically by display name
+        filtered.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
         return filtered;
     }, [characters, searchTerm, selectedRoles, selectedElements, selectedPaths]);
 
