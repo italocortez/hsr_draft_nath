@@ -111,7 +111,7 @@ export function DraftControls({
                     <button
                         className="button"
                         disabled
-                        style={{ flex: `1 100%`, backgroundColor: `rgb(75, 85, 99)`, cursor: `default` }}
+                        style={{ flex: `1 100%`, color: `var(--color-light)`, backgroundColor: `rgb(75, 85, 99)`, cursor: `default` }}
                     >
                         {`Complete!`}
                     </button>
@@ -171,12 +171,6 @@ export function DraftControls({
             <div style={{ borderRight: `1px solid rgb(55, 65, 81)` }} /> {/* gap between l/r */}
 
             <div className="right">
-                {/* Copy Draft to Clipboard */}
-                <ScreenshotButton action="clipboard" targetElementId="draft" />
-                
-                {/* Download Draft */}
-                <ScreenshotButton action="download" targetElementId="draft" />
-
                 {/* Draft Settings */}
                 <DraftingSettings 
                     draftState={draftState}
@@ -186,6 +180,12 @@ export function DraftControls({
                     onRuleSetChange={handleRuleSetChange}
                     onDraftModeChange={handleDraftModeChange}
                 />
+                
+                {/* Copy Draft to Clipboard */}
+                <ScreenshotButton action="clipboard" targetElementId="draft" />
+                
+                {/* Download Draft */}
+                <ScreenshotButton action="download" targetElementId="draft" />
             </div>
         </div>
     );

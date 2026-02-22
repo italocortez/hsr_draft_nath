@@ -102,6 +102,8 @@
     /* Default values - Each lightcone has its own implementation  */
     width: 100%;
     transform: translate(-48%, -32%);
+
+    filter: grayscale(5%) brightness(0.9);
 }
 /* LC Cost */
 .LightconeSelector > .input-wrapper > .cost {

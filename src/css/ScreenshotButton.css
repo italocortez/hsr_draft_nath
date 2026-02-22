@@ -6,7 +6,7 @@
     align-items: center;
     justify-content: center;
     
-    background-color: rgb(8, 145, 178);
+    background-color: rgb(31, 164, 169);
     border-radius: 0.25rem;
     box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.16);
 
@@ -14,7 +14,7 @@
 }
 
 .ScreenshotButton:hover:not(:disabled), .ScreenshotButton:active:not(:disabled) {
-    background-color: rgb(6, 126, 154);
+    background-color: rgb(23, 139, 143);
 }
 .ScreenshotButton:disabled {
     opacity: 0.33;
