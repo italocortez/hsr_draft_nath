@@ -5,10 +5,10 @@
 :root {
     --color-light: rgb(230, 237, 246);
     --color-dark: #171717;
-    --color-cost: rgb(227, 209, 138);
+    --color-cost: rgb(244, 206, 122);
 
-    --gradient-5star: linear-gradient(rgba(138, 103, 0, 0.8) 0px, rgba(214, 161, 0, 0.9) 63px, rgba(214, 161, 0, 0.9) 130px);
-    --gradient-4star: linear-gradient(rgba(95, 56, 140, 0.8) 0px, rgba(159, 108, 217, 0.8) 63px, rgb(159, 108, 217, 0.8) 130px);
+    --gradient-5star: linear-gradient(rgba(138, 103, 0, 0.85) 0px, rgba(214, 161, 0, 0.95) 63px, rgba(214, 161, 0, 0.95) 130px);
+    --gradient-4star: linear-gradient(rgba(95, 56, 140, 0.8) 0px, rgba(159, 108, 217, 0.85) 63px, rgb(159, 108, 217, 0.85) 130px);
 
     --border-5star: rgba(251, 191, 36, 0.85);
     --border-4star: rgba(168, 85, 247, 0.85);

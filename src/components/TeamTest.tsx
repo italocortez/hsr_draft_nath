@@ -843,7 +843,7 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                             offset: -4,
                                             clamp: true,
 
-                                            color: `rgb(227, 209, 138)`, // Doesn't recognize css variables
+                                            color: `rgb(244, 206, 122)`, // Doesn't recognize css variables
                                             font: { weight: 'bold', size: 16 },
 
                                             formatter: (value: number, ctx: any) => {

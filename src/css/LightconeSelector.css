@@ -103,7 +103,7 @@
     width: 100%;
     transform: translate(-48%, -32%);
 
-    filter: grayscale(5%) brightness(0.9);
+    filter: brightness(0.95);
 }
 /* LC Cost */
 .LightconeSelector > .input-wrapper > .cost {

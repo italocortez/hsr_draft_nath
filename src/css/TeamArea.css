@@ -297,7 +297,7 @@
     
     object-fit: cover;
     border-radius: 0.5rem;
-    filter: grayscale(5%) brightness(0.9);
+    filter: brightness(0.9);
 }
 
 /* Character verticals (Eidolon/Imposition) container */
@@ -557,7 +557,7 @@
     
     object-fit: cover;
     border-radius: 0.5rem;
-    filter: grayscale(5%) brightness(0.9);
+    filter: brightness(0.9);
 }
 .TeamArea > .pairing .characters-container > .slot .synergy-icon {
     height: clamp(1.25rem, 2.1vw, 1.625rem);
