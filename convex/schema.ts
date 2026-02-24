@@ -51,9 +51,9 @@ const applicationTables = {
     }),
     imageUrl: v.optional(v.string()),
     positioning: v.optional(v.object({
-      width: v.optional(v.string()),
-      bottom: v.optional(v.string()),
-      left: v.optional(v.string()),
+      width: v.number(),
+      x: v.number(),
+      y: v.number(),
     })),
   }).searchIndex("search_display_name", {
     searchField: "display_name",
