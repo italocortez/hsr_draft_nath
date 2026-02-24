@@ -214,6 +214,7 @@ const lightconeAnchors: Record<string, {
     'todaysgoodluck': { width: 110, x: -23, y: -32},
     'mushyshroomysadventures': { width: 90, x: -23, y: -38},
     'whenshedecidedtosee': { width: 100, x: -25, y: -35},
+    'dazzledbyafloweryworld': { width: 100, x: -27, y: -31}
 };
 
 interface LightconeSelectorProps {
