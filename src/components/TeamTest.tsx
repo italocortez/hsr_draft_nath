@@ -67,7 +67,7 @@ const DropdownIcon = ({ isOpen = false }) => (
     >
         <path 
             d="M4 6L8 10L12 6" 
-            stroke="rgb(229, 203, 148)" 
+            stroke="currentColor" 
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
@@ -843,7 +843,7 @@ export function TeamTest({ characters, pairings, lightcones }: TeamTestProps) {
                                             offset: -4,
                                             clamp: true,
 
-                                            color: `rgb(251, 191, 36)`,
+                                            color: `rgb(244, 206, 122)`, // Doesn't recognize css variables
                                             font: { weight: 'bold', size: 16 },
 
                                             formatter: (value: number, ctx: any) => {

@@ -13,7 +13,7 @@ const LeftArrowIcon: React.FC = () => (
         height="2rem"
         width="2rem"
         viewBox="0 0 32 32"
-        stroke="rgb(59, 130, 246)"
+        stroke="rgb(31, 111, 175)"
         strokeWidth="2.5"
         fill="none"
         xmlns="http://www.w3.org/2000/svg" 
@@ -31,7 +31,7 @@ const RightArrowIcon: React.FC = () => (
         height="2rem"
         width="2rem"
         viewBox="0 0 32 32"
-        stroke="rgb(239, 68, 68)"
+        stroke="rgb(159, 62, 62)"
         strokeWidth="2.5"
         fill="none"
         xmlns="http://www.w3.org/2000/svg" 
@@ -53,26 +53,26 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
     };
 
     const getPhaseBarColor = (): string => {
-        if (draftState.phaseTimer <= 5) return `rgb(220, 68, 68)`;
-        if (draftState.phaseTimer <= 10) return `rgb(217, 119, 6)`;
-        return `rgb(38, 175, 208)`;
-    }
+        if (draftState.phaseTimer <= 5)  return `rgb(176, 62, 62)`;
+        if (draftState.phaseTimer <= 10) return `rgb(196, 140, 52)`;
+        return `rgb(31, 164, 169)`;
+    };
     const getPhaseBarBoxShadow = (): string => {
-        if (draftState.phaseTimer <= 5) return `0px 0px 6px 2px rgb(220, 68, 68)`;
-        if (draftState.phaseTimer <= 10) return `0px 0px 6px 2px rgb(217, 119, 6)`;
-        return `0px 0px 6px 2px rgb(38, 175, 208)`;
-    }
+        if (draftState.phaseTimer <= 5) return `0px 0px 8px 1px rgba(176, 62, 62, 0.55)`;
+        if (draftState.phaseTimer <= 10) return `0px 0px 8px 1px rgba(196, 140, 52, 0.45)`;
+        return `0px 0px 8px 1px rgba(31, 164, 169, 0.45)`;
+    };
     const getPhaseTimerColor = (): string => {
         if (!draftState.isTimerActive) return `rgb(107, 114, 128)`;
-        if (draftState.phaseTimer <= 5) return `rgb(220, 68, 68)`;
-        if (draftState.phaseTimer <= 10) return `rgb(217, 119, 6)`;
-        return `rgb(140, 190, 245)`;
+        if (draftState.phaseTimer <= 5)  return `rgb(176, 62, 62)`;
+        if (draftState.phaseTimer <= 10) return `rgb(196, 140, 52)`;
+        return `var(--color-light)`;
     };
     const getReserveTimeColor = (reserveTime: number): string => {
         if (!draftState.isDraftStarted || !draftState.isTimerActive || isDraftComplete) return `rgb(107, 114, 128)`;
-        if (reserveTime <= 60) return `rgb(248, 113, 113)`;
-        if (reserveTime <= 120) return `rgb(217, 119, 6)`;
-        return `rgb(140, 190, 245)`;
+        if (reserveTime <= 60)  return `rgb(176, 62, 62)`;
+        if (reserveTime <= 120) return `rgb(196, 140, 52)`;
+        return `rgb(159, 176, 195)`;
     };
 
     return (
@@ -98,7 +98,7 @@ export function DraftTimer({ draftState, currentPhase, isDraftComplete }: DraftT
                         {/* Current Turn */}
                         {draftState.isTimerActive ? (
                             <h3 className="current-move">
-                                <span style={{ color: (currentPhase?.team === "blue") ? `rgb(59, 130, 246)` : `rgb(239, 68, 68)` }}>
+                                <span style={{ color: (currentPhase?.team === "blue") ? `rgb(95, 168, 230)` : `rgb(224, 124, 124)` }}>
                                     {currentPhase?.team === "blue" ? "Blue" : (currentPhase?.team === "red") ? "Red" : ""}
                                 </span>
                                 {` `}

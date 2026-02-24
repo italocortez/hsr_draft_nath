@@ -330,14 +330,14 @@ export function DraftingSettings({
                             {/* Validation Warning */}
                             {!isValid && (
                                 <div className="validation-warning" style={{ 
-                                    backgroundColor: '#dc2626', 
+                                    backgroundColor: 'color-mix(in srgb, rgb(27, 37, 51) 50%, rgb(159, 62, 62) 50%)', 
                                     color: 'white', 
                                     padding: '0.75rem', 
                                     borderRadius: '0.5rem', 
                                     marginBottom: '1rem',
-                                    border: '1px solid #b91c1c'
+                                    border: '1px solid rgb(159, 62, 62)'
                                 }}>
-                                    <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>⚠️ Invalid Settings</h4>
+                                    <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Invalid Settings</h4>
                                     <p style={{ margin: '0 0 0.5rem 0' }}>The following fields have invalid values and must be corrected before saving:</p>
                                     <ul style={{ margin: '0', paddingLeft: '1.5rem' }}>
                                         {invalidFields.map(field => (
@@ -715,7 +715,6 @@ export function DraftingSettings({
             <button
 				className="DraftingSettings"
 				onClick={handleOpen}
-                title="Draft Settings"
 			>
 				<SettingsIcon />
 				{`Settings`}

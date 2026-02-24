@@ -92,7 +92,7 @@
     border-color: rgb(107, 114, 128);
 }
 .App > .scroll-button:active {
-    background-color: rgb(8, 145, 178);
+    background-color: rgb(31, 164, 169);
     border-color: rgb(34, 201, 228);
 }
 .App > .scroll-button.visible {

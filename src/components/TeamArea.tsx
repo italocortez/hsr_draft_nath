@@ -53,7 +53,7 @@ function ViewIcon({ isDraftVisible = false }) {
         xmlns="http://www.w3.org/2000/svg" 
         width="32" 
         height="32" 
-        fill={isDraftVisible ? `white` : `rgb(55, 65, 81)`}
+        fill={isDraftVisible ? `currentColor` : `rgb(107, 114, 128)`}
         viewBox="0 0 24 24"
     >
         <path 
@@ -764,8 +764,12 @@ export function TeamArea({
 
 						if (!drafted) {
 							return (
-								<div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
-                                    <h3>Empty</h3>
+								<div 
+                                    key={index} 
+                                    className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}
+                                    style={{ boxShadow: isDraftStarted ? `1px 1px 5px 2px rgb(0, 0, 0, 0.5)` : `` }}
+                                >
+                                    <h3>{isCurrentSlot ? `Picking...` : `Empty`}</h3>
 
                                     {(isDraftStarted && pickStepNumbers[index]) && (
                                         <h3 
@@ -908,8 +912,12 @@ export function TeamArea({
 
                         if (!bannedCharacterId) {
                             return (
-                                <div key={index} className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}>
-                                    <h3>Empty</h3>
+                                <div 
+                                    key={index} 
+                                    className={`slot empty ${isCurrentSlot ? `current` : isNextSlot ? `next-up` : ``}`}
+                                    style={{ boxShadow: (isDraftStarted && !isDraftComplete) ? `1px 1px 5px 2px rgb(0, 0, 0, 0.5)` : `` }}
+                                >
+                                    <h3>{isCurrentSlot ? `Banning...` : `Empty`}</h3>
 
                                     {(isDraftStarted && banStepNumbers[index]) && (
                                         <h3 
@@ -1019,7 +1027,7 @@ export function TeamArea({
                                     {/* Combined cost */}
                                     <div 
                                         className="total-cost"
-                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                        // title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
                                     >
                                         {/* Default view */}
                                         <h3 className="combined">
@@ -1190,7 +1198,7 @@ export function TeamArea({
                                     {/* Combined cost */}
                                     <div 
                                         className="total-cost"
-                                        title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
+                                        // title={`Character: ${characterCost || `-`} — LC: ${lightconeCost || `-`}`}
                                     >
                                         {/* Default view */}
                                         <h3 className="combined">
@@ -1349,7 +1357,7 @@ export function TeamArea({
                                 ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
                                 : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
                             } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                            style={{ alignSelf: "flex-end" }}
+                            style={{ alignSelf: "flex-end", backgroundColor: `${(team === "blue") ? `rgb(31, 111, 175)` : (team === "red") ? `rgb(159, 62, 62)` : ``}` }}
                         >
                             Calculate Result
                         </button>
@@ -1431,7 +1439,7 @@ export function TeamArea({
                                 ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800" 
                                 : "bg-red-600 hover:bg-red-700 disabled:bg-red-800"
                             } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                            style={{ alignSelf: "flex-end" }}
+                            style={{ alignSelf: "flex-end", backgroundColor: `${(team === "blue") ? `rgb(31, 111, 175)` : (team === "red") ? `rgb(159, 62, 62)` : ``}` }}
                         >
                             Calculate Result
                         </button>

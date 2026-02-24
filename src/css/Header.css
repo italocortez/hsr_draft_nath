@@ -40,15 +40,15 @@
     font-weight: bold;
     letter-spacing: -0.25px;
 
-    color: rgb(209, 213, 219);
+    color: rgb(159, 176, 195);
     background-color: rgb(55, 65, 81);
 
     transition: all 300ms;
 }
 .Header > .tabs > button.active {
     cursor: default;
-    color: white;
-    background-color: rgb(8, 145, 178);
+    color: var(--color-light);
+    background-color: rgb(31, 164, 169);
 }
 .Header > .tabs > button:not(.active):hover {
     background-color: rgb(75, 85, 99);
@@ -63,6 +63,9 @@
 /* Mobile Tabs navigation */
 .Header > .mobile-tabs {
     display: none; /* Hidden by default */
+}
+.Header > .mobile-tabs > .select-button {
+    margin-top: -0.5rem;
 }
 .Header > .mobile-tabs > .menu {
     position: absolute;
@@ -102,15 +105,15 @@
     font-weight: bold;
     letter-spacing: -0.25px;
 
-    color: rgb(209, 213, 219);
+    color: rgb(159, 176, 195);
     background-color: rgb(55, 65, 81);
 
     transition: all 300ms;
 }
 .Header > .mobile-tabs > .menu > button.active {
     cursor: default;
-    color: white;
-    background-color: rgb(8, 145, 178);
+    color: var(--color-light);
+    background-color: rgb(31, 164, 169);
 }
 .Header > .mobile-tabs > .menu > button:not(.active):hover {
     background-color: rgb(75, 85, 99);

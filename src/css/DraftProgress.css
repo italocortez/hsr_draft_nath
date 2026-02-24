@@ -26,7 +26,7 @@
     font-weight: 500;
 }
 .DraftProgress > .roadmap-header > .step-indicator {
-    color: rgb(209, 213, 219);
+    color: rgb(159, 176, 195);
     font-size: 1rem;
     font-weight: 500;
 }
@@ -134,7 +134,7 @@
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .progress-line > .progress-fill {
     height: 100%;
-    background: rgba(38, 175, 208, 0.75);
+    background: rgba(31, 164, 169, 0.8);
     transition: width 500ms ease-out;
 }
 
@@ -154,24 +154,28 @@
     transition: all 300ms ease-out;
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.blue {
-    background-color: color-mix(in srgb, rgb(107, 114, 128) 10%, rgba(59, 130, 246) 90%);
+    /* background-color: color-mix(in srgb, rgb(107, 114, 128) 10%, rgba(59, 130, 246) 90%); */
+    /* color: #CFE4F7; */
+    background-color: rgb(42, 70, 96);
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.red {
-    background-color: color-mix(in srgb, rgb(107, 114, 128) 10%, rgb(239, 68, 68) 90%);
+    /* background-color: color-mix(in srgb, rgb(107, 114, 128) 10%, rgb(239, 68, 68) 90%); */
+    /* color: #E7A0A0; */
+    background-color: rgb(74, 42, 42);
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.current {
-    border-color: rgb(209, 213, 219) !important;
+    /* border-color: var(--color-light) !important; */
     transform: scale(1.2) !important;
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.blue.current {
-    box-shadow: 0px 0px 3px 2px rgb(59, 130, 246);
+    box-shadow: 0px 0px 3px 2px rgb(31, 111, 175);
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.red.current {
-    box-shadow: 0px 0px 3px 2px rgb(239, 68, 68);
+    box-shadow: 0px 0px 3px 2px rgb(159, 62, 62);
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.future {
-    opacity: 0.9;
-    filter: brightness(0.66) !important; /* Overriding the toolbar overlay */
+    opacity: 0.85;
+    filter: brightness(0.85) !important; /* Overriding the toolbar overlay */
 }
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step.completed {
     font-style: italic;
@@ -180,5 +184,6 @@
 }
 
 .DraftProgress > .roadmap-container > .roadmap-track > .steps-container > .roadmap-step > .step-text {
-    filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.8));
+    filter: drop-shadow(0px 0px 2px black);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
 }

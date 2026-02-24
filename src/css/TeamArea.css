@@ -3,17 +3,19 @@
     transition: all 300ms;
 }
 .TeamArea.blue {
-    border: 2px solid rgb(59, 130, 246);
+    border: 2px solid rgb(31, 111, 175);
+    background: linear-gradient(180deg, rgb(28, 51, 68), rgb(27, 37, 51));
 }
 .TeamArea.blue.active {
-    background-color: color-mix(in srgb, rgb(0, 0, 0) 80%, rgb(59, 130, 246) 20%);
+    /* background-color: color-mix(in srgb, rgb(0, 0, 0) 80%, rgb(59, 130, 246) 20%); */
     animation: pulsating-shadow-blue 1400ms cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
 }
 .TeamArea.red {
-    border: 2px solid rgb(239, 68, 68);
+    border: 2px solid rgb(159, 62, 62);
+    background: linear-gradient(180deg, rgb(42, 31, 35), rgb(27, 37, 51));
 }
 .TeamArea.red.active {
-    background-color: color-mix(in srgb, rgb(0, 0, 0) 85%, rgb(239, 68, 68) 15%);
+    /* background-color: color-mix(in srgb, rgb(0, 0, 0) 85%, rgb(239, 68, 68) 15%); */
     animation: pulsating-shadow-red 1400ms cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
 }
 
@@ -44,10 +46,10 @@
     word-break: break-word;
 }
 .TeamArea.blue > .header > .name {
-    color: rgb(96, 165, 250);
+    color: rgb(95, 168, 230);
 }
 .TeamArea.red > .header > .name {
-    color: rgb(248, 113, 113);
+    color: rgb(224, 124, 124);
 }
 .TeamArea > .header > .editor {
     max-width: 16rem;
@@ -82,13 +84,13 @@
 }
 .TeamArea > .header > .navigation .tab-button.active {
     cursor: default;
-    border-bottom: 2px solid white;
+    border-bottom: 2px solid var(--color-light);
 }
 .TeamArea.blue > .header > .navigation .tab-button.active {
-    background-color: rgb(59, 130, 246);
+    background-color: rgb(31, 111, 175);
 }
 .TeamArea.red > .header > .navigation .tab-button.active {
-    background-color: rgb(239, 68, 68);
+    background-color: rgb(159, 62, 62);
 }
 
 /* Sub-headers (Total picks/bans + Cost) */
@@ -113,7 +115,8 @@
     line-height: 1.5rem;
     color: var(--color-cost);
 
-    background-color: rgba(0, 0, 0, 0.33);
+    background-color: rgb(46, 42, 30);
+    border: 1px solid rgb(94, 82, 50);
 }
 .TeamArea > .roster > .bans > .sub-header {
     margin-bottom: 0.5rem;
@@ -161,7 +164,7 @@
     top: 0.5rem;
     left: 0.5rem;
 
-    color: rgb(209, 213, 219);
+    color: var(--color-light);
     font-size: 1.875rem;
     line-height: 1.625rem;
     letter-spacing: -0.0625rem;
@@ -199,7 +202,7 @@
     top: 0.25rem;
     left: 0.25rem;
 
-    color: rgb(209, 213, 219);
+    color: var(--color-light);
     font-size: 1.25rem;
     line-height: 1.25rem;
     letter-spacing: -0.0625rem;
@@ -207,36 +210,31 @@
 }
 
 /* Character Slot(s) - Misc/Both */
-.TeamArea.active > .roster .slot.empty:not(.current) {
-    box-shadow: 1px 1px 5px 2px rgb(0, 0, 0, 0.5);
-}
 .TeamArea.blue > .roster .characters-container > .slot.current {
-    color: white;
+    color: var(--color-light);
     /* border-style: solid; */
     border-width: 0.25rem;
-    border-color: rgb(59, 130, 246);
+    border-color: rgb(31, 111, 175);
 
-    background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(59, 130, 246) 40%);
+    background-color: color-mix(in srgb, rgb(27, 37, 51) 70%, rgb(31, 111, 175) 30%);
     box-shadow: 0px 0px 9px 3px rgb(59, 130, 246);
 }
 .TeamArea.red > .roster .characters-container > .slot.current {
-    color: white;
+    color: var(--color-light);
     /* border-style: solid; */
     border-width: 0.25rem;
-    border-color: rgb(239, 68, 68);
+    border-color: rgb(159, 62, 62);
 
-    background-color: color-mix(in srgb, rgb(107, 114, 128) 60%, rgb(239, 68, 68) 40%);
+    background-color: color-mix(in srgb, rgb(27, 37, 51) 50%, rgb(159, 62, 62) 50%);
     box-shadow: 0px 0px 9px 3px rgb(239, 68, 68);
 }
 .TeamArea.blue > .roster .characters-container > .slot.next-up {
     border-width: 0.25rem;
-    border-color: rgb(59, 130, 246);
-    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(59, 130, 246) 10%);
+    border-color: rgb(31, 111, 175);
 }
 .TeamArea.red > .roster .characters-container > .slot.next-up {
     border-width: 0.25rem;
-    border-color: rgb(239, 68, 68);
-    background-color: color-mix(in srgb, rgb(55, 65, 81) 90%, rgb(239, 68, 68) 10%);
+    border-color: rgb(159, 62, 62);
 }
 
 /* Character card (Picks) */
@@ -270,7 +268,7 @@
     color: var(--color-cost);
     line-height: clamp(1.25rem, 2.1vw, 1.625rem);
 
-    background-color: rgba(0, 0, 0, 0.66);
+    background-color: rgba(0, 0, 0, 0.75);
 }
 .TeamArea .characters-container > .slot > .character > .total-cost .expanded {
     display: none;
@@ -292,13 +290,14 @@
 }
 
 /* Character's Image */
-.TeamArea .characters-container > .slot > .portrait {
+.TeamArea > .roster > .picks > .characters-container > .slot > .portrait {
     position: absolute;
     height: 100%;
     width: 100%;
     
     object-fit: cover;
     border-radius: 0.5rem;
+    filter: brightness(0.9);
 }
 
 /* Character verticals (Eidolon/Imposition) container */
@@ -313,7 +312,7 @@
 
     padding: 0.25rem 0.5rem;
 
-    background-color: rgba(0, 0, 0, 0.66);
+    background-color: rgba(0, 0, 0, 0.75);
 }
 .TeamArea .characters-container > .slot > .character > .verticals option {
     color: black;
@@ -402,7 +401,7 @@
 
     /* Empty icon is bigger in TeamArea, takes up overall less space */
     padding: 1.25rem;
-    padding-left: 0.875rem;
+    padding-left: 1rem;
     margin-right: -0.25rem;
     margin-bottom: -0.375rem;
 }
@@ -437,7 +436,7 @@
 
     /* Matching the space taken by Drafting tab */
     margin-top: -0.25rem;
-    margin-bottom: -0.8125rem;
+    margin-bottom: -1.0625rem;
 
     text-align: center;
     color: rgb(209, 213, 219);
@@ -445,20 +444,23 @@
     font-weight: bold;
 }
 .TeamArea > .pairing > .info .total-cost {
+    flex-shrink: 0;
     padding: 0.625rem 0.875rem;
     border-radius: 0.25rem;
     font-size: clamp(1.25rem, 2.1vw, 1.5rem);
     font-weight: bold;
     line-height: 1.5rem;
     color: var(--color-cost);
-    background-color: rgba(0, 0, 0, 0.33);
+
+    background-color: rgb(46, 42, 30);
+    border: 1px solid rgb(94, 82, 50);
 }
 .TeamArea > .pairing > .info > p {
     text-align: start;
     color: rgb(209, 213, 219);
     font-size: 1.125rem;
     font-weight: bold;
-    line-height: 1.5rem;
+    line-height: 1.125rem;
 }
 
 /* 1st/2nd Stage */
@@ -487,7 +489,8 @@
     line-height: 1.5rem;
     color: var(--color-cost);
 
-    background-color: rgba(0, 0, 0, 0.33);
+    background-color: rgb(46, 42, 30);
+    border: 1px solid rgb(94, 82, 50);
 }
 
 /* Characters container */
@@ -518,9 +521,12 @@
 }
 .TeamArea > .pairing .characters-container > .slot:hover {
     border-color: transparent;
-    outline-color: rgb(96, 195, 230);
+    box-shadow: none;
+    outline-color: rgba(31, 164, 169, 0.85);
 }
 .TeamArea > .pairing .characters-container > .slot.empty {
+    /* An empty slot should never appear in the pairing tab. */
+
     align-items: center;
     justify-content: center;
     font-size: 1.188rem;
@@ -551,6 +557,7 @@
     
     object-fit: cover;
     border-radius: 0.5rem;
+    filter: brightness(0.9);
 }
 .TeamArea > .pairing .characters-container > .slot .synergy-icon {
     height: clamp(1.25rem, 2.1vw, 1.625rem);
@@ -595,10 +602,10 @@
 
     font-weight: bold;
     border-radius: 0.5rem;
-    background-color: rgb(8, 145, 178);
+    background-color: rgb(31, 164, 169);
 }
 .TeamArea > .pairing > .stage .synergies .empty-message {
-    color: rgb(209, 213, 219);
+    color: rgb(159, 176, 195);
     font-style: italic;
 }
 
@@ -612,6 +619,11 @@
     /* double grid column in smaller screens */
     .TeamArea > .roster > .picks > .characters-container, .TeamArea > .pairing .characters-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Prevents element overlap */
+    .TeamArea > .pairing > .info {
+        margin-bottom: 0;
     }
 }
 

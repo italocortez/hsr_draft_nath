@@ -43,11 +43,11 @@
 /* Blue/Red specifics */
 .DraftTimer > .content > .team.blue {
     text-align: start;
-    color: rgb(59, 130, 246);
+    color: rgb(95, 168, 230);
 }
 .DraftTimer > .content > .team.red {
     text-align: end;
-    color: rgb(239, 68, 68);
+    color: rgb(224, 124, 124);
 }
 
 /* Draft status */
@@ -68,7 +68,6 @@
     font-size: clamp(1.25rem, 1.8vw, 1.375rem);
     font-weight: bold;
     line-height: 1.75rem;
-    color: rgb(250, 204, 21);
 }
 .DraftTimer > .content > .draft-status > .timer {
     display: flex;
@@ -87,7 +86,6 @@
 .DraftTimer > .content > .draft-status > .begin-draft {
     text-align: center;
     font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-    color: rgb(250, 204, 21);
     font-weight: bold;
     line-height: 1.875rem;
     transform: translateY(-0.5rem);
